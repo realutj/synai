@@ -749,8 +749,10 @@ export async function runCli(): Promise<void> {
     .option("-k, --key <api-key>", "API key override")
     .option("-v, --verbose", "Show detailed agent reasoning")
     .action(async (topic: string) => {
-      const { default: createCollabCommand } =
+      const { default: createCollabCommand, setCollabOutput } =
         await import("./commands/collab");
+      // Inject output utilities
+      setCollabOutput(writeln, writeErr);
       const cmd = createCollabCommand();
       await cmd.parseAsync([topic, ...collabCmd.args.slice(1)], {
         from: "user",

@@ -29,7 +29,7 @@ if (!isMainThread) {
   // The hub daemon owns its process-level abort handling. Installing the CLI's
   // fatal rejection handler first would make expected abort rejections exit it.
   // void import("@synai/core/hub/daemon-entry");
-  console.log("Hub daemon mode not yet implemented");
+  // Hub daemon mode temporarily disabled
   process.exit(0);
 } else {
   // Same reasoning as the daemon sentinel above: consume the supervised-connector

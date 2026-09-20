@@ -6,6 +6,18 @@
 import { Command } from "commander";
 import { MultiAgentOrchestrator, DEFAULT_AGENTS } from "@synai/core";
 
+// Output utilities - will be injected via closure
+let writeln: (str: string) => void = console.log;
+let writeErr: (str: string) => void = console.error;
+
+export function setCollabOutput(
+  writeOutput: (str: string) => void,
+  writeError: (str: string) => void,
+) {
+  writeln = writeOutput;
+  writeErr = writeError;
+}
+
 interface CollabOptions {
   agents?: string;
   rounds?: string;
@@ -66,7 +78,7 @@ async function runCollaboration(
   topic: string,
   options: CollabOptions,
 ): Promise<void> {
-  console.log("Initializing multi-agent collaboration...\n");
+  writeln("Initializing multi-agent collaboration...\n");
 
   try {
     // Parse agent selection
@@ -79,10 +91,10 @@ async function runCollaboration(
     );
 
     if (selectedAgents.length === 0) {
-      console.error("❌ No valid agents selected\n");
-      console.log("Available agents:");
+      writeErr("❌ No valid agents selected\n");
+      writeln("Available agents:");
       DEFAULT_AGENTS.forEach((agent) => {
-        console.log(`  • ${agent.id} - ${agent.role}`);
+        writeln(`  • ${agent.id} - ${agent.role}`);
       });
       process.exit(1);
     }
@@ -104,10 +116,10 @@ async function runCollaboration(
           modelAssignments.set(agent.id, models[index]);
         });
       } else {
-        console.error(
+        writeErr(
           `❌ Model count mismatch: ${models.length} models for ${selectedAgents.length} agents\n`,
         );
-        console.log(
+        writeln(
           "Either provide one model for all agents, or one model per agent.",
         );
         process.exit(1);
@@ -119,22 +131,20 @@ async function runCollaboration(
       });
     }
 
-    console.log(
-      `✅ Starting collaboration with ${selectedAgents.length} agents\n`,
-    );
+    writeln(`✅ Starting collaboration with ${selectedAgents.length} agents\n`);
 
     // Display participants
-    console.log("═══════════════════════════════════════════════════════");
-    console.log("🤝 MULTI-AGENT COLLABORATION");
-    console.log(`Topic: ${topic}`);
-    console.log("═══════════════════════════════════════════════════════\n");
+    writeln("═══════════════════════════════════════════════════════");
+    writeln("🤝 MULTI-AGENT COLLABORATION");
+    writeln(`Topic: ${topic}`);
+    writeln("═══════════════════════════════════════════════════════\n");
 
-    console.log("Participants:");
+    writeln("Participants:");
     selectedAgents.forEach((agent) => {
       const model = modelAssignments.get(agent.id) || "default";
-      console.log(`  • ${agent.name} — ${agent.role} [${model}]`);
+      writeln(`  • ${agent.name} — ${agent.role} [${model}]`);
     });
-    console.log("");
+    writeln("");
 
     // Initialize orchestrator
     const orchestrator = new MultiAgentOrchestrator();
@@ -147,7 +157,7 @@ async function runCollaboration(
     const maxRounds = parseInt(options.rounds);
 
     // Collaboration loop
-    console.log("Discussion:\n");
+    writeln("Discussion:\n");
 
     for (let round = 0; round < maxRounds; round++) {
       for (const agent of selectedAgents) {
@@ -182,8 +192,8 @@ async function runCollaboration(
         // Display message
         const icon = round === maxRounds - 1 ? "✅" : round === 0 ? "💡" : "💬";
         const agentModel = modelAssignments.get(agent.id) || "default";
-        console.log(`${icon} ${agent.name} [${agentModel}]:`);
-        console.log(`   ${response}\n`);
+        writeln(`${icon} ${agent.name} [${agentModel}]:`);
+        writeln(`   ${response}\n`);
 
         // Small delay for readability
         await new Promise((resolve) => setTimeout(resolve, 500));
@@ -191,12 +201,12 @@ async function runCollaboration(
 
       // Check for consensus
       if (orchestrator.hasReachedConsensus(session.id)) {
-        console.log("✅ Consensus reached!\n");
+        writeln("✅ Consensus reached!\n");
         break;
       }
 
       if (round < maxRounds - 1) {
-        console.log(`--- Round ${round + 2} ---\n`);
+        writeln(`--- Round ${round + 2} ---\n`);
       }
     }
 
@@ -205,13 +215,13 @@ async function runCollaboration(
     orchestrator.completeSession(session.id, finalResult);
 
     // Display final result
-    console.log("\n═══════════════════════════════════════════════════════");
-    console.log("✅ FINAL DECISION:\n");
-    console.log(finalResult);
-    console.log("═══════════════════════════════════════════════════════");
+    writeln("\n═══════════════════════════════════════════════════════");
+    writeln("✅ FINAL DECISION:\n");
+    writeln(finalResult);
+    writeln("═══════════════════════════════════════════════════════");
   } catch (error) {
-    console.error("❌ Collaboration failed");
-    console.error("\n" + (error as Error).message);
+    writeErr("❌ Collaboration failed");
+    writeErr("\n" + (error as Error).message);
     process.exit(1);
   }
 }
