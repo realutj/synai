@@ -4,7 +4,7 @@
  */
 
 import { Command } from "commander";
-import { MultiAgentOrchestrator, DEFAULT_AGENTS } from "synai-core";
+import { MultiAgentOrchestrator, DEFAULT_AGENTS } from "@synai/core";
 
 interface CollabOptions {
   agents?: string;

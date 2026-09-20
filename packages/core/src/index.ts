@@ -24,4 +24,13 @@ export * from "./tools/math_tool.js";
 export * from "./tools/registry.js";
 export * from "./agent/index.js";
 export * from "./server/index.js";
-export * from "./multiagent/index.js";
+
+// Multi-agent exports with renamed types to avoid conflicts
+export {
+  type Agent as MultiAgent,
+  type Message as MultiAgentMessage,
+  type CollaborationSession,
+  DEFAULT_AGENTS,
+  MultiAgentOrchestrator,
+  formatCollaborationOutput,
+} from "./multiagent/index.js";

@@ -1,7 +1,7 @@
 {
 	"name": "synai",
 	"displayName": "SynAI CLI",
-	"version": "1.4.0",
+	"version": "1.4.1",
 	"description": "SynAI — Autonomous Next-Gen AI Coding Assistant CLI in your terminal",
 	"type": "module",
 	"publishConfig": {
@@ -74,7 +74,6 @@
 		"@chat-adapter/telegram": "^4.23.0",
 		"@chat-adapter/whatsapp": "^4.23.0",
 		"@clack/prompts": "^1.2.0",
-
 		"@gramio/format": "^0.7.0",
 		"@opentui-ui/dialog": "^0.1.2",
 		"@opentui/core": "0.4.3",
@@ -84,7 +83,6 @@
 		"fzf": "^0.5.2",
 		"marked": "^15.0.12",
 		"open": "^10.2.0",
-		"opentui-spinner": "^0.0.7",
 		"pino": "^10.3.1",
 		"posthog-node": "^5.8.0",
 		"react": "19.2.4",
@@ -95,8 +93,8 @@
 		"zod": "^4.1.11"
 	},
 	"devDependencies": {
-		"synai-core": "^1.3.0",
-		"synai-shared": "^1.3.0",
+		"@synai/core": "^1.3.0",
+		"@synai/shared": "^1.3.0",
 		"@microsoft/tui-test": "^0.0.2",
 		"@types/bun": "^1.3.10",
 		"@types/react": "19.2.14",
