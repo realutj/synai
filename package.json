@@ -1,0 +1,47 @@
+{
+  "name": "synai-workspace",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "description": "SynAI — Open-Source AI Coding Assistant (CLI + Web) powered by OpenRouter",
+  "workspaces": [
+    "packages/shared",
+    "packages/core",
+    "packages/cli",
+    "packages/web",
+    "packages/vscode-extension"
+  ],
+  "scripts": {
+    "build": "npm run build:shared && npm run build:core && npm run build:web && npm run sync:assets && npm run build:cli",
+    "build:shared": "npm --workspace=synai-shared run build",
+    "build:core": "npm --workspace=synai-core run build",
+    "build:cli": "npm --workspace=synai-cli run build",
+    "build:web": "npm --workspace=synai-web run build",
+    "sync:assets": "node scripts/sync-assets.mjs",
+    "dev:cli": "npm --workspace=synai run dev",
+    "dev:web": "npm --workspace=@synai/web run dev",
+    "start": "node packages/cli/bin/synai.js",
+    "bundle": "node scripts/bundle-zip.js",
+    "publish:all": "npm --workspace=synai-shared publish --access public && npm --workspace=synai-core publish --access public && npm --workspace=synai publish --access public",
+    "publish:dry-run": "npm --workspace=synai-shared publish --dry-run --access public && npm --workspace=synai-core publish --dry-run --access public && npm --workspace=synai publish --dry-run --access public"
+  },
+  "keywords": [
+    "ai",
+    "coding-agent",
+    "ai-coding-assistant",
+    "autonomous-agent",
+    "synai-agent",
+    "openrouter",
+    "llm",
+    "cli",
+    "web-ui"
+  ],
+  "author": "SynAI Community",
+  "license": "MIT",
+  "dependencies": {
+    "node-notifier": "^10.0.1",
+    "play-sound": "^1.1.6",
+    "puppeteer": "^25.10.0",
+    "puppeteer-core": "^25.10.0"
+  }
+}

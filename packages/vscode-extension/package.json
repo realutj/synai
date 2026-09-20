@@ -1,0 +1,168 @@
+{
+  "name": "synai-vscode",
+  "displayName": "SynAI",
+  "description": "Autonomous AI Coding Agent for VS Code - Powered by OpenRouter",
+  "version": "1.0.0",
+  "publisher": "synai",
+  "icon": "assets/icon.png",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Machine Learning",
+    "Other"
+  ],
+  "keywords": [
+    "ai",
+    "assistant",
+    "coding",
+    "agent",
+    "openrouter",
+    "automation",
+    "copilot",
+    "chatgpt",
+    "claude"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "synai.start",
+        "title": "SynAI: Start Agent",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "synai.stop",
+        "title": "SynAI: Stop Agent",
+        "icon": "$(stop)"
+      },
+      {
+        "command": "synai.openSettings",
+        "title": "SynAI: Open Settings",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "synai.selectModel",
+        "title": "SynAI: Select Model",
+        "icon": "$(symbol-parameter)"
+      },
+      {
+        "command": "synai.clearHistory",
+        "title": "SynAI: Clear Chat History",
+        "icon": "$(clear-all)"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "synai-sidebar",
+          "title": "SynAI",
+          "icon": "assets/sidebar-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "synai-sidebar": [
+        {
+          "type": "webview",
+          "id": "synai.chatView",
+          "name": "Chat"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "SynAI",
+      "properties": {
+        "synai.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenRouter API Key",
+          "order": 1
+        },
+        "synai.model": {
+          "type": "string",
+          "default": "anthropic/claude-3.5-sonnet",
+          "description": "Default model to use",
+          "enum": [
+            "anthropic/claude-3.5-sonnet",
+            "anthropic/claude-3-opus",
+            "openai/gpt-4-turbo",
+            "openai/gpt-4",
+            "google/gemini-pro",
+            "meta-llama/llama-3-70b-instruct"
+          ],
+          "order": 2
+        },
+        "synai.autoApprove": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically approve tool usage without confirmation",
+          "order": 3
+        },
+        "synai.maxTokens": {
+          "type": "number",
+          "default": 4096,
+          "description": "Maximum tokens for model responses",
+          "order": 4
+        },
+        "synai.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Model temperature (creativity level)",
+          "order": 5
+        }
+      }
+    },
+    "keybindings": [
+      {
+        "command": "synai.start",
+        "key": "ctrl+shift+a",
+        "mac": "cmd+shift+a"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "build": "tsc && npm run build:webview",
+    "build:webview": "vite build",
+    "dev": "tsc --watch",
+    "dev:webview": "vite",
+    "package": "vsce package",
+    "publish": "vsce publish",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "dependencies": {
+    "@synai/core": "workspace:*",
+    "@synai/shared": "workspace:*",
+    "axios": "^1.7.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^2.22.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/synai/synai.git",
+    "directory": "packages/vscode-extension"
+  },
+  "bugs": {
+    "url": "https://github.com/synai/synai/issues"
+  },
+  "homepage": "https://github.com/synai/synai#readme",
+  "license": "MIT"
+}

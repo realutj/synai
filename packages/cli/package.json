@@ -1,0 +1,106 @@
+{
+	"name": "synai",
+	"displayName": "SynAI CLI",
+	"version": "1.4.0",
+	"description": "SynAI — Autonomous Next-Gen AI Coding Assistant CLI in your terminal",
+	"type": "module",
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/realutj/synai.git",
+		"directory": "packages/cli"
+	},
+	"keywords": [
+		"synai",
+		"ai",
+		"coding-assistant",
+		"openrouter",
+		"autonomous",
+		"agent",
+		"developer-tools",
+		"code-generation",
+		"cli",
+		"terminal"
+	],
+	"author": {
+		"name": "SynAI Contributors"
+	},
+	"license": "MIT",
+	"homepage": "https://github.com/realutj/synai#readme",
+	"bugs": {
+		"url": "https://github.com/realutj/synai/issues"
+	},
+	"bin": {
+		"synai": "bin/synai.js"
+	},
+	"engines": {
+		"node": ">=22"
+	},
+	"main": "dist/index.js",
+	"exports": {
+		".": "./dist/index.js"
+	},
+	"files": [
+		"dist",
+		"bin"
+	],
+	"scripts": {
+		"build": "echo 'Using pre-built dist'",
+		"build:platforms": "bun script/build.ts --install-native-variants",
+		"build:platforms:single": "bun script/build.ts --single",
+		"prepack": "echo 'Skipping prepack'",
+		"prepublishOnly": "echo 'Skipping prepublish'",
+		"publish:npm": "bun script/publish-npm.ts",
+		"publish:npm:dry": "bun script/publish-npm.ts --dry-run",
+		"dev": "SYNAI_BUILD_ENV=development bun --conditions=development ./src/index.ts",
+		"typecheck": "tsc --noEmit",
+		"test": "bun run test:unit",
+		"test:unit": "vitest run --config vitest.config.ts",
+		"test:e2e": "vitest run --config vitest.e2e.config.ts",
+		"test:e2e:interactive": "vitest run --config vitest.interactive.e2e.config.ts",
+		"test:e2e:tuistory": "vitest run --config vitest.tuistory.e2e.config.ts",
+		"test:watch": "vitest --config vitest.config.ts",
+		"test:e2e:cli:tui": "cd src/tests && tui-test",
+		"link": "bun unlink && bun link"
+	},
+	"dependencies": {
+		"@agentclientprotocol/sdk": "^0.16.1",
+		"@chat-adapter/discord": "^4.23.0",
+		"@chat-adapter/gchat": "^4.23.0",
+		"@chat-adapter/linear": "^4.23.0",
+		"@chat-adapter/slack": "^4.23.0",
+		"@chat-adapter/telegram": "^4.23.0",
+		"@chat-adapter/whatsapp": "^4.23.0",
+		"@clack/prompts": "^1.2.0",
+
+		"@gramio/format": "^0.7.0",
+		"@opentui-ui/dialog": "^0.1.2",
+		"@opentui/core": "0.4.3",
+		"@opentui/react": "0.4.3",
+		"chat": "^4.23.0",
+		"commander": "^14.0.3",
+		"fzf": "^0.5.2",
+		"marked": "^15.0.12",
+		"open": "^10.2.0",
+		"opentui-spinner": "^0.0.7",
+		"pino": "^10.3.1",
+		"posthog-node": "^5.8.0",
+		"react": "19.2.4",
+		"react-devtools-core": "^7.0.1",
+		"react-reconciler": "0.33.0",
+		"yaml": "^2.8.2",
+		"nanoid": "^5.1.7",
+		"zod": "^4.1.11"
+	},
+	"devDependencies": {
+		"synai-core": "^1.3.0",
+		"synai-shared": "^1.3.0",
+		"@microsoft/tui-test": "^0.0.2",
+		"@types/bun": "^1.3.10",
+		"@types/react": "19.2.14",
+		"tuistory": "^0.10.1",
+		"vitest": "^4.0.18"
+	}
+}
