@@ -1,7 +1,7 @@
 {
 	"name": "synai",
 	"displayName": "SynAI CLI",
-	"version": "1.4.1",
+	"version": "1.4.2",
 	"description": "SynAI — Autonomous Next-Gen AI Coding Assistant CLI in your terminal",
 	"type": "module",
 	"publishConfig": {
