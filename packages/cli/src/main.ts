@@ -759,6 +759,30 @@ export async function runCli(): Promise<void> {
       });
     });
 
+  // Voice chat command
+  program
+    .command("voice")
+    .alias("speak")
+    .alias("talk")
+    .description("🎤 Voice chat - Talk with AI using your microphone")
+    .option(
+      "-l, --language <code>",
+      "Voice recognition language (default: en-US)",
+    )
+    .option("-v, --voice <name>", "Voice for text-to-speech")
+    .option("--no-auto-speak", "Don't automatically speak AI responses")
+    .option("-P, --provider <id>", "AI provider (default: openrouter)")
+    .option("-m, --model <id>", "AI model to use")
+    .option("-k, --key <api-key>", "API key override")
+    .action(async () => {
+      const { default: createVoiceCommand, setVoiceOutput } =
+        await import("./commands/voice");
+      // Inject output utilities
+      setVoiceOutput(writeln, writeErr);
+      const cmd = createVoiceCommand();
+      await cmd.parseAsync(program.args.slice(1), { from: "user" });
+    });
+
   try {
     await program.parseAsync(normalizedArgs, { from: "user" });
   } catch (err: unknown) {
