@@ -58,10 +58,9 @@ signed before publishing when signed artifacts are required. Signing can
 reduce operating-system warnings but cannot guarantee that antivirus software
 will never flag a file.
 
-## Resolver and Postinstall
+## Resolver and Installation
 
-The npm wrapper's `bin/synai.js` finds the matching `synai-cli-*` package and
-starts its executable. On macOS and Linux, the postinstall script may create a
-cached link at `bin/.synai`; the resolver also searches the installed package
-directly, so the cache is optional. On Windows, npm creates the command shim
-from the wrapper's `bin` field and the resolver starts the `.exe`.
+The npm wrapper's `bin/synai.js` resolves the matching `synai-cli-*` package and
+starts its executable. Installation has no lifecycle hooks: npm only unpacks
+the platform binary, logo, README, and license. On Windows, npm creates the
+command shim from the wrapper's `bin` field and the resolver starts the `.exe`.

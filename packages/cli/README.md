@@ -1,7 +1,7 @@
 # SynAI CLI
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/7123f9d1-afeb-48d5-93fa-e750dec0ebba" width="70%" />
+  <img src="https://cdn.jsdelivr.net/npm/synai@latest/assets/synai-logo.png" width="240" alt="SynAI" />
 </p>
 
 <div align="center">
@@ -29,7 +29,7 @@
 </table>
 </div>
 
-Run synai in your terminal. Interactive chat for paired sessions, or fully headless for CI/CD and scripting. The CLI shares its agent core with the [SynAI VS Code extension](https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev), JetBrains plugin, and SDK, so plan/act modes, MCP servers, checkpoints, rules, skills, and provider configuration all behave the same across surfaces.
+Run synai in your terminal. Interactive chat for paired sessions, or fully headless for CI/CD and scripting. The CLI shares its agent core with the [SynAI VS Code extension](https://marketplace.visualstudio.com/items?itemName=realutj.synai-vscode), JetBrains plugin, and SDK, so plan/act modes, MCP servers, checkpoints, rules, skills, and provider configuration all behave the same across surfaces.
 
 ## Install
 

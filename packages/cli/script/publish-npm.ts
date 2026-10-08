@@ -215,10 +215,11 @@ const mainPkgDir = join(cliDir, "dist", "cli");
 
 rmSync(mainPkgDir, { recursive: true, force: true });
 mkdirSync(join(mainPkgDir, "bin"), { recursive: true });
+mkdirSync(join(mainPkgDir, "assets"), { recursive: true });
 cpSync(join(cliDir, "bin/synai.js"), join(mainPkgDir, "bin/synai.js"));
 cpSync(
-	join(cliDir, "script/postinstall.mjs"),
-	join(mainPkgDir, "postinstall.mjs"),
+	join(cliDir, "assets/synai-logo.png"),
+	join(mainPkgDir, "assets/synai-logo.png"),
 );
 
 // Copy LICENSE from repo root if it exists
@@ -277,9 +278,7 @@ const wrapperPackageJson = {
 	bin: {
 		synai: "./bin/synai.js",
 	},
-	scripts: {
-		postinstall: "node ./postinstall.mjs || true",
-	},
+	files: ["assets", "bin", "LICENSE", "README.md"],
 	optionalDependencies: binaries,
 };
 

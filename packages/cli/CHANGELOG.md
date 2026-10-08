@@ -1,5 +1,12 @@
 # SynAI CLI Changelog
 
+## 3.0.66
+
+- Replaced the outdated Cline-branded npm README image with the SynAI wordmark and corrected the VS Code extension link.
+- Removed the npm install hook so installing the CLI no longer executes code that inspects or modifies existing SynAI data files.
+- Simplified the npm launcher to resolve and start only the matching platform package.
+- Published wrapper metadata with an explicit, minimal file list and no lifecycle scripts.
+
 ## 3.0.65
 
 - Replaced imported model prompts with SynAI-owned templates and removed a machine-specific desktop path from prompt loading.

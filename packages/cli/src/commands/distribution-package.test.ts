@@ -55,9 +55,6 @@ describe("CLI distribution package shape", () => {
 						bin: {
 							synai: "./bin/synai",
 						},
-						scripts: {
-							postinstall: "node ./postinstall.mjs || true",
-						},
 						optionalDependencies: {
 							"@synai/cli-linux-x64": "1.2.3",
 						},
@@ -75,11 +72,6 @@ describe("CLI distribution package shape", () => {
 				].join("\n"),
 			);
 			await chmod(join(packageDir, "bin", "synai"), 0o755);
-			await writeFile(
-				join(packageDir, "postinstall.mjs"),
-				"process.exit(0);\n",
-			);
-
 			const result = spawnSync("bun", ["pm", "pack"], {
 				cwd: packageDir,
 				encoding: "utf8",

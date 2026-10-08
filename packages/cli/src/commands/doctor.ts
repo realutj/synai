@@ -388,8 +388,8 @@ async function clearHubStartupArtifacts(
 		clearedDiscovery = 1;
 	}
 	if (options?.clearDiscovery) {
-		// The set-aside copy the npm postinstall shield leaves behind. Once
-		// doctor has deliberately stopped everything, keeping it risks a much
+		// Legacy npm releases moved this discovery record aside during updates.
+		// Once doctor has deliberately stopped everything, keeping it risks a
 		// later launch SIGTERMing whatever process has recycled its pid.
 		clearPathIfExists(`${owner.discoveryPath}.superseded`);
 	}
@@ -420,11 +420,9 @@ function resolveCliHubOwnerContext() {
 
 async function collectDoctorStatus(cwd: string): Promise<DoctorStatus> {
 	const owner = resolveCliHubOwnerContext();
-	// The npm postinstall shield sets the discovery record aside (see
-	// readSupersededHubDiscovery) while an older hub finishes serving its
-	// sessions. Without the fallback, doctor cannot see that hub, classifies
-	// the live daemon as stale, and its "run doctor fix" advice kills the
-	// sessions the shield exists to protect.
+	// Older npm releases temporarily set aside the discovery record during
+	// upgrades (see readSupersededHubDiscovery). Read that legacy copy so
+	// doctor can still find a hub serving an existing session.
 	const recorded = await readHubDiscovery(owner.discoveryPath);
 	// The set-aside record carries only url/token/pid; widen so the two
 	// sources read uniformly below.
