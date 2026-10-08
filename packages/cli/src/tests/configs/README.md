@@ -13,7 +13,7 @@ Tests point to a config via `synaiEnv("<name>")` in `tests/e2e/cli/helpers/env.t
 ## Adding a new fixture
 
 1. Create `configs/<name>/data/globalState.json` with the desired state.
-2. Create `configs/<name>/data/settings/cline_mcp_settings.json` (can be `{ "mcpServers": {} }`).
+2. Create `configs/<name>/data/settings/synai_mcp_settings.json` (can be `{ "mcpServers": {} }`).
 3. Reference it in tests with `synaiEnv("<name>")`.
 
 ## Secrets

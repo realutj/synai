@@ -256,7 +256,7 @@ describe("handleEvent text formatting", () => {
 
 		expect(errorOutput).toContain("SynAIPass limit reached");
 		expect(errorOutput).toContain("Switch to synai usage-based billing");
-		expect(errorOutput).toContain("--provider cline");
+		expect(errorOutput).toContain("--provider synai");
 	});
 
 	it("formats daily free model limit agent errors before writing to stderr", () => {
@@ -283,7 +283,7 @@ describe("handleEvent text formatting", () => {
 				error: new Error("Error 404: model not found"),
 				recoverable: false,
 			} as unknown as AgentEvent,
-			{ modelId: "cline-free/retired-model" } as Config,
+			{ modelId: "synai-free/retired-model" } as Config,
 		);
 
 		expect(errorOutput).toContain("Free model promotion ended");

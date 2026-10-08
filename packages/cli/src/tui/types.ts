@@ -2,7 +2,7 @@ import type {
 	AgentEvent,
 	AgentMode,
 	CheckpointEntry,
-	ClineSubscriptionPlan,
+	SynaiSubscriptionPlan,
 	TeamEvent,
 } from "@synai/core";
 import type {
@@ -17,7 +17,7 @@ import type {
 import type { HistoryExportFormat } from "../session/history-export";
 import type { RepoStatus } from "../utils/repo-status";
 import type { CliCompactionMode, Config } from "../utils/types";
-import type { ClineAccountSnapshot } from "./synai-account";
+import type { SynaiAccountSnapshot } from "./synai-account";
 import type {
 	InteractiveConfigData,
 	InteractiveConfigItem,
@@ -155,9 +155,9 @@ export interface TuiProps {
 	workflowSlashCommands?: InteractiveSlashCommand[];
 	loadAdditionalSlashCommands?: () => Promise<InteractiveSlashCommand[]>;
 	loadWelcomeLine?: () => Promise<string | undefined>;
-	loadClineAccount: () => Promise<ClineAccountSnapshot>;
-	loadIndividualSubscriptionPlans?: () => Promise<ClineSubscriptionPlan[]>;
-	switchClineAccount: (organizationId?: string | null) => Promise<void>;
+	loadSynaiAccount: () => Promise<SynaiAccountSnapshot>;
+	loadIndividualSubscriptionPlans?: () => Promise<SynaiSubscriptionPlan[]>;
+	switchSynaiAccount: (organizationId?: string | null) => Promise<void>;
 	loadConfigData: (
 		options?: LoadInteractiveConfigDataOptions,
 	) => Promise<InteractiveConfigData>;

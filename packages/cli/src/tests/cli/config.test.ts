@@ -8,14 +8,14 @@
 
 import { test } from "@microsoft/tui-test";
 import { SYNAI_BIN, TERMINAL_WIDE } from "../helpers/constants.js";
-import { clineEnv } from "../helpers/env.js";
+import { synaiEnv } from "../helpers/env.js";
 import { expectVisible } from "../helpers/terminal.js";
 
-test.describe("cline config --help", () => {
+test.describe("synai config --help", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["config", "--help"] },
 		...TERMINAL_WIDE,
-		env: clineEnv("default"),
+		env: synaiEnv("default"),
 	});
 
 	test("shows config help page", async ({ terminal }) => {

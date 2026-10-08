@@ -25,7 +25,7 @@ vi.mock("@synai/core", async (importOriginal) => {
 	const actual = await importOriginal<typeof import("@synai/core")>();
 	return {
 		...actual,
-		ClineAccountService: class {
+		SynaiAccountService: class {
 			constructor(options: {
 				apiBaseUrl: string;
 				getAuthToken: () => Promise<string | undefined | null>;
@@ -101,7 +101,7 @@ function mockFetchJson(body: unknown, status = 200): void {
 	);
 }
 
-describe("createClineAccountService", () => {
+describe("createSynaiAccountService", () => {
 	beforeEach(() => {
 		vi.restoreAllMocks();
 		vi.unstubAllGlobals();
@@ -134,7 +134,7 @@ describe("createClineAccountService", () => {
 					subject: "sub-new",
 					email: "new@example.com",
 					name: "New User",
-					clineUserId: "acct-new",
+					synaiUserId: "acct-new",
 					accounts: [],
 				},
 			},
@@ -149,8 +149,8 @@ describe("createClineAccountService", () => {
 			},
 		});
 
-		const { createClineAccountService } = await import("./synai-account");
-		const service = await createClineAccountService({ config: makeConfig() });
+		const { createSynaiAccountService } = await import("./synai-account");
+		const service = await createSynaiAccountService({ config: makeConfig() });
 
 		expect(service).toBeDefined();
 		expect(globalThis.fetch).toHaveBeenCalled();
@@ -189,17 +189,17 @@ describe("createClineAccountService", () => {
 			},
 		});
 
-		const { createClineAccountService } = await import("./synai-account");
+		const { createSynaiAccountService } = await import("./synai-account");
 
 		await expect(
-			createClineAccountService({ config: makeConfig() }),
+			createSynaiAccountService({ config: makeConfig() }),
 		).rejects.toThrow(
-			"Cline account requires re-authentication. Run synai auth cline.",
+			"Synai account requires re-authentication. Run synai login synai.",
 		);
 	});
 });
 
-describe("loadClineAccountSnapshot", () => {
+describe("loadSynaiAccountSnapshot", () => {
 	beforeEach(() => {
 		vi.restoreAllMocks();
 		vi.unstubAllGlobals();
@@ -224,7 +224,7 @@ describe("loadClineAccountSnapshot", () => {
 			provider: "synai",
 			apiKey: "account-token",
 		});
-		const { loadClineAccountSnapshot } = await import("./synai-account");
+		const { loadSynaiAccountSnapshot } = await import("./synai-account");
 		coreMocks.fetchMe.mockResolvedValue({
 			id: "user-1",
 			email: "user@example.com",
@@ -248,7 +248,7 @@ describe("loadClineAccountSnapshot", () => {
 			organizationId: "org-1",
 		});
 
-		await loadClineAccountSnapshot({ config: makeConfig() });
+		await loadSynaiAccountSnapshot({ config: makeConfig() });
 
 		expect(telemetryMocks.identifyTelemetryAccount).toHaveBeenCalledWith(
 			{
@@ -310,61 +310,61 @@ describe("loadIndividualSubscriptionPlans", () => {
 	});
 });
 
-describe("isClineAccountCreditsErrorMessage", () => {
+describe("isSynaiAccountCreditsErrorMessage", () => {
 	it("matches the raw insufficient_credits JSON payload from the synai API 402", async () => {
-		const { isClineAccountCreditsErrorMessage } = await import(
+		const { isSynaiAccountCreditsErrorMessage } = await import(
 			"./synai-account"
 		);
 		expect(
-			isClineAccountCreditsErrorMessage(
+			isSynaiAccountCreditsErrorMessage(
 				'{"code":"insufficient_credits","current_balance":-0.14,"message":"Not enough credits available"}',
 			),
 		).toBe(true);
 	});
 
 	it("matches the insufficient_credits payload wrapped in an error prefix", async () => {
-		const { isClineAccountCreditsErrorMessage } = await import(
+		const { isSynaiAccountCreditsErrorMessage } = await import(
 			"./synai-account"
 		);
 		expect(
-			isClineAccountCreditsErrorMessage(
+			isSynaiAccountCreditsErrorMessage(
 				'Error: {"code":"insufficient_credits","current_balance":0,"message":"Not enough credits available"}',
 			),
 		).toBe(true);
 	});
 
 	it("matches the plain human-readable synai API message", async () => {
-		const { isClineAccountCreditsErrorMessage } = await import(
+		const { isSynaiAccountCreditsErrorMessage } = await import(
 			"./synai-account"
 		);
 		expect(
-			isClineAccountCreditsErrorMessage("Not enough credits available"),
+			isSynaiAccountCreditsErrorMessage("Not enough credits available"),
 		).toBe(true);
 	});
 
 	it("matches the legacy insufficient balance phrasing", async () => {
-		const { isClineAccountCreditsErrorMessage } = await import(
+		const { isSynaiAccountCreditsErrorMessage } = await import(
 			"./synai-account"
 		);
 		expect(
-			isClineAccountCreditsErrorMessage(
+			isSynaiAccountCreditsErrorMessage(
 				"Insufficient balance. Your synai credits balance is $0.00.",
 			),
 		).toBe(true);
 	});
 
 	it("does not match unrelated errors", async () => {
-		const { isClineAccountCreditsErrorMessage } = await import(
+		const { isSynaiAccountCreditsErrorMessage } = await import(
 			"./synai-account"
 		);
-		expect(isClineAccountCreditsErrorMessage("Payment Required")).toBe(false);
+		expect(isSynaiAccountCreditsErrorMessage("Payment Required")).toBe(false);
 		expect(
-			isClineAccountCreditsErrorMessage(
+			isSynaiAccountCreditsErrorMessage(
 				"Your credit balance is too low to access the Anthropic API.",
 			),
 		).toBe(false);
 		expect(
-			isClineAccountCreditsErrorMessage("insufficient balance on gateway"),
+			isSynaiAccountCreditsErrorMessage("insufficient balance on gateway"),
 		).toBe(false);
 	});
 });

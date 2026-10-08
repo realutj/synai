@@ -22,7 +22,7 @@ function makeActions(
 		clearConversation: vi.fn(async () => {}),
 		openHelp: vi.fn(),
 		openHistory: vi.fn(),
-		exitCline: vi.fn(),
+		exitSynai: vi.fn(),
 		...overrides,
 	};
 }
@@ -150,8 +150,8 @@ describe("runLocalSlashCommandAction", () => {
 
 	it("exits synai with quit", () => {
 		vi.useFakeTimers();
-		const exitCline = vi.fn();
-		const actions = makeActions({ exitCline });
+		const exitSynai = vi.fn();
+		const actions = makeActions({ exitSynai });
 
 		try {
 			const handled = runLocalSlashCommandAction({
@@ -160,11 +160,11 @@ describe("runLocalSlashCommandAction", () => {
 			});
 
 			expect(handled).toBe(true);
-			expect(exitCline).not.toHaveBeenCalled();
+			expect(exitSynai).not.toHaveBeenCalled();
 
 			vi.runAllTimers();
 
-			expect(exitCline).toHaveBeenCalledOnce();
+			expect(exitSynai).toHaveBeenCalledOnce();
 		} finally {
 			vi.useRealTimers();
 		}

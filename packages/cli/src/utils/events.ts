@@ -191,8 +191,9 @@ export function handleEvent(event: AgentEvent, config: Config): void {
 					if (!media) break;
 					const saved = materializeGeneratedMedia(media);
 					if (saved) {
+						const displayPath = saved.path.replace(/\\/g, "/");
 						write(
-							`${c.dim}[generated ${media.modality}]${c.reset} ${saved.path}\n`,
+							`${c.dim}[generated ${media.modality}]${c.reset} ${displayPath}\n`,
 						);
 					} else if (media.source.type === "url") {
 						write(

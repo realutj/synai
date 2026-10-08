@@ -1,12 +1,44 @@
 import { createCliRenderer } from "@opentui/core";
-import { createRoot } from "@opentui/react";
+import * as opentui from "@opentui/core";
+import { createRoot, extend } from "@opentui/react";
+import { SpinnerRenderable } from "opentui-spinner";
 import { getInitialThemeId } from "./hooks/theme-provider";
+import { disableOpenTuiConsole, disableOpenTuiGraphicsProbe } from "./opentui-env";
 import { Root } from "./root";
+
+import { ensureSpinnerRegistered } from "./spinner-register";
+ensureSpinnerRegistered();
+/* Register the spinner host element with the CLI's own reconciler instance.
+ * The side-effect import (`import "opentui-spinner/react"`) registers against
+ * whichever @opentui/react copy Node/Bun resolves from the opentui-spinner
+ * package — which, in a workspace monorepo, is the root-hoisted copy rather
+ * than the CLI-local one. Calling extend() here guarantees the spinner class
+ * lands in the catalogue that createInstance actually checks. */
+extend({ spinner: SpinnerRenderable });
 import { installTuiStdioCapture } from "./stdio-capture";
 import { resolveTheme } from "./themes";
 import type { TuiProps } from "./types";
+import { OnboardingView } from "./views/onboarding";
 
 export type { TuiProps } from "./types";
+
+disableOpenTuiConsole();
+
+try {
+	const maybeTerminalConsole = (opentui as Record<string, any>).TerminalConsole;
+	if (maybeTerminalConsole?.prototype) {
+		maybeTerminalConsole.prototype.show = () => {};
+		maybeTerminalConsole.prototype.focus = () => {};
+		maybeTerminalConsole.prototype.toggle = () => {};
+		maybeTerminalConsole.prototype.renderToBuffer = () => {};
+	}
+} catch {}
+
+export async function loadAuthTuiRuntime() {
+	disableOpenTuiGraphicsProbe();
+	ensureSpinnerRegistered();
+	return { createCliRenderer, createRoot, OnboardingView };
+}
 
 export async function renderOpenTui(
 	props: TuiProps,
@@ -15,7 +47,16 @@ export async function renderOpenTui(
 		exitOnCtrlC: false,
 		autoFocus: false,
 		enableMouseMovement: true,
+		consoleMode: "disabled",
+		openConsoleOnError: false,
 	});
+	if (renderer.console) {
+		renderer.console.hide?.();
+		renderer.console.deactivate?.();
+		renderer.console.show = () => {};
+		renderer.console.toggle = () => {};
+		renderer.console.focus = () => {};
+	}
 	const restoreStdio = installTuiStdioCapture();
 
 	const detectedPalette = await renderer

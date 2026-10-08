@@ -20,7 +20,7 @@
 import { expect, test } from "@microsoft/tui-test";
 import type { Terminal } from "@microsoft/tui-test/lib/terminal/term";
 import { SYNAI_BIN, TERMINAL_WIDE } from "../helpers/constants.js";
-import { clineEnv } from "../helpers/env.js";
+import { synaiEnv } from "../helpers/env.js";
 import {
 	toggleAutoApproveAll,
 	waitForChatReady,
@@ -31,11 +31,11 @@ import {
 	typeAndSubmit,
 } from "../helpers/terminal.js";
 
-test.describe("cline (authenticated) - shows chat view", () => {
+test.describe("synai (authenticated) - shows chat view", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: [] },
 		...TERMINAL_WIDE,
-		env: clineEnv("default"),
+		env: synaiEnv("default"),
 	});
 
 	test("shows interactive chat view", async ({ terminal }) => {
@@ -47,7 +47,7 @@ test.describe("Auto-approve all - Shift+Tab toggle", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: [] },
 		...TERMINAL_WIDE,
-		env: clineEnv("default"),
+		env: synaiEnv("default"),
 	});
 
 	test("Shift+Tab toggles auto-approve-all setting", async ({ terminal }) => {
@@ -63,7 +63,7 @@ test.describe("Dialog dismissal - panel is fully removed", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: [] },
 		...TERMINAL_WIDE,
-		env: clineEnv("default"),
+		env: synaiEnv("default"),
 	});
 
 	type Background = {

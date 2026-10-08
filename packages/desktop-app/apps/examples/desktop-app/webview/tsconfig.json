@@ -1,0 +1,28 @@
+{
+	"extends": "../tsconfig.json",
+	"compilerOptions": {
+		"paths": {
+			"@/*": ["./*"],
+			"@synai/agents": ["../../../../sdk/packages/agents/src/index.ts"],
+			"@synai/core": ["../../../../sdk/packages/core/src/index.ts"],
+			"@synai/llms": ["../../../../sdk/packages/llms/src/index.ts"],
+			"@synai/shared": ["../../../../sdk/packages/shared/src/index.ts"],
+			"@synai/shared/storage": [
+				"../../../../sdk/packages/shared/src/storage/index.ts"
+			],
+			"@synai/shared/db": ["../../../../sdk/packages/shared/src/db/index.ts"],
+			"@synai/shared/*": [
+				"../../../../sdk/packages/shared/src/*",
+				"../../../../sdk/packages/shared/src/*/index.ts"
+			]
+		}
+	},
+	"include": [
+		"next-env.d.ts",
+		"**/*.ts",
+		"**/*.tsx",
+		".next/types/**/*.ts",
+		".next/dev/types/**/*.ts"
+	],
+	"exclude": ["node_modules"]
+}

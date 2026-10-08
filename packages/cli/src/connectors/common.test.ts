@@ -14,13 +14,13 @@ describe("spawnDetachedConnector", () => {
 		expect(
 			__test__.buildDetachedConnectorArgs(
 				["connect", "telegram"],
-				["-m", "ClineAdapterBot", "-k", "token-123"],
+				["-m", "SynaiAdapterBot", "-k", "token-123"],
 			),
 		).toEqual([
 			"connect",
 			"telegram",
 			"-m",
-			"ClineAdapterBot",
+			"SynaiAdapterBot",
 			"-k",
 			"token-123",
 			"-i",
@@ -33,7 +33,7 @@ describe("spawnDetachedConnector", () => {
 		expect(
 			__test__.buildDetachedConnectorCommand(
 				["connect", "telegram"],
-				["-m", "ClineAdapterBot", "-k", "token-123"],
+				["-m", "SynaiAdapterBot", "-k", "token-123"],
 				"/Users/test/.bun/bin/bun",
 				"./apps/cli/src/index.ts",
 				["--conditions=development"],
@@ -50,7 +50,7 @@ describe("spawnDetachedConnector", () => {
 				"connect",
 				"telegram",
 				"-m",
-				"ClineAdapterBot",
+				"SynaiAdapterBot",
 				"-k",
 				"token-123",
 				"-i",
@@ -64,7 +64,7 @@ describe("spawnDetachedConnector", () => {
 		expect(
 			__test__.buildDetachedConnectorCommand(
 				["connect", "telegram"],
-				["-m", "ClineAdapterBot"],
+				["-m", "SynaiAdapterBot"],
 				"/usr/local/bin/node",
 				"./apps/cli/src/index.ts",
 				[],
@@ -80,7 +80,7 @@ describe("spawnDetachedConnector", () => {
 				"connect",
 				"telegram",
 				"-m",
-				"ClineAdapterBot",
+				"SynaiAdapterBot",
 				"-i",
 			],
 		});
@@ -502,7 +502,7 @@ describe("tryClaimConnectorStateFile", () => {
 
 describe("detached connector log rotation", () => {
 	it("keeps one generation once the log grows past the cap", () => {
-		const dir = mkdtempSync(join(tmpdir(), "cline-connector-log-"));
+		const dir = mkdtempSync(join(tmpdir(), "synai-connector-log-"));
 		const logPath = join(dir, "synai-slack.log");
 		writeFileSync(logPath, "x".repeat(__test__.DETACHED_LOG_MAX_BYTES + 1));
 
@@ -515,7 +515,7 @@ describe("detached connector log rotation", () => {
 	});
 
 	it("leaves a small log in place so restarts keep their history", () => {
-		const dir = mkdtempSync(join(tmpdir(), "cline-connector-log-"));
+		const dir = mkdtempSync(join(tmpdir(), "synai-connector-log-"));
 		const logPath = join(dir, "synai-slack.log");
 		writeFileSync(logPath, "recent failure");
 
@@ -526,7 +526,7 @@ describe("detached connector log rotation", () => {
 	});
 
 	it("does nothing when there is no log yet", () => {
-		const dir = mkdtempSync(join(tmpdir(), "cline-connector-log-"));
+		const dir = mkdtempSync(join(tmpdir(), "synai-connector-log-"));
 		expect(() =>
 			__test__.rotateOversizedLog(join(dir, "missing.log")),
 		).not.toThrow();

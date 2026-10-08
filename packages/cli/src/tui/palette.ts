@@ -152,9 +152,9 @@ export function getModeInputBackground(
 	);
 }
 
-// The `─` rules framing the input field are thin foreground strokes rather
+// The `-` rules framing the input field are thin foreground strokes rather
 // than filled cells, so they need a much larger lift than a background tint
-// to register at the same perceptual weight — this lands them around mid-gray
+// to register at the same perceptual weight - this lands them around mid-gray
 // on both black and white terminals. They stay neutral (no mode chroma) so
 // the frame doesn't shift color when toggling plan/act.
 const RULE_BASE_LIFT = 0.5;

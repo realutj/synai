@@ -1,4 +1,5 @@
-import "opentui-spinner/react";
+import { ensureSpinnerRegistered } from "../../spinner-register";
+ensureSpinnerRegistered();
 import type { ScrollBoxRenderable } from "@opentui/core";
 import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
@@ -8,8 +9,8 @@ import type {
 	ProviderLocalCli,
 } from "../../../utils/local-cli";
 import {
-	ClineModelPicker,
-	type ClineModelPickerEntry,
+	SynaiModelPicker,
+	type SynaiModelPickerEntry,
 } from "../../components/model-selector/synai-model-picker";
 import {
 	type SearchableItem,
@@ -17,21 +18,35 @@ import {
 	type SearchableListState,
 } from "../../components/searchable-list";
 import {
-	TrackedRobot,
 	type useMouseTracker,
 } from "../../components/tracked-robot";
 import { useTheme } from "../../hooks/use-theme";
 import { getInputRuleColor, getUserMessageBackground } from "../../palette";
 import { FIELD_ORDER } from "./fields";
 import {
-	type ClinePassSubscriptionOption,
-	type ClinePassSubscriptionStatus,
+	type SynaiPassSubscriptionOption,
+	type SynaiPassSubscriptionStatus,
 	canContinueLocalCliSetup,
 	type MenuOption,
 	THINKING_LEVELS,
 } from "./model";
 
 type MouseTrackerState = ReturnType<typeof useMouseTracker>;
+
+const SYNAI_ASCII = {
+	compact: [
+		"### #.# #.# .#. ###",
+		"#.. .#. ### #.# .#.",
+		"### .#. #.# ### ###",
+	],
+	wide: [
+		"#####  #...#  #...#  .###.  #####",
+		"#....  #...#  ##..#  #...#  ..#..",
+		"#####  .###.  #.#.#  #####  ..#..",
+		"....#  ..#..  #..##  #...#  ..#..",
+		"#####  ..#..  #...#  #...#  #####",
+	],
+} as const;
 
 function useDefaultFg(): string | undefined {
 	return useTheme().defaultForeground;
@@ -54,7 +69,7 @@ function useOnboardingColors() {
 	};
 }
 
-function getClinePassSubscriptionOptionId(index: number): string {
+function getSynaiPassSubscriptionOptionId(index: number): string {
 	return `synai-pass-subscription-option-${index}`;
 }
 
@@ -103,7 +118,7 @@ export function OnboardingDoneScreen(props: { mouse: MouseTrackerState }) {
 			alignItems="center"
 			onMouseMove={props.mouse.onMouseMove}
 		>
-			<text fg={colors.success}>{"\u2714"} You're all set!</text>
+			<text fg={colors.success}>{"[OK]"} You're all set!</text>
 		</box>
 	);
 }
@@ -338,7 +353,7 @@ export function OnboardingProviderConfigScreen(props: {
 									}}
 								>
 									<text fg={colors.accent}>
-										<strong>[ 📋 Paste Clipboard (Ctrl+V) ]</strong>
+										<strong>[  Paste Clipboard (Ctrl+V) ]</strong>
 									</text>
 								</box>
 							</box>
@@ -410,7 +425,7 @@ export function OnboardingLocalCliScreen(props: {
 				{installedStatus && (
 					<box flexDirection="column" gap={1} alignItems="center">
 						<text fg={colors.success}>
-							{"\u25cf"} {props.activeProviderName} installed
+							{"[*]"} {props.activeProviderName} installed
 						</text>
 						<text fg="gray">{installedStatus.version}</text>
 					</box>
@@ -483,7 +498,7 @@ export function OnboardingProviderPickerScreen(props: {
 
 			<text fg="gray" paddingX={1}>
 				<em>
-					Type to search, ↑/↓ navigate, Enter to select, Esc to go back, Ctrl+C
+					Type to search, Up/Down navigate, Enter to select, Esc to go back, Ctrl+C
 					to exit
 				</em>
 			</text>
@@ -491,9 +506,9 @@ export function OnboardingProviderPickerScreen(props: {
 	);
 }
 
-export function OnboardingClineModelScreen(props: {
-	clineEntries: ClineModelPickerEntry[];
-	clineModelSelected: number;
+export function OnboardingSynaiModelScreen(props: {
+	synaiEntries: SynaiModelPickerEntry[];
+	synaiModelSelected: number;
 	compact: boolean;
 	contentWidth: number;
 	mouse: MouseTrackerState;
@@ -513,30 +528,30 @@ export function OnboardingClineModelScreen(props: {
 				You can change this anytime
 			</text>
 
-			<ClineModelPicker
-				entries={props.clineEntries}
-				selected={props.clineModelSelected}
+			<SynaiModelPicker
+				entries={props.synaiEntries}
+				selected={props.synaiModelSelected}
 				loading={props.recommendedLoading}
 			/>
 
 			<text fg="gray" paddingX={1}>
-				<em>↑/↓ navigate, Enter to select, Esc to go back, Ctrl+C to exit</em>
+				<em>Up/Down navigate, Enter to select, Esc to go back, Ctrl+C to exit</em>
 			</text>
 		</OnboardingFrame>
 	);
 }
 
-export function OnboardingClinePassSubscriptionScreen(props: {
+export function OnboardingSynaiPassSubscriptionScreen(props: {
 	compact: boolean;
 	contentWidth: number;
 	currentPlanName: string;
 	error: string;
 	mouse: MouseTrackerState;
 	openStatus: string;
-	options: ClinePassSubscriptionOption[];
+	options: SynaiPassSubscriptionOption[];
 	planFeatures: string[];
 	selected: number;
-	status: ClinePassSubscriptionStatus;
+	status: SynaiPassSubscriptionStatus;
 	subscriptionUrl: string;
 }) {
 	const defaultFg = useDefaultFg();
@@ -554,7 +569,7 @@ export function OnboardingClinePassSubscriptionScreen(props: {
 		}
 		const scrollSelectedOptionIntoView = () => {
 			scrollRef.current?.scrollChildIntoView(
-				getClinePassSubscriptionOptionId(props.selected),
+				getSynaiPassSubscriptionOptionId(props.selected),
 			);
 		};
 		scrollSelectedOptionIntoView();
@@ -649,7 +664,7 @@ export function OnboardingClinePassSubscriptionScreen(props: {
 											selectable
 											flexShrink={0}
 										>
-											<span fg="green">✓ </span>
+											<span fg="green">[OK] </span>
 											<span>{feature}</span>
 										</text>
 									);
@@ -663,7 +678,7 @@ export function OnboardingClinePassSubscriptionScreen(props: {
 									const isSel = i === props.selected;
 									return (
 										<box
-											id={getClinePassSubscriptionOptionId(i)}
+											id={getSynaiPassSubscriptionOptionId(i)}
 											key={option.value}
 											paddingX={1}
 											flexDirection="row"
@@ -677,7 +692,7 @@ export function OnboardingClinePassSubscriptionScreen(props: {
 												fg={isSel ? colors.textOnSelection : "gray"}
 												flexShrink={0}
 											>
-												{isSel ? "\u276f" : " "}
+												{isSel ? ">" : " "}
 											</text>
 											<text
 												fg={isSel ? colors.textOnSelection : defaultFg}
@@ -712,7 +727,7 @@ export function OnboardingClinePassSubscriptionScreen(props: {
 			</box>
 
 			<text fg="gray" paddingX={1}>
-				<em>↑/↓ navigate, Enter to select, Esc to go back, Ctrl+C to exit</em>
+				<em>Up/Down navigate, Enter to select, Esc to go back, Ctrl+C to exit</em>
 			</text>
 		</OnboardingFrame>
 	);
@@ -759,7 +774,7 @@ export function OnboardingModelPickerScreen(props: {
 
 			<text fg="gray" paddingX={1}>
 				<em>
-					Type to search, ↑/↓ navigate, Enter to select, Esc to go back, Ctrl+C
+					Type to search, Up/Down navigate, Enter to select, Esc to go back, Ctrl+C
 					to exit
 				</em>
 			</text>
@@ -859,7 +874,7 @@ export function OnboardingThinkingLevelScreen(props: {
 							height={1}
 						>
 							<text fg={isSel ? colors.textOnSelection : "gray"} flexShrink={0}>
-								{isSel ? "\u276f" : " "}
+								{isSel ? ">" : " "}
 							</text>
 							<text fg={isSel ? colors.textOnSelection : defaultFg}>
 								{level.label}
@@ -873,7 +888,7 @@ export function OnboardingThinkingLevelScreen(props: {
 			</box>
 
 			<text fg="gray" paddingX={1}>
-				<em>↑/↓ navigate, Enter to select, Esc to go back, Ctrl+C to exit</em>
+				<em>Up/Down navigate, Enter to select, Esc to go back, Ctrl+C to exit</em>
 			</text>
 		</OnboardingFrame>
 	);
@@ -884,9 +899,11 @@ export function OnboardingMainMenuScreen(props: {
 	menuOptions: MenuOption[];
 	menuSelected: number;
 	mouse: MouseTrackerState;
+	onSelect?: (index: number) => void;
 }) {
 	const defaultFg = useDefaultFg();
 	const colors = useOnboardingColors();
+	const isCompact = props.contentWidth < 42;
 	return (
 		<box
 			flexDirection="column"
@@ -897,28 +914,37 @@ export function OnboardingMainMenuScreen(props: {
 			onMouseMove={props.mouse.onMouseMove}
 		>
 			<box
-				flexDirection="column"
-				width={props.contentWidth}
-				alignItems="center"
-				marginTop={1}
-				marginBottom={1}
-			>
-				<box
-					border
-					borderStyle="rounded"
-					borderColor={colors.accent}
-					paddingX={2}
-					marginBottom={1}
+					flexDirection="column"
+					width={props.contentWidth}
+					alignItems="center"
+					marginTop={isCompact ? 0 : 1}
+					marginBottom={isCompact ? 0 : 1}
 				>
-					<text fg={colors.accent}>
-						<strong>SYNAI STUDIO</strong>
-					</text>
+				<box
+					flexDirection="column"
+					alignItems="center"
+					marginBottom={isCompact ? 0 : 1}
+				>
+					{(isCompact ? SYNAI_ASCII.compact : SYNAI_ASCII.wide).map(
+						(line) => (
+							<text key={line} fg={colors.accent}>
+								<strong>{line}</strong>
+							</text>
+						),
+					)}
 				</box>
 				<text fg={defaultFg}>
-					<strong>Autonomous AI Engineering Suite</strong>
+					<strong>
+						{isCompact ? "Read. Build. Ship." : "Read the code. Make the change. Keep control."}
+					</strong>
 				</text>
 				<text fg="gray" marginTop={0}>
-					Select an AI engine to initialize your workspace
+					{isCompact
+						? "Choose a model to start working in this project"
+						: "A coding agent that works in your project, with you in control"}
+				</text>
+				<text fg={colors.accent} marginTop={1}>
+					<em>/map   /review   /tests   /debug</em>
 				</text>
 			</box>
 
@@ -940,6 +966,7 @@ export function OnboardingMainMenuScreen(props: {
 							paddingX={1}
 							gap={1}
 							alignItems="center"
+							onMouseDown={() => props.onSelect?.(i)}
 						>
 							<text
 								fg={isSel ? colors.accent : colors.mutedDetail}
@@ -955,7 +982,7 @@ export function OnboardingMainMenuScreen(props: {
 							</box>
 							{isSel && (
 								<text fg={colors.accent} flexShrink={0}>
-									{"\u2192"}
+									{"->"}
 								</text>
 							)}
 						</box>
@@ -964,7 +991,7 @@ export function OnboardingMainMenuScreen(props: {
 			</box>
 
 			<text fg="gray" marginTop={1}>
-				<em>↑/↓ navigate, Enter to select, Ctrl+C to exit</em>
+				<em>Up/Down navigate, Enter to select, Ctrl+C to exit</em>
 			</text>
 		</box>
 	);

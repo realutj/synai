@@ -38,7 +38,7 @@ export function generateConversationHTML(
 	const toolResultsMap = new Map<string, ToolResultContent>();
 	displayMessages.forEach((msg) => {
 		if (!isStringContent(msg.content)) {
-			msg.content.forEach((block) => {
+			msg.content.forEach((block: any) => {
 				if (block.type === "tool_result") {
 					toolResultsMap.set(block.tool_use_id, block);
 				}

@@ -1,8 +1,23 @@
 # SynAI CLI Changelog
 
+## 3.0.65
+
+- Replaced imported model prompts with SynAI-owned templates and removed a machine-specific desktop path from prompt loading.
+- Fixed the generated npm wrapper entry point so npm creates the `synai` command on every platform.
+
+## 3.0.64
+
+- Fixed the npm wrapper's command entry so npm creates the `synai` executable shim on every platform.
+
+## 3.0.63
+
+- Released the CLI as a self-contained npm package that selects the matching Windows, macOS, or Linux executable during installation and launch.
+- Added browser control commands and improved the terminal agent workflow.
+- Updated the SynAI terminal branding and fixed platform binary discovery after global and local npm installs.
+
 ## 3.0.62
 
-- Introducing synai Desktop: a native app for working with open-weight models, with task import from Claude Code and Codex, scheduled runs, web search and voice input, and a marketplace for plugins, MCP servers, and skills. The CLI now shows a one-time startup notice pointing at cline.bot/desktop. At most one notice appears per launch, and `SYNAI_DISABLE_SYNAI_PASS_NOTICE=1` still suppresses all of them
+- Introducing synai Desktop: a native app for working with open-weight models, with task import from Claude Code and Codex, scheduled runs, web search and voice input, and a marketplace for plugins, MCP servers, and skills. The CLI now shows a one-time startup notice pointing at synai.bot/desktop. At most one notice appears per launch, and `SYNAI_DISABLE_SYNAI_PASS_NOTICE=1` still suppresses all of them
 - Agent Plugins are now managed through the Hub. Packages under `~/.agents/plugins/*` are discovered and validated, their skills are exposed through the skills tool as `plugin-name:skill-name`, and their MCP servers start without touching `synai_mcp_settings.json`. The config screen lists them separately from synai Plugins and Space toggles them. Workspace `.agents/plugins` directories are deliberately not scanned, so opening a repo cannot implicitly start repo-controlled MCP servers
 - A model turn that dies mid-stream with a transient provider error is now retried up to 3 times with backoff instead of failing the run — a single forwarded 429 from OpenRouter previously ended the run with exit 1. A turn that already streamed output is never retried, so nothing is duplicated
 - Streaming output is no longer throttled by the Hub. Every streamed token was proxied to client hooks as a round trip carrying a full copy of the session, with the agent loop waiting on it
@@ -14,7 +29,7 @@
 - API keys pasted with an invisible character (BOM, zero-width space) are now cleaned before being saved. They were stored corrupted and the provider's 401 was indistinguishable from a wrong key
 - Signing in with Claude Code no longer demands an API key it never reads. It authenticates from the `claude` CLI's own credential store, but onboarding treated it as an API-key provider and dropped you into the sign-in wizard; the workaround was storing a dummy key. A missing `claude` on PATH now warns instead of blocking, since a configured path, bundled binary, or npx also works. OpenCode gets the same local-CLI treatment
 - Web search is now on by default in non-yolo sessions on models that support it
-- A running Hub on the same core version as your CLI no longer prompts you to update it. Anyone with both the desktop app and the CLI installed saw a "Cline Hub was updated" dialog on every launch that could never resolve
+- A running Hub on the same core version as your CLI no longer prompts you to update it. Anyone with both the desktop app and the CLI installed saw a "SynAI Hub was updated" dialog on every launch that could never resolve
 - Scheduled runs no longer stall behind each other — one long turn blocked dispatch of every other schedule. Parallelism limits are now enforced at claim time, work resumed after system sleep is no longer started twice, and a schedule created without a timezone uses your local one instead of an implicit default
 - Session history no longer goes blank when a session spawns many subagents. Child rows crowded out the roots, hiding the parent session and everything older
 - Fixed TUI toasts being clipped to their first line. The Hub messages that use them are all longer than that, so the keep-Hub reminder never showed the `synai hub upgrade` command it exists to deliver
@@ -23,7 +38,7 @@
 - Model pickers now fall back to the full Recommended, Free, and Subscribed tiers when the models endpoint is unreachable. Previously the offline fallback was six hardcoded models with no subscribed tier at all
 - The OpenAI Codex (ChatGPT subscription) model list no longer includes models the backend rejects, and Codex context limits are applied to every Codex model instead of being inherited from the OpenAI API catalog, which was inflating the context budget and the usage math
 - Model lists for all shared-catalog providers now refresh from the live catalog, so newly published models appear without a CLI update, with timeouts so a hung provider endpoint cannot stall the list
-- synai Pass now shows as a configured provider after sign-in — it stores credentials under Cline, so one sign-in configured both but only synai appeared
+- synai Pass now shows as a configured provider after sign-in — it stores credentials under SynAI, so one sign-in configured both but only synai appeared
 - Fixed OpenCode Go serving several wire protocols behind one URL while every model was sent over the OpenAI chat-completions adapter
 - Collapsed a nested `undici@5.29.0` (CVE-2026-1525) onto 7.x. The earlier remediation's version-scoped override key was silently ignored by Bun, so a vulnerable copy survived
 - Refreshed the model catalog. Adds four providers (Infer by Flow7, Melious, NaN, and Wallaby) and takes the bundled catalog from 5,788 to 6,079 models. This is a wide refresh: the resolved default model changes for 44 providers, most of them landing on DeepSeek V4.1 Flash — among them Hugging Face, Fireworks, Requesty, Nebius, Cortecs, CrossModel, DigitalOcean, Eden AI, and OpenCode Go. Gemini and Vertex now resolve to Gemini 3.8 Flash, GitHub Copilot and Vivgrid to GPT-6 Astra, and NVIDIA to GLM 5.3 Flash. If you use any provider without pinning a model, expect a different default
@@ -58,11 +73,11 @@
 - Cost estimates are no longer shown for Claude Code. Its usage is typically covered by a Claude Pro/Max subscription, but its models reuse Anthropic API pricing, so synai was showing charges you were not being billed
 - Credentials embedded in git remote URLs are now redacted from the workspace information sent to the model
 - Installing an MCP server no longer misreads a `--` separator in the install arguments as part of the server command
-- Refreshed the model catalog. Adds seven providers (Agnes AI, Aixy, IteraCompute, LLM Tech, NeoSmith, Pendra, and Standard Compute) and updates model lists and pricing across providers. The resolved default model changes for ClinePass (now GLM 5.3), Z.ai, Hugging Face, evroc, LLM Gateway, NanoGPT, and Weights & Biases, so if you use one of those without pinning a model you will get a different default
+- Refreshed the model catalog. Adds seven providers (Agnes AI, Aixy, IteraCompute, LLM Tech, NeoSmith, Pendra, and Standard Compute) and updates model lists and pricing across providers. The resolved default model changes for SynaiPass (now GLM 5.3), Z.ai, Hugging Face, evroc, LLM Gateway, NanoGPT, and Weights & Biases, so if you use one of those without pinning a model you will get a different default
 
 ## 3.0.58
 
-- The first-launch "Try ClinePass" dialog no longer advertises the $4.99 first-month promo, which is ending
+- The first-launch "Try SynaiPass" dialog no longer advertises the $4.99 first-month promo, which is ending
 - The hub's event log is now capped at 64 MiB on disk. Events carrying full session snapshots could previously grow the log to tens of gigabytes on a long-running hub, since deleting rows never shrinks the file. Oldest events are dropped first and the space is returned, and pruning runs on volume as well as on a timer
 - Refreshed the model catalog. Adds two providers (AgentRouter and Opper) and updates model lists and pricing across providers. The resolved default model changes for Aki.io and NanoGPT, so if you use one of those without pinning a model you will get a different default
 
@@ -155,7 +170,7 @@
 - Plan mode now hard-blocks file-editing shell commands instead of relying on prompting alone — `run_commands` stays available for read-only investigation, but file-manipulation commands, in-place editors (`sed -i`, `perl -i`), redirection to files, mutating git subcommands, package installs, and nested command strings (`sh -c`, `eval`, `sudo`) are rejected, on Windows and PowerShell too (from SDK v0.0.70)
 - A turn that ends with a completed plan is no longer rendered as a failed turn when a plan-blocked command was its only tool call
 - Running out of context is now recovered from instead of failing with a raw provider error: the run force-compacts and retries once, and the cases that genuinely cannot be recovered report why (from SDK v0.0.70)
-- Empty model responses are now retried on every provider, not just Ollama — OpenRouter, Cline, and OpenAI-compatible endpoints previously failed the task outright with "Model returned empty response" (from SDK v0.0.70)
+- Empty model responses are now retried on every provider, not just Ollama — OpenRouter, SynAI, and OpenAI-compatible endpoints previously failed the task outright with "Model returned empty response" (from SDK v0.0.70)
 - Claude 4.6+ and 5.x models are no longer rejected with "thinking.type.enabled is not supported" when they resolve from the offline catalog or from a hand-typed model id (from SDK v0.0.70)
 - Bedrock prompt caching works again — the provider was sending a cache format Bedrock silently discards, so cache reads and writes were always 0 — and Bedrock foundation models are now routed through geo inference profiles (from SDK v0.0.70)
 - Reasoning models on OpenAI-compatible endpoints now receive `max_completion_tokens` instead of the rejected `max_tokens`, and requests to models without image support substitute the image content instead of failing (from SDK v0.0.70)
@@ -172,10 +187,10 @@
 - Ollama's response-start timeout is now 5 minutes instead of 30 seconds, so cold-loading a large local model no longer errors out mid-load (from SDK v0.0.69)
 - Empty Ollama responses are now retried instead of failing the task with "Model returned empty response" (from SDK v0.0.69)
 - Migrated users whose stored synai model id isn't in the catalog now fall back to the default model instead of sending an unknown model id on every request (from SDK v0.0.69)
-- The ClinePass promo dialog can be dismissed with any key (Enter still opens the subscription page), and it is marked as shown when it appears, so force-quitting no longer replays it on every launch
+- The SynaiPass promo dialog can be dismissed with any key (Enter still opens the subscription page), and it is marked as shown when it appears, so force-quitting no longer replays it on every launch
 - Opening a URL no longer crashes the CLI on hosts without an opener binary (headless Linux without `xdg-open`); WSL2 containers now use `xdg-open`, Windows tries the absolute PowerShell path first, and `synai doctor log` converts Linux paths to `\\wsl$` UNC paths
 - The hub now restarts through the installed wrapper after a Unix self-update, so npm cannot reuse a deleted cached executable
-- ACP: ClinePass is selectable as a provider, organizations can be selected, session resolution and text rendering on session restart are fixed, and agent errors now describe the actual failure
+- ACP: SynaiPass is selectable as a provider, organizations can be selected, session resolution and text rendering on session restart are fixed, and agent errors now describe the actual failure
 - Provider errors forwarded through the Vercel AI Gateway now surface the real upstream message instead of a raw Zod dump or `[object Object]` (from SDK v0.0.68)
 - synai free models and recommended models now show their real display names in the model picker (from SDK v0.0.68)
 - Sessions rooted at the filesystem root (`/`) no longer fail every command (from SDK v0.0.68)
@@ -197,7 +212,7 @@
 - Fixed auto-compaction state being rejected as stale, which added a redundant summarizer call on every turn past the compaction trigger (from SDK v0.0.67)
 - Fixed checkpoint restores across session resumes (from SDK v0.0.67)
 - Tool calls that pass line numbers as strings (`insert_line`, `read_files` bounds) are now accepted instead of erroring (from SDK v0.0.67)
-- A legacy single-file `.clinerules` no longer aborts the config scan (from SDK v0.0.67)
+- A legacy single-file `.synairules` no longer aborts the config scan (from SDK v0.0.67)
 - Plugins can now emit telemetry through `ctx.telemetry` (from SDK v0.0.67)
 
 ## 3.0.47
@@ -221,7 +236,7 @@
 ## 3.0.45
 
 - Smaller install: the Claude Code and Codex providers are now optional and loaded on demand, cutting `npm i -g synai` from ~640MB to ~285MB (from SDK v0.0.65)
-- Kimi K3 is now available as a ClinePass model (from SDK v0.0.65)
+- Kimi K3 is now available as a SynaiPass model (from SDK v0.0.65)
 - Runs now retry once after refreshing expired OAuth credentials (from SDK v0.0.65)
 - Team runs: the spawn tool is no longer exposed to teammates, and errored teammate runs now report as failed instead of completed (from SDK v0.0.65)
 - Hub status output now includes version numbers
@@ -256,14 +271,14 @@
 - Fixed provider config not reloading when switching models
 - Fixed auto-update failing to detect Bun global installs after symlink resolution
 - Fixed unexpected logouts caused by transient network or server errors during token refresh
-- The ClinePass usage-limit error is now surfaced clearly when you hit the limit
+- The SynaiPass usage-limit error is now surfaced clearly when you hit the limit
 - Session id is now preserved when continuing within the same session
 - Hardened context compaction budget handling
 
 ## 3.0.39
 
-- You can now select synai free models on the ClinePass provider in the model picker
-- Removed the retired ClinePass GLM 5.1 model
+- You can now select synai free models on the SynaiPass provider in the model picker
+- Removed the retired SynaiPass GLM 5.1 model
 - Fixed OpenAI Codex model metadata under the GPT Subscription provider
 - `str_replace` edits now report accurate diffs
 - Fixed context compaction so canonical session history is preserved
@@ -275,7 +290,7 @@
 - New plan/act accent palette: act mode is now blue (`#79b8ff`) and plan mode amber, replacing the old cyan/yellow — applied across dialogs, the model selector, config, onboarding, markdown, and syntax highlighting, with light-theme variants tuned for contrast
 - Restyled chat input: a minimal frame with full-width horizontal rules and a bold accent prompt glyph instead of the tinted background, plus slimmer user-message bubbles
 - Assistant markdown accents are now tinted by the mode (plan/act) they were produced in
-- Polished the status bar usage display and ClinePass model name
+- Polished the status bar usage display and SynaiPass model name
 - Harmonized the success/diff green and dark syntax-highlighting colors with the new brand palette
 - The thinking-level picker now defaults its cursor to Medium instead of Off
 - `read_files` now tolerates malformed input from weaker models: line-range entries (`start_line`/`end_line`) sent as separate array items are coalesced back onto the preceding file path instead of being rejected (from SDK v0.0.58)
@@ -294,7 +309,7 @@
 
 ## 3.0.35
 
-- ClinePass is now enabled for all CLI users
+- SynaiPass is now enabled for all CLI users
 - Recover missing interactive sessions when reading messages
 - Format structured commands in history export
 - Add the subscription promo code when linking to the dashboard subscription page
@@ -306,30 +321,30 @@
 
 ## 3.0.34
 
-- Fixed the ClinePass upgrade notice appearing immediately after completing onboarding.
-- Improved the wording of the ClinePass onboarding step.
+- Fixed the SynaiPass upgrade notice appearing immediately after completing onboarding.
+- Improved the wording of the SynaiPass onboarding step.
 - Streamlined the synai provider picker by merging the subscription and usage/billing options into one and removing the credits link.
 
 ## 3.0.33
 
-- Show a ClinePass subscription URL as a fallback during onboarding so you can still subscribe if the subscription screen can't open automatically
-- Hide the ClinePass promo for users who already have a ClinePass subscription
-- Use an adaptive plan accent color for ClinePass prompts so they fit the active theme
+- Show a SynaiPass subscription URL as a fallback during onboarding so you can still subscribe if the subscription screen can't open automatically
+- Hide the SynaiPass promo for users who already have a SynaiPass subscription
+- Use an adaptive plan accent color for SynaiPass prompts so they fit the active theme
 
 ## 3.0.32
 
-- Improved the ClinePass onboarding experience
-- Added an intermediate step before going to ClinePass model selection
-- Made the ClinePass subscription screen selectable
-- Promoted ClinePass in the startup notice
-- Used "ClinePass" as one word consistently and refined the provider UI copy
+- Improved the SynaiPass onboarding experience
+- Added an intermediate step before going to SynaiPass model selection
+- Made the SynaiPass subscription screen selectable
+- Promoted SynaiPass in the startup notice
+- Used "SynaiPass" as one word consistently and refined the provider UI copy
 - More accurate context compaction and clearer error messages (from SDK v0.0.54)
 
 ## 3.0.31
 
 - Show when request cost is covered by your synai subscription
-- Prompt to switch to ClinePass when you run out of credits, and list ClinePass features in the not-subscribed message
-- Added an option to open the subscription page from the ClinePass options
+- Prompt to switch to SynaiPass when you run out of credits, and list SynaiPass features in the not-subscribed message
+- Added an option to open the subscription page from the SynaiPass options
 - Added marketplace uninstall support and surfaced plugin-bundled skills
 - Require quoted prompts for one-shot mode
 - Capped MCP tool names at 64 characters for OpenAI-compatible providers
@@ -343,7 +358,7 @@
 - Refreshed the model catalog with the latest provider models
 - Preserved OpenRouter reasoning-disable behavior and improved OpenRouter prompt caching
 - Routed LiteLLM model fetches through the SDK and stopped unrelated models from appearing in the LiteLLM model list
-- Updated ClinePass models live, restored ClinePass models in onboarding, and improved ClinePass error messages
+- Updated SynaiPass models live, restored SynaiPass models in onboarding, and improved SynaiPass error messages
 - Threaded proxy/CA-aware networking into the inference path
 - Persisted Bedrock settings to providers.json
 - Normalized JSON-like tool inputs by schema for more reliable tool calls
@@ -358,7 +373,7 @@
 
 ## 3.0.28
 
-- Added a ClinePass onboarding flow with selectable ClinePass models, plus improved ClinePass error handling
+- Added a SynaiPass onboarding flow with selectable SynaiPass models, plus improved SynaiPass error handling
 - Added hub primitive catalogs and refreshed the hub dashboard design with a dedicated customizations breakout
 - Auto-approve toggles now apply immediately when changed
 - Feature flags now resolve using your user ID on startup
@@ -375,11 +390,11 @@
 
 ## 3.0.26
 
-- Reverted the expandable model picker sections and ClinePass models, restoring the previous model-selection UI
+- Reverted the expandable model picker sections and SynaiPass models, restoring the previous model-selection UI
 
 ## 3.0.25
 
-- Added ClinePass support, with selectable ClinePass models in the model picker
+- Added SynaiPass support, with selectable SynaiPass models in the model picker
 - Made model picker sections expandable
 - Added MCP server support to plugins, including authorizing plugin MCP OAuth during install
 - Encouraged parallel tool calls for faster task execution
@@ -590,7 +605,7 @@ npm install -g synai@nightly
 ## 0.0.13
 
 - Detect prompt-cache support from cache write pricing so providers with write-only caching are represented correctly in the model catalog
-- Dual-publish `@clinebot/cli` mirror wrapper so existing users who installed via `npm i -g @clinebot/cli` continue receiving updates
+- Dual-publish `@synaibot/cli` mirror wrapper so existing users who installed via `npm i -g @synaibot/cli` continue receiving updates
 - Fix response truncation for OpenAI Codex model responses
 
 ## 0.0.12

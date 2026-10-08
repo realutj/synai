@@ -233,13 +233,30 @@ export interface StreamCallbacks {
 export class OpenRouterClient {
   private apiKey: string;
   private baseUrl: string = 'https://openrouter.ai/api/v1';
+  private extraHeaders: Record<string, string> = {};
 
-  constructor(apiKey: string = '') {
+  constructor(apiKey: string = '', baseUrl?: string, extraHeaders?: Record<string, string>) {
     this.apiKey = apiKey;
+    if (baseUrl && baseUrl.trim()) {
+      this.baseUrl = baseUrl.trim().replace(/\/+$/, '');
+    }
+    if (extraHeaders) {
+      this.extraHeaders = { ...extraHeaders };
+    }
   }
 
   public setApiKey(key: string): void {
     this.apiKey = key;
+  }
+
+  public setBaseUrl(url: string): void {
+    if (url && url.trim()) {
+      this.baseUrl = url.trim().replace(/\/+$/, '');
+    }
+  }
+
+  public setExtraHeaders(headers: Record<string, string>): void {
+    this.extraHeaders = { ...headers };
   }
 
   public async fetchAvailableModels(): Promise<ModelInfo[]> {
@@ -363,15 +380,36 @@ export class OpenRouterClient {
     options: StreamOptions = {}
   ): Promise<{ content: string; reasoning: string; toolCalls: ToolCall[] }> {
     if (!this.apiKey || !this.apiKey.trim()) {
-      throw new Error('OpenRouter API Key girmeden ilerletilemez. Lütfen geçerli bir OpenRouter API anahtarı tanımlayın.');
+      throw new Error('OpenRouter API Key is required. Please configure a valid OpenRouter API key.');
     }
+
+    const isAnthropic = this.baseUrl.includes('api.anthropic.com');
+    const isCodexResponses = this.baseUrl.includes('chatgpt.com') || this.baseUrl.includes('backend-api/codex');
+    const endpoint = isAnthropic
+      ? `${this.baseUrl}/messages`
+      : isCodexResponses
+      ? `${this.baseUrl}/responses`
+      : `${this.baseUrl}/chat/completions`;
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'HTTP-Referer': 'https://github.com/synai/synai',
       'X-Title': 'SynAI Coding Assistant',
       'Authorization': `Bearer ${this.apiKey.trim()}`,
+      ...this.extraHeaders,
     };
+
+    if (isAnthropic) {
+      headers['x-api-key'] = this.apiKey.trim();
+      headers['anthropic-version'] = '2023-06-01';
+      delete headers['Authorization'];
+      delete headers['HTTP-Referer'];
+      delete headers['X-Title'];
+    } else if (isCodexResponses) {
+      headers['User-Agent'] = 'codex-cli/0.1.0';
+      delete headers['HTTP-Referer'];
+      delete headers['X-Title'];
+    }
 
     // Format tools for standard function calling schema
     const formattedTools = tools.map((t) => ({
@@ -403,15 +441,93 @@ export class OpenRouterClient {
 
     const requestBody: any = {
       model,
-      messages: formattedMessages,
       stream: true,
-      temperature: options.temperature ?? 0.2,
       max_tokens: options.maxTokens ?? 8192,
     };
 
-    if (formattedTools.length > 0) {
-      requestBody.tools = formattedTools;
-      requestBody.tool_choice = 'auto';
+    if (isAnthropic) {
+      const sysMsg = messages.find((m) => m.role === 'system');
+      if (sysMsg) {
+        requestBody.system = sysMsg.content;
+      }
+      requestBody.messages = messages
+        .filter((m) => m.role !== 'system')
+        .map((m) => ({
+          role: m.role === 'assistant' ? 'assistant' : 'user',
+          content: m.content || '',
+        }));
+      if (tools.length > 0) {
+        requestBody.tools = tools.map((t) => ({
+          name: t.name,
+          description: t.description,
+          input_schema: t.parameters,
+        }));
+      }
+    } else if (isCodexResponses) {
+      requestBody.model = model || 'gpt-5.6-luna';
+      requestBody.store = false;
+      delete requestBody.max_tokens;
+
+      const sysMsg = messages.find((m) => m.role === 'system');
+      if (sysMsg?.content) {
+        requestBody.instructions = sysMsg.content;
+      }
+
+      if (tools.length > 0) {
+        requestBody.tools = tools.map((t) => ({
+          type: 'function',
+          name: t.name,
+          description: t.description || '',
+          parameters: t.parameters || { type: 'object', properties: {} },
+        }));
+      }
+
+      const codexInput: any[] = [];
+      for (const m of messages) {
+        if (m.role === 'system') continue;
+        if (m.role === 'user') {
+          codexInput.push({
+            role: 'user',
+            content: [{ type: 'input_text', text: m.content || '' }],
+          });
+        } else if (m.role === 'assistant') {
+          if (m.content) {
+            codexInput.push({
+              role: 'assistant',
+              content: [{ type: 'output_text', text: m.content }],
+            });
+          }
+          if (m.tool_calls && Array.isArray(m.tool_calls)) {
+            for (const tc of m.tool_calls) {
+              const callId = tc.id || (tc as any).call_id;
+              const fnName = tc.function?.name || (tc as any).name || '';
+              const fnArgs = tc.function?.arguments || (typeof (tc as any).arguments === 'string' ? (tc as any).arguments : JSON.stringify((tc as any).arguments || {}));
+              codexInput.push({
+                type: 'function_call',
+                call_id: callId,
+                name: fnName,
+                arguments: fnArgs,
+              });
+            }
+          }
+        } else if (m.role === 'tool') {
+          const callId = m.tool_call_id || (m as any).call_id;
+          const output = typeof m.content === 'string' ? m.content : JSON.stringify(m.content ?? '');
+          codexInput.push({
+            type: 'function_call_output',
+            call_id: callId,
+            output,
+          });
+        }
+      }
+      requestBody.input = codexInput;
+    } else {
+      requestBody.messages = formattedMessages;
+      requestBody.temperature = options.temperature ?? 0.2;
+      if (formattedTools.length > 0) {
+        requestBody.tools = formattedTools;
+        requestBody.tool_choice = 'auto';
+      }
     }
 
     const maxRetries = Math.max(0, options.maxRetries ?? 3);
@@ -420,15 +536,13 @@ export class OpenRouterClient {
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        res = await fetch(`${this.baseUrl}/chat/completions`, {
+        res = await fetch(endpoint, {
           method: 'POST',
           headers,
           body: JSON.stringify(requestBody),
           signal: options.signal,
         });
       } catch (err: any) {
-        // A user-initiated abort must surface immediately: retrying it would just
-        // fight the cancellation the user explicitly asked for.
         if (err?.name === 'AbortError') throw err;
         lastNetworkError = err;
         if (attempt < maxRetries) {
@@ -436,8 +550,14 @@ export class OpenRouterClient {
           continue;
         }
         throw new Error(
-          `OpenRouter request failed after ${attempt + 1} attempt(s): ${err?.message || err}`
+          `Request failed after ${attempt + 1} attempt(s): ${err?.message || err}`
         );
+      }
+
+      // If model not found on OpenAI (e.g. gpt-5.6-luna internal slug), fallback to gpt-4o
+      if (!isCodexResponses && res && !res.ok && res.status === 404 && (requestBody.model === 'gpt-5.6-luna' || String(requestBody.model).includes('luna'))) {
+        requestBody.model = 'gpt-4o';
+        continue;
       }
 
       if (res.ok) break;
@@ -452,14 +572,20 @@ export class OpenRouterClient {
       const apiMessage =
         parsedError.error?.message || errorText || res.statusText || `HTTP ${res.status}`;
 
+      if (isCodexResponses && (res.status === 401 || res.status === 403)) {
+        throw new Error(
+          `ChatGPT oturumunuzun süresi doldu veya yetkilendirme geçersiz. Lütfen terminalde 'synai login' veya 'synai login openai-codex' komutunu çalıştırarak tekrar giriş yapın.`
+        );
+      }
+
       // Auto-recovery for HTTP 400 errors (e.g. "Provider returned error", "tools not supported")
-      if (res.status === 400) {
+      if (res.status === 400 && !isAnthropic) {
         // 1. Try without tools parameter if model does not support function calling
         if (requestBody.tools) {
           delete requestBody.tools;
           delete requestBody.tool_choice;
           try {
-            const retryRes = await fetch(`${this.baseUrl}/chat/completions`, {
+            const retryRes = await fetch(endpoint, {
               method: 'POST',
               headers,
               body: JSON.stringify(requestBody),
@@ -480,7 +606,7 @@ export class OpenRouterClient {
               requestBody.tools = formattedTools;
               requestBody.tool_choice = 'auto';
             }
-            const fallbackRes = await fetch(`${this.baseUrl}/chat/completions`, {
+            const fallbackRes = await fetch(endpoint, {
               method: 'POST',
               headers,
               body: JSON.stringify(requestBody),
@@ -494,17 +620,17 @@ export class OpenRouterClient {
         }
       }
 
-      throw new Error(`OpenRouter API Error (${res.status}): ${apiMessage}`);
+      throw new Error(`API Error (${res.status}): ${apiMessage}`);
     }
 
     if (!res || !res.ok) {
       throw new Error(
-        `OpenRouter API Error: ${lastNetworkError?.message || 'no response received'}`
+        `API Error: ${lastNetworkError?.message || 'no response received'}`
       );
     }
 
     if (!res.body) {
-      throw new Error('No response stream returned by OpenRouter API');
+      throw new Error('No response stream returned by API');
     }
 
     let fullContent = '';
@@ -532,6 +658,76 @@ export class OpenRouterClient {
           const jsonStr = trimmed.substring(6);
           try {
             const parsed = JSON.parse(jsonStr);
+
+            // OpenAI Codex Responses API SSE
+            if (isCodexResponses || parsed.type?.startsWith('response.')) {
+              if (parsed.type === 'response.output_text.delta' && parsed.delta) {
+                fullContent += parsed.delta;
+                callbacks.onToken?.(parsed.delta);
+                continue;
+              }
+              if (parsed.type === 'response.reasoning.delta' && parsed.delta) {
+                fullReasoning += parsed.delta;
+                callbacks.onReasoning?.(parsed.delta);
+                continue;
+              }
+              if (parsed.type === 'response.output_item.added') {
+                if (parsed.item?.type === 'function_call') {
+                  const idx = activeToolCallsMap.size;
+                  activeToolCallsMap.set(idx, {
+                    id: parsed.item.call_id || parsed.item.id || `call_${Date.now()}_${idx}`,
+                    name: parsed.item.name || '',
+                    args: parsed.item.arguments || '',
+                  });
+                }
+                continue;
+              }
+              if (parsed.type === 'response.function_call_arguments.delta' && parsed.delta) {
+                const lastIdx = activeToolCallsMap.size - 1;
+                const current = activeToolCallsMap.get(lastIdx >= 0 ? lastIdx : 0);
+                if (current) current.args += parsed.delta;
+                continue;
+              }
+              if (parsed.type === 'response.output_item.done') {
+                if (parsed.item?.type === 'function_call') {
+                  const lastIdx = activeToolCallsMap.size - 1;
+                  const current = activeToolCallsMap.get(lastIdx >= 0 ? lastIdx : 0);
+                  if (current && !current.args && parsed.item.arguments) {
+                    current.args = parsed.item.arguments;
+                  }
+                }
+                continue;
+              }
+              if (parsed.type === 'response.completed' || parsed.type === 'response.done') {
+                continue;
+              }
+            }
+
+            // Anthropic Messages API SSE
+            if (parsed.type === 'content_block_delta') {
+              if (parsed.delta?.type === 'text_delta' && parsed.delta.text) {
+                fullContent += parsed.delta.text;
+                callbacks.onToken?.(parsed.delta.text);
+              }
+              if (parsed.delta?.type === 'thinking_delta' && parsed.delta.thinking) {
+                fullReasoning += parsed.delta.thinking;
+                callbacks.onReasoning?.(parsed.delta.thinking);
+              }
+              if (parsed.delta?.type === 'input_json_delta' && parsed.delta.partial_json) {
+                const current = activeToolCallsMap.get(0);
+                if (current) current.args += parsed.delta.partial_json;
+              }
+              continue;
+            } else if (parsed.type === 'content_block_start' && parsed.content_block?.type === 'tool_use') {
+              activeToolCallsMap.set(0, {
+                id: parsed.content_block.id || `call_${Date.now()}`,
+                name: parsed.content_block.name || '',
+                args: '',
+              });
+              continue;
+            }
+
+            // OpenAI / OpenRouter Chat Completions SSE
             const choice = parsed.choices?.[0];
             if (!choice) continue;
 

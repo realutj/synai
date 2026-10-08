@@ -1,3 +1,6 @@
+process.env.OTUI_USE_CONSOLE = "false";
+process.env.SHOW_CONSOLE = "false";
+
 import { fstatSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
@@ -14,6 +17,10 @@ import {
 import { autoUpdateOnStartup } from "./commands/update";
 import { CLI_DEFAULT_CHECKPOINT_CONFIG } from "./runtime/defaults";
 import type { TuiStartupTarget } from "./tui/types";
+import {
+  getSynaiCliMigrationNotice,
+  markSynaiCliMigrationNoticeShown,
+} from "./utils/migration-notice";
 import { filterChatModels } from "./utils/chat-models";
 import { getCliBuildInfo } from "./utils/common";
 import {
@@ -94,7 +101,7 @@ async function loadInteractiveRuntimeModule() {
 
 /**
  * Two-pass approach for --config: a quick scan of process.argv extracts the
- * config directory before commander parses, because setClineDir() must run
+ * config directory before commander parses, because setSynaiDir() must run
  * before any code that reads the home/config directory.
  *
  * Recognizes both Commander spellings:
@@ -123,8 +130,6 @@ function collectOption(value: string, previous: string[] = []): string[] {
   return [...previous, value];
 }
 
-// Shells strip quote characters before argv reaches us, so a prompt that was
-// typed in quotes is only observable when it remains one argv token with spaces.
 function promptArgLooksQuoted(arg: string | undefined): boolean {
   return !!arg && /\s/.test(arg);
 }
@@ -136,7 +141,7 @@ function writePromptArgError(args: string[]): void {
   );
 }
 
-function startupTargetTakesPrecedenceOverMigrationNotice(
+export function startupTargetTakesPrecedenceOverMigrationNotice(
   target: TuiStartupTarget | undefined,
 ): boolean {
   return target === "config" || target === "history";
@@ -150,9 +155,9 @@ export async function runCli(): Promise<void> {
   const isFullTTY =
     process.stdin.isTTY === true && process.stdout.isTTY === true;
   const configDir = resolveConfigDirArg(cliArgs) || join(homedir(), ".synai");
-  const { setClineDir, setHomeDir } = await import("@synai/shared/storage");
+  const { setSynaiDir, setHomeDir } = await import("@synai/shared/storage");
   if (configDir) {
-    setClineDir(configDir);
+    setSynaiDir(configDir);
   }
   setHomeDir(homedir());
 
@@ -179,12 +184,12 @@ export async function runCli(): Promise<void> {
   // Default action handles non-subcommand args (e.g. prompt text)
   program.action(() => {});
 
-  // Auth / Provider configuration subcommand:
+  // Provider configuration subcommand:
   const authCmd = program
     .command("provider")
-    .alias("auth")
     .alias("login")
     .alias("key")
+    .alias("auth")
     .description(
       "Configure model providers, API credentials, and default endpoints",
     )
@@ -221,8 +226,8 @@ export async function runCli(): Promise<void> {
       }>();
       // Honor --config inside the action as a defense-in-depth measure.
       if (opts.config?.trim()) {
-        const { setClineDir } = await import("@synai/shared/storage");
-        setClineDir(opts.config.trim());
+        const { setSynaiDir } = await import("@synai/shared/storage");
+        setSynaiDir(opts.config.trim());
       }
       // Honor --data-dir before constructing the provider settings manager
       // so writes land under the chosen data dir instead of ~/.synai.
@@ -387,6 +392,33 @@ export async function runCli(): Promise<void> {
     .action(async () => {
       const { runSkillCommand } = await import("./commands/skill");
       ctx.exitCode = await runSkillCommand(skillCmd.args, io);
+    });
+
+  program
+    .command("desktop")
+    .alias("app")
+    .description("Launch the SynAI Desktop Application")
+    .action(async () => {
+      const { existsSync } = await import("node:fs");
+      const { join } = await import("node:path");
+      const { spawn } = await import("node:child_process");
+      const localAppData = process.env.LOCALAPPDATA || join(process.env.USERPROFILE || "", "AppData", "Local");
+      const candidates = [
+        join(localAppData, "SynAI", "SynAI.exe"),
+        join(process.cwd(), "packages", "desktop-app", "dist", "SynAI.exe"),
+      ];
+      const exePath = candidates.find((p) => existsSync(p));
+      if (!exePath) {
+        io.writeErr("SynAI Desktop executable not found.\n");
+        ctx.exitCode = 1;
+        return;
+      }
+      const child = spawn(exePath, [], {
+        detached: true,
+        stdio: "ignore",
+      });
+      child.unref();
+      io.writeln("Launched SynAI Desktop Application.");
     });
 
   const connectCmd = program
@@ -699,6 +731,14 @@ export async function runCli(): Promise<void> {
       });
     });
 
+  program
+    .command("board")
+    .description("Launch the board interface")
+    .action(async () => {
+      const { launchboard } = await import("./commands/board");
+      ctx.exitCode = await launchboard();
+    });
+
   const updateCmd = program
     .command("upgrade")
     .alias("update")
@@ -726,62 +766,23 @@ export async function runCli(): Promise<void> {
       ctx.exitCode = 0;
     });
 
-  // Multi-agent collaboration command
-  const collabCmd = program
-    .command("collab")
-    .alias("collaborate")
-    .alias("multi")
-    .description(
-      "🤝 Multi-agent collaboration - AI agents discuss and solve problems together",
-    )
-    .argument("<topic>", "Problem or task for agents to discuss")
-    .option(
-      "-a, --agents <names>",
-      "Comma-separated agent IDs (default: architect,developer,reviewer)",
-    )
-    .option(
-      "-r, --rounds <number>",
-      "Maximum discussion rounds (default: 5)",
-      "5",
-    )
-    .option("-m, --model <model-id>", "Model to use for agents")
-    .option("-P, --provider <id>", "Provider service (default: openrouter)")
-    .option("-k, --key <api-key>", "API key override")
-    .option("-v, --verbose", "Show detailed agent reasoning")
-    .action(async (topic: string) => {
-      const { default: createCollabCommand, setCollabOutput } =
-        await import("./commands/collab");
-      // Inject output utilities
-      setCollabOutput(writeln, writeErr);
-      const cmd = createCollabCommand();
-      await cmd.parseAsync([topic, ...collabCmd.args.slice(1)], {
-        from: "user",
-      });
-    });
+  // Register the implementation directly so Commander parses the same options
+  // that the command handlers consume.
+  const { createCollabCommand, setCollabOutput } = await import("./commands/collab");
+  setCollabOutput(writeln, writeErr, (code) => { ctx.exitCode = code; });
+  program.addCommand(createCollabCommand());
 
-  // Voice chat command
-  program
-    .command("voice")
-    .alias("speak")
-    .alias("talk")
-    .description("🎤 Voice chat - Talk with AI using your microphone")
-    .option(
-      "-l, --language <code>",
-      "Voice recognition language (default: en-US)",
-    )
-    .option("-v, --voice <name>", "Voice for text-to-speech")
-    .option("--no-auto-speak", "Don't automatically speak AI responses")
-    .option("-P, --provider <id>", "AI provider (default: openrouter)")
-    .option("-m, --model <id>", "AI model to use")
-    .option("-k, --key <api-key>", "API key override")
-    .action(async () => {
-      const { default: createVoiceCommand, setVoiceOutput } =
-        await import("./commands/voice");
-      // Inject output utilities
-      setVoiceOutput(writeln, writeErr);
-      const cmd = createVoiceCommand();
-      await cmd.parseAsync(program.args.slice(1), { from: "user" });
-    });
+  const { createVoiceCommand, setVoiceOutput } = await import("./commands/voice");
+  setVoiceOutput(writeln, writeErr, (code) => { ctx.exitCode = code; });
+  program.addCommand(createVoiceCommand());
+
+  // Personalization / Persona command
+  const { createPersonalizeCommand } = await import("./commands/personalize");
+  program.addCommand(createPersonalizeCommand(ctx));
+
+  // Browser Automation command (Antigravity parity)
+  const { createBrowserCommand } = await import("./commands/browser");
+  program.addCommand(createBrowserCommand(ctx));
 
   try {
     await program.parseAsync(normalizedArgs, { from: "user" });
@@ -949,7 +950,7 @@ export async function runCli(): Promise<void> {
   const workspaceRoot = resolveWorkspaceRoot(cwd);
   // Sandbox mode is enabled implicitly whenever --data-dir is provided, or
   // when SYNAI_SANDBOX=1 is set in the environment (in which case the data
-  // dir falls back to $SYNAI_SANDBOX_DATA_DIR or /tmp/cline-sandbox).
+  // dir falls back to $SYNAI_SANDBOX_DATA_DIR or /tmp/synai-sandbox).
   const sandboxEnabled =
     !!args.dataDir || process.env.SYNAI_SANDBOX?.trim() === "1";
   const sandboxDataDir = configureSandboxEnvironment({
@@ -957,6 +958,17 @@ export async function runCli(): Promise<void> {
     cwd,
     explicitDir: args.dataDir,
   });
+
+  if (args.board) {
+    if (args.prompt?.trim()) {
+      writeErr("error: cannot combine --board with a prompt");
+      process.exitCode = 1;
+      return;
+    }
+    const { launchboard } = await import("./commands/board");
+    process.exitCode = await launchboard();
+    return;
+  }
 
   // Keep command-style subcommands on a narrow path. Runtime-only imports pull
   // in provider resolution, config services, and session startup wiring that
@@ -990,8 +1002,8 @@ export async function runCli(): Promise<void> {
     persistedGlobalSettings,
   );
 
-  // Register the SDK early logger as early as possible — before any
-  // provider settings reads — so the full startup sequence is captured.
+  // Register the SDK early logger as early as possible - before any
+  // provider settings reads - so the full startup sequence is captured.
   // These components operate before/outside SynAICore sessions, so the
   // session-scoped logger can't reach them.
   const { createCliLoggerAdapter } = await import("./logging/adapter");
@@ -1021,21 +1033,21 @@ export async function runCli(): Promise<void> {
   };
   registerDisposable(stopUserInstructionService);
   try {
-    const persistedClineAccountId = providerSettingsManager
-      .getProviderSettings("cline")
+    const persistedSynaiAccountId = providerSettingsManager
+      .getProviderSettings("synai")
       ?.auth?.accountId?.trim();
-    if (persistedClineAccountId) {
-      setCliFeatureFlagsAccountContext({ id: persistedClineAccountId });
+    if (persistedSynaiAccountId) {
+      setCliFeatureFlagsAccountContext({ id: persistedSynaiAccountId });
     }
     refreshCliFeatureFlagsInBackground();
     const lastUsedProviderSettings =
       providerSettingsManager.getLastUsedProviderSettings({
-        isClinePassEnabled: false,
+        isSynaiPassEnabled: false,
       });
     const provider = normalizeProviderId(
       args.provider?.trim() ||
         lastUsedProviderSettings?.provider ||
-        "openrouter",
+        "synai",
     );
     let selectedProviderSettings =
       providerSettingsManager.getProviderSettings(provider);
@@ -1044,13 +1056,13 @@ export async function runCli(): Promise<void> {
     // (task.*, workspace.initialized) carry user_id when available.
     // Note: user.extension_activated fires anonymously earlier in startup
     // and cannot be retroactively updated; this is by design for
-    // lightweight subcommand and pre-auth CLI flows. See CLINE-2406.
-    if (provider === "cline") {
+    // lightweight subcommand and pre-auth CLI flows. See SYNAI-2406.
+    if (provider === "synai") {
       const savedAuth = selectedProviderSettings?.auth;
       if (savedAuth?.accountId) {
         identifyTelemetryAccount({
           id: savedAuth.accountId,
-          provider: "cline",
+          provider: "synai",
           organizationId: savedAuth.organizationId,
           organizationName: savedAuth.organizationName,
           memberId: savedAuth.memberId,
@@ -1152,7 +1164,7 @@ export async function runCli(): Promise<void> {
         cwd,
         explicitSystemPrompt: args.systemPrompt,
         providerId: provider,
-        mode: effectiveMode,
+        mode: effectiveMode as any,
       }),
       execution: {
         maxConsecutiveMistakes: args.retries ?? 3,
@@ -1269,11 +1281,26 @@ export async function runCli(): Promise<void> {
       const initialSynaiProviderSettings =
         provider === "synai" ? selectedProviderSettings : undefined;
 
+      let initialNotice: any = undefined;
+      let onInitialNoticeShown: any = undefined;
+      if (!startupTargetTakesPrecedenceOverMigrationNotice(startupTarget)) {
+        initialNotice = getSynaiCliMigrationNotice(undefined, process.env, {
+          activeProviderId: provider,
+        });
+        if (initialNotice) {
+          onInitialNoticeShown = async (notice: any) => {
+            markSynaiCliMigrationNoticeShown(undefined, notice?.id);
+          };
+        }
+      }
+
       await runInteractive(config, userInstructionService, resumeSessionId, {
         initialPrompt: args.prompt,
         synaiApiBaseUrl: initialSynaiProviderSettings?.baseUrl,
         synaiProviderSettings: initialSynaiProviderSettings,
         startupTarget,
+        initialNotice,
+        onInitialNoticeShown,
       });
       return;
     }

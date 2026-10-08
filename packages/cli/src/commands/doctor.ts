@@ -8,7 +8,7 @@ import {
 	probeHubServer,
 	readHubDiscovery,
 	readSupersededHubDiscovery,
-	resolveClineDataDir,
+	resolveSynaiDataDir,
 	resolveProductionHubOwnerContext,
 	resolveSharedHubOwnerContext,
 	stopLocalHubServerGracefully,
@@ -146,8 +146,8 @@ function decideForeignContainer(input: {
  *
  * `pgrep` sees every process on the host, containers included: a Docker agent's
  * hub daemon shows up beside ours, and when the container shares our uid `kill`
- * on it succeeds. Those daemons are emphatically not stale — they belong to a
- * live agent with its own data dir — so reporting them, and killing them in
+ * on it succeeds. Those daemons are emphatically not stale - they belong to a
+ * live agent with its own data dir - so reporting them, and killing them in
  * `doctor fix`, takes down an unrelated agent.
  */
 function isForeignContainerPid(pid: number): boolean {
@@ -203,7 +203,7 @@ function listMatchingProcesses(pattern: string): ProcessRecord[] {
 
 function resolveCliLogPath(): string {
 	const { name } = getCliBuildInfo();
-	return join(resolveClineDataDir(), "logs", `${name}.log`);
+	return join(resolveSynaiDataDir(), "logs", `${name}.log`);
 }
 
 async function defaultOpenPath(target: string): Promise<void> {
@@ -228,7 +228,7 @@ function listStaleCliPids(): number[] {
 		"/apps/cli/src/index.ts",
 		"/apps/cli/dist/index.js",
 		"/dist/synai",
-		"/dist/cline",
+		"/dist/synai",
 	];
 	const records = new Map<number, ProcessRecord>();
 	for (const pattern of patterns) {

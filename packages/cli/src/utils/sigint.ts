@@ -19,7 +19,7 @@ export function handleSigint(onFirstPress?: () => void, onExit?: () => void): bo
         onExit();
       } catch {}
     }
-    console.log('\n' + chalk.dim('✨ Session saved. Goodbye!\n'));
+    console.log('\n' + chalk.dim('[OK] Session saved. Goodbye!\n'));
     process.exit(0);
   } else {
     (global as any).__synaiLastSigintTime = now;

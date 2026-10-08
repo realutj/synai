@@ -49,7 +49,7 @@ describe("ca-certs", () => {
 	let dir: string;
 
 	beforeEach(() => {
-		dir = mkdtempSync(join(tmpdir(), "cline-ca-"));
+		dir = mkdtempSync(join(tmpdir(), "synai-ca-"));
 	});
 
 	afterEach(() => {

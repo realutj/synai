@@ -202,7 +202,7 @@ function extractSlackChannelFromId(id: string): string | undefined {
 }
 
 /**
- * Slack delivers `@cline hi` as `<@U0B8E8H3U1F> hi`, and the chat SDK
+ * Slack delivers `@synai hi` as `<@U0B8E8H3U1F> hi`, and the chat SDK
  * deliberately leaves the bot's own mention unresolved (so mention detection
  * keeps working), flattening it to `@U0B8E8H3U1F hi`. Strip that leading
  * self-mention so the agent receives `hi`.

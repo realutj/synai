@@ -7,7 +7,7 @@ import {
 	statSync,
 } from "node:fs";
 import { basename, join } from "node:path";
-import { resolveClineDataDir } from "@synai/core";
+import { resolveSynaiDataDir } from "@synai/core";
 import { isSupervisedConnectorProcess } from "@synai/shared";
 import { Command, CommanderError } from "commander";
 import {
@@ -50,7 +50,8 @@ function stripAnsiCodes(text: string): string {
  * child's log and point at the file for the rest.
  */
 function formatChildLogHint(logPath: string): string {
-	const suffix = ` See ${logPath} for details.`;
+	const displayPath = logPath.replace(/\\/g, "/");
+	const suffix = ` See ${displayPath} for details.`;
 	let handle: number | undefined;
 	try {
 		const { size } = statSync(logPath);
@@ -162,8 +163,8 @@ export abstract class ConnectorBase<Options, State>
 	 *
 	 * The hub keys supervision by (channel, instanceId), so it needs the id
 	 * before anything is spawned. Adapters that can only determine it with a side
-	 * effect — Telegram resolves its bot username from the API when the flag is
-	 * omitted — return undefined, and the caller falls back to starting the
+	 * effect - Telegram resolves its bot username from the API when the flag is
+	 * omitted - return undefined, and the caller falls back to starting the
 	 * connector locally.
 	 */
 	resolveInstanceId(rawArgs: string[]): string | undefined {
@@ -218,7 +219,7 @@ export abstract class ConnectorBase<Options, State>
 	}
 
 	protected resolveConnectorPath(...segments: string[]): string {
-		return join(resolveClineDataDir(), "connectors", this.name, ...segments);
+		return join(resolveSynaiDataDir(), "connectors", this.name, ...segments);
 	}
 
 	protected listJsonStatePaths(excludedSuffixes: string[] = []): string[] {

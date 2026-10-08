@@ -12,18 +12,18 @@
 
 import { test } from "@microsoft/tui-test";
 import { SYNAI_BIN, TERMINAL_WIDE } from "../helpers/constants.js";
-import { clineEnv } from "../helpers/env.js";
+import { synaiEnv } from "../helpers/env.js";
 import { waitForChatReady } from "../helpers/page-objects/chat.js";
 import { expectVisible } from "../helpers/terminal.js";
 
-test.describe("cline --model (interactive mode, flag ignored)", () => {
+test.describe("synai --model (interactive mode, flag ignored)", () => {
 	test.use({
 		program: {
 			file: SYNAI_BIN,
 			args: ["--model", "openai/gpt-5.3-codex"],
 		},
 		...TERMINAL_WIDE,
-		env: clineEnv("default"),
+		env: synaiEnv("default"),
 	});
 
 	test("starts interactive mode", async ({ terminal }) => {
@@ -32,11 +32,11 @@ test.describe("cline --model (interactive mode, flag ignored)", () => {
 	});
 });
 
-test.describe("cline --cwd <dir>", () => {
+test.describe("synai --cwd <dir>", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["--cwd", "/tmp"] },
 		...TERMINAL_WIDE,
-		env: clineEnv("default"),
+		env: synaiEnv("default"),
 	});
 
 	test("starts interactive mode with --cwd flag", async ({ terminal }) => {
@@ -45,11 +45,11 @@ test.describe("cline --cwd <dir>", () => {
 	});
 });
 
-test.describe("cline -c <dir> (short alias)", () => {
+test.describe("synai -c <dir> (short alias)", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["-c", "/tmp"] },
 		...TERMINAL_WIDE,
-		env: clineEnv("default"),
+		env: synaiEnv("default"),
 	});
 
 	test("starts interactive mode with -c flag", async ({ terminal }) => {
@@ -58,14 +58,14 @@ test.describe("cline -c <dir> (short alias)", () => {
 	});
 });
 
-test.describe("cline --config (claude-sonnet-4.6)", () => {
+test.describe("synai --config (claude-sonnet-4.6)", () => {
 	test.use({
 		program: {
 			file: SYNAI_BIN,
 			args: ["--config", "configs/claude-sonnet-4.6"],
 		},
 		...TERMINAL_WIDE,
-		env: clineEnv("claude-sonnet-4.6"),
+		env: synaiEnv("claude-sonnet-4.6"),
 	});
 
 	test("starts interactive mode with custom config directory", async ({
@@ -79,11 +79,11 @@ test.describe("cline --config (claude-sonnet-4.6)", () => {
 // synai --json --yolo "prompt"
 // Starts synai in headless yolo mode with all output conforming to JSON
 // ---------------------------------------------------------------------------
-test.describe("cline --json (headless yolo mode)", () => {
+test.describe("synai --json (headless yolo mode)", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["--json", "--yolo", "tell me a joke"] },
 		...TERMINAL_WIDE,
-		env: clineEnv("unauthenticated"),
+		env: synaiEnv("unauthenticated"),
 	});
 
 	test("starts in headless yolo mode with JSON output", async ({

@@ -69,6 +69,37 @@ export function hydrateSessionMessages(
 			continue;
 		}
 
+		const modelToolActivities = (msg.metadata as any)?.modelToolActivities;
+		if (Array.isArray(modelToolActivities)) {
+			for (const activity of modelToolActivities) {
+				const isError = activity.isError === true;
+				const rawOutput =
+					typeof activity.output === "string"
+						? activity.output
+						: JSON.stringify(activity.output);
+				entries.push({
+					kind: "tool_call",
+					toolCallId: activity.toolCallId,
+					toolName: activity.toolName,
+					inputSummary: formatToolInput(activity.toolName, activity.input),
+					rawInput: activity.input,
+					streaming: false,
+					mode,
+					result: isError
+						? {
+								outputSummary: "",
+								rawOutput: undefined,
+								error: rawOutput,
+							}
+						: {
+								outputSummary: rawOutput.slice(0, 500),
+								rawOutput,
+								error: undefined,
+							},
+				});
+			}
+		}
+
 		if (typeof msg.content === "string") {
 			if (msg.role === "user") {
 				mode = parseUserInputMode(msg.content) ?? mode;

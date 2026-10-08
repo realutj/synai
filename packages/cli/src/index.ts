@@ -1,5 +1,9 @@
 #!/usr/bin/env bun
 
+
+process.env.OTUI_USE_CONSOLE = "false";
+process.env.SHOW_CONSOLE = "false";
+
 import { isMainThread } from "node:worker_threads";
 import {
   claimHubDaemonProcess,
@@ -15,7 +19,9 @@ import {
   isAbortInProgress,
 } from "./runtime/active-runtime";
 import { resolveCliLaunchSpec } from "./utils/internal-launch";
-import { writeErr } from "./utils/output";
+import { installStreamErrorGuards, writeErr } from "./utils/output";
+
+installStreamErrorGuards();
 
 // Initialize VCR before any HTTP requests are made.
 // Set SYNAI_VCR=record|playback and SYNAI_VCR_CASSETTE=<path> to enable.

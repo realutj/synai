@@ -84,11 +84,11 @@ describe("interactive exit summary", () => {
 
 		expect(output).toContain("Session Summary");
 		expect(output).toContain("  ID        sess_123");
-		expect(output).toContain("  Model     cline:openai/gpt-5.3-codex");
+		expect(output).toContain("  Model     synai:openai/gpt-5.3-codex");
 		expect(output).toContain("  Messages  2");
 		expect(output).toContain("  Cost      $0.250000");
 		expect(output).toContain("  Continue  ");
-		expect(output).toContain("cline --id sess_123");
+		expect(output).toContain("synai --id sess_123");
 	});
 
 	it("formats an invalid start time without leaking NaN", () => {

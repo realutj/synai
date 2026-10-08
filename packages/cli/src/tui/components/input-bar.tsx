@@ -203,7 +203,7 @@ export function InputBar(props: InputBarProps) {
 			onMouseDown={props.onFocusRequest}
 		>
 			<text fg={accent}>
-				<strong>{"❯"}</strong>
+				<strong>{">"}</strong>
 			</text>
 			<box flexGrow={1} paddingLeft={1}>
 				<textarea

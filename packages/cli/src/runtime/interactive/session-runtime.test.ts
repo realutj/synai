@@ -821,7 +821,7 @@ describe("createInteractiveSessionRuntime", () => {
 			...createConfig(),
 			providerId: "synai",
 			modelId: "anthropic/claude-sonnet-4.6",
-			apiKey: "cline-key",
+			apiKey: "synai-key",
 		};
 		const messages: Message[] = [
 			{ role: "user", content: [{ type: "text", text: "hello" }] },
@@ -836,7 +836,7 @@ describe("createInteractiveSessionRuntime", () => {
 				config: expect.objectContaining({
 					providerId: "synai",
 					modelId: "anthropic/claude-sonnet-4.6",
-					apiKey: "cline-key",
+					apiKey: "synai-key",
 				}),
 			}),
 		);

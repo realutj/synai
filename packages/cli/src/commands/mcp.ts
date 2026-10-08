@@ -40,9 +40,10 @@ function quoteCommandArg(arg: string): string {
 }
 
 export function buildMcpInstallDefaults(options: {
-	name: string;
+	name?: string;
 	targetArgs?: string[];
 	transport?: string;
+	[key: string]: any;
 }): McpAddDefaults {
 	const { name, transport } = buildCoreMcpInstallTransport(options);
 	if (transport.type === "stdio") {
@@ -102,7 +103,7 @@ export async function runMcpInstallCommand(
 			options.isTty ?? (process.stdin.isTTY && process.stdout.isTTY);
 		if (!isTty) {
 			throw new Error(
-				"synai servers install opens the setup wizard and requires a TTY. Pass --yes to install noninteractively.",
+				"synai mcp install opens the MCP wizard and requires a TTY. Pass --yes to install noninteractively.",
 			);
 		}
 		const defaults = buildMcpInstallDefaults(options);

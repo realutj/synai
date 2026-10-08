@@ -4,7 +4,8 @@ import type {
 	DialogSize,
 	DialogStyle,
 } from "@opentui-ui/dialog/react";
-import "opentui-spinner/react";
+import { ensureSpinnerRegistered } from "../../spinner-register";
+ensureSpinnerRegistered();
 import {
 	type LoadingDialogActions,
 	withShownDialog,

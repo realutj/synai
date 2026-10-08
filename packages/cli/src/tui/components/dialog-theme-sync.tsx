@@ -10,7 +10,7 @@ import { getDialogSurface } from "../themes";
  *
  * The dialog library computes a panel's style once when the dialog opens
  * (from the container's dialogOptions), so theme changes made while a dialog
- * is open — most visibly the live preview while scrolling the theme picker —
+ * is open - most visibly the live preview while scrolling the theme picker -
  * would leave the panel on the old surface color. This component pushes the
  * theme's dialog surface into the container (for dialogs opened later) and
  * onto every open dialog renderable (repainting them in place).

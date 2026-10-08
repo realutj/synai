@@ -1,4 +1,5 @@
-import "opentui-spinner/react";
+import { ensureSpinnerRegistered } from "../spinner-register";
+ensureSpinnerRegistered();
 import { useEffect, useState } from "react";
 import { useSession } from "../contexts/session-context";
 import { useTheme } from "../hooks/use-theme";
@@ -33,10 +34,10 @@ export function QueuedPrompts(props: {
 			? "Enter confirm, Esc cancel"
 			: selected.steer
 				? session.isRunning
-					? "Waiting. ↑/↓ navigate, Tab edit, Esc cancels turn"
-					: `Steered next. ↑/↓ navigate, Tab edit, ${escapeHint}`
-				: `↑/↓ navigate, Enter steer, Tab edit, ${escapeHint}`
-		: "Enter with empty input to steer first · ↑ select or edit";
+					? "Waiting. Up/Down navigate, Tab edit, Esc cancels turn"
+					: `Steered next. Up/Down navigate, Tab edit, ${escapeHint}`
+				: `Up/Down navigate, Enter steer, Tab edit, ${escapeHint}`
+		: "Enter with empty input to steer first | Up select or edit";
 
 	return (
 		<box
@@ -99,7 +100,7 @@ function QueuedPromptRow(props: {
 				/>
 			) : (
 				<text fg={selected ? theme.textOnSelection : "gray"} flexShrink={0}>
-					{selected ? "❯" : " "}
+					{selected ? ">" : " "}
 				</text>
 			)}
 			{editing ? (

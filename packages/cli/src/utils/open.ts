@@ -10,8 +10,8 @@ import realOpen from "open";
  * The crash cannot be handled around the `open()` call: with
  * `{ wait: false }` it resolves to a detached, listenerless child before the
  * opener binary is known to exist, and the ENOENT arrives as an
- * asynchronous `error` event on that child. Under Bun — the runtime the
- * compiled CLI ships on — the event fires before the microtask queue
+ * asynchronous `error` event on that child. Under Bun - the runtime the
+ * compiled CLI ships on - the event fires before the microtask queue
  * drains, so no `try/catch` or `.catch()` can intercept it and it escalates
  * to an uncaughtException that kills the process. So the check happens
  * before `open()` is ever called, and failure surfaces as a normal
@@ -42,8 +42,12 @@ function isWsl(): boolean {
 }
 
 function systemHasXdgOpen(): boolean {
-	for (const dir of (process.env.PATH ?? "").split(delimiter)) {
-		if (dir && isExecutable(join(dir, "xdg-open"))) {
+	const delim = process.platform === "win32" ? delimiter : ":";
+	for (const dir of (process.env.PATH ?? "").split(delim)) {
+		if (!dir) continue;
+		const candidate = join(dir, "xdg-open");
+		const normalized = candidate.replace(/\\/g, "/");
+		if (isExecutable(candidate) || isExecutable(normalized)) {
 			return true;
 		}
 	}
@@ -53,7 +57,7 @@ function systemHasXdgOpen(): boolean {
 /**
  * The `open` package ships its own copy of the `xdg-open` script (it works
  * without xdg-utils, falling back to gio/kde-open/`$BROWSER` internally),
- * but only uses the copy next to its own `index.js` — a location that does
+ * but only uses the copy next to its own `index.js` - a location that does
  * not survive Bun bundling/compiling. When a real copy is on disk anyway
  * (running from source, or an `xdg-open` placed next to the binary), hand
  * it to `open` explicitly.

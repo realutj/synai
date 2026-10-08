@@ -1,0 +1,19 @@
+.synai-ui-agent-quick-actions,
+.synai-ui-agent-quick-actions__item {
+	box-sizing: border-box;
+	border-style: solid;
+}
+
+.synai-ui-agent-quick-actions__item {
+	font: inherit;
+}
+
+.synai-ui-agent-quick-actions__item:hover:not(:disabled) {
+	background: color-mix(in oklab, var(--background) 55%, transparent);
+}
+
+.synai-ui-agent-quick-actions__item:hover:not(:disabled)
+	.synai-ui-agent-quick-actions__arrow {
+	background: var(--primary);
+	color: var(--primary-foreground);
+}

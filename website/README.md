@@ -1,64 +1,32 @@
 # SynAI Website
 
-SynAI için modern, responsive landing page.
+The English, responsive SynAI landing page. It is built with HTML, CSS, and JavaScript; Vite provides the development server and production build.
 
-## Özellikler
+## Development
 
-- ⚡ Vite + React + TypeScript
-- 🎨 TailwindCSS ile modern tasarım
-- 📱 Responsive (mobil uyumlu)
-- 🌙 Dark mode
-- ✨ Animasyonlu hero section
-- 🎯 Tek sayfalık landing page
-
-## Geliştirme
-
-```bash
-# Bağımlılıkları yükle
+```powershell
+cd website
 npm install
-
-# Development server başlat
 npm run dev
+```
 
-# Production build
+## Production build
+
+```powershell
+cd website
 npm run build
+```
 
-# Production preview
+The deployable static files are written to `website/dist/`. Configure your host with `website` as the project root, `npm run build` as the build command, and `dist` as the output directory. This repository does not define a hosting account or custom domain.
+
+Preview the production build with:
+
+```powershell
 npm run preview
 ```
 
-## Deployment
+## Links
 
-### Netlify
-
-1. GitHub'a push et
-2. Netlify'da yeni site oluştur
-3. Build command: `npm run build`
-4. Publish directory: `dist`
-
-### Vercel
-
-```bash
-npm install -g vercel
-vercel
-```
-
-### GitHub Pages
-
-```bash
-npm run build
-# dist/ klasörünü GitHub Pages'e deploy et
-```
-
-## Teknolojiler
-
-- React 18
-- TypeScript
-- Vite
-- TailwindCSS
-- PostCSS
-- Autoprefixer
-
-## Lisans
-
-Apache 2.0
+- npm: https://www.npmjs.com/package/synai
+- VS Code Marketplace: https://marketplace.visualstudio.com/items?itemName=realutj.synai-vscode
+- Source code: https://github.com/realutj/synai

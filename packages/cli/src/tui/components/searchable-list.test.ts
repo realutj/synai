@@ -21,7 +21,7 @@ describe("searchable list sections", () => {
 			]),
 		).toEqual([
 			"header:Popular",
-			"item:cline",
+			"item:synai",
 			"item:anthropic",
 			"header:Other",
 			"item:deepseek",

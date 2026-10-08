@@ -24,7 +24,7 @@ import {
 	EXIT_CODE_SUCCESS,
 	TERMINAL_WIDE,
 } from "../helpers/constants.js";
-import { clineEnv } from "../helpers/env.js";
+import { synaiEnv } from "../helpers/env.js";
 import { expectExitCode, expectVisible } from "../helpers/terminal.js";
 
 function findMessagesArtifacts(root: string): string[] {
@@ -49,14 +49,14 @@ function findMessagesArtifacts(root: string): string[] {
 }
 
 test.describe("per-turn metrics in messages.json — multi-iteration @live", () => {
-	const sessionDataDir = mkdtempSync(join(tmpdir(), "cline-per-turn-metrics-"));
+	const sessionDataDir = mkdtempSync(join(tmpdir(), "synai-per-turn-metrics-"));
 	test.use({
 		program: {
 			file: SYNAI_BIN,
 			args: ["--json", "run echo hello then summarize"],
 		},
 		...TERMINAL_WIDE,
-		env: clineEnv("default", {
+		env: synaiEnv("default", {
 			SYNAI_VCR_CASSETTE: "./fixtures/per-turn-metrics.json",
 			SYNAI_SESSION_DATA_DIR: sessionDataDir,
 		}),

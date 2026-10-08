@@ -1,11 +1,10 @@
 // Auto-discovery of OS trust anchors for the SynAI CLI.
 //
-// Bun does not read the OS trust store, so the 3.x CLI cannot see corporate
-// MITM / self-signed CAs out of the box. This runs in the Node `bin/cline`
+// Bun does not read the OS trust store, so the CLI cannot see corporate
+// MITM / self-signed CAs out of the box. This runs in the Node `bin/synai.js`
 // wrapper (not Bun), reads the full OS store via tls.getCACertificates("system")
 // (Node >= 22, no --use-system-ca flag), and hands the certs to the Bun child
-// via NODE_EXTRA_CA_CERTS, which both runtimes honor. Mirrors the JetBrains
-// plugin's configureCertificates(), sourcing from the OS instead of the IDE.
+// via NODE_EXTRA_CA_CERTS, which both runtimes honor.
 //
 // Dependency-free CommonJS with injectable modules so it is unit-testable and
 // ships verbatim in the published wrapper package.
@@ -146,12 +145,16 @@ function readFileIfExists(fs, filePath) {
 }
 
 function resolveClineDir(env, os, path) {
-  return env.CLINE_DIR?.trim() || path.join(os.homedir(), ".cline");
+  return (
+    env.SYNAI_DIR?.trim() ||
+    env.CLINE_DIR?.trim() ||
+    path.join(os.homedir(), ".synai")
+  );
 }
 
 /**
  * True when the api-unavailable warning should print. Stamped per Node version
- * in the cline dir so the nudge shows once rather than on every command; a
+ * in the synai dir so the nudge shows once rather than on every command; a
  * version change (upgrade that still falls short, or downgrade) re-arms it.
  * When the stamp cannot be read or written, warn — bookkeeping failures must
  * never suppress a real diagnostic.

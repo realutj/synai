@@ -19,11 +19,11 @@ const {
 	mockRequestHubDrain: vi.fn(),
 	mockResolveProductionHubOwnerContext: vi.fn(() => ({
 		ownerId: "hub-production",
-		discoveryPath: "/tmp/cline-data/locks/hub/production.json",
+		discoveryPath: "/tmp/synai-data/locks/hub/production.json",
 	})),
 	mockResolveSharedHubOwnerContext: vi.fn(() => ({
 		ownerId: "hub-owner",
-		discoveryPath: "/tmp/cline-data/locks/hub/owners/hub-owner.json",
+		discoveryPath: "/tmp/synai-data/locks/hub/owners/hub-owner.json",
 	})),
 	mockStopLocalHubServerGracefully: vi.fn(),
 }));
@@ -140,7 +140,7 @@ describe("createHubCommand", () => {
 		expect(mockRequestHubDrain).toHaveBeenCalledWith(
 			"ws://127.0.0.1:25463/hub",
 			"token",
-			"cline hub drain --off",
+			"synai hub drain --off",
 			{ off: true },
 		);
 		expect(JSON.parse(output[0] || "")).toEqual({
@@ -163,7 +163,7 @@ describe("createHubCommand", () => {
 		expect(mockRequestHubDrain).toHaveBeenCalledWith(
 			"ws://127.0.0.1:25463/hub",
 			"token",
-			"cline hub drain",
+			"synai hub drain",
 			{ off: false },
 		);
 		expect(JSON.parse(output[0] || "")).toEqual({
@@ -220,7 +220,7 @@ describe("createHubCommand", () => {
 		expect(mockRequestHubDrain).toHaveBeenLastCalledWith(
 			"ws://127.0.0.1:25463/hub",
 			"token",
-			"cline hub upgrade aborted",
+			"synai hub upgrade aborted",
 			{ off: true },
 		);
 	});
@@ -270,7 +270,7 @@ describe("createHubCommand", () => {
 		expect(exitCode).toBe(0);
 		expect(mockStopLocalHubServerGracefully).toHaveBeenCalledWith({
 			ownerId: "hub-owner",
-			discoveryPath: "/tmp/cline-data/locks/hub/owners/hub-owner.json",
+			discoveryPath: "/tmp/synai-data/locks/hub/owners/hub-owner.json",
 		});
 		expect(JSON.parse(output[0] || "")).toEqual({ stopped: true });
 	});

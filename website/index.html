@@ -1,1073 +1,190 @@
 <!doctype html>
-<html lang="tr">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, viewport-fit=cover"
-    />
-    <title>SynAI — Açık Kaynak AI Kodlama Asistanı</title>
-    <meta
-      name="description"
-      content="Terminal, VS Code ve Web'de çalışan tamamen otonom AI agent. Ücretsiz modellerle sınırsız kullanım."
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      :root {
-        box-sizing: border-box;
-        --bg: #15140f;
-        --surface: #1c1b15;
-        --surface-2: #23221b;
-        --border: #34322a;
-        --text: #ece8dd;
-        --text-muted: #9c978a;
-        --sage: #8fbfa0;
-        --sage-dim: rgba(143, 191, 160, 0.14);
-        --gold: #d9a441;
-        --gold-dim: rgba(217, 164, 65, 0.14);
-        --rust: #c97b63;
-        --primary: #38bdf8;
-        --primary-dim: rgba(56, 189, 248, 0.14);
-        --font-display: "Space Grotesk", "Segoe UI", sans-serif;
-        --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
-        --maxw: 1080px;
-        padding-top: env(safe-area-inset-top, 0px);
-        padding-bottom: env(safe-area-inset-bottom, 0px);
-      }
-      @media (prefers-color-scheme: dark) {
-        :root:not([data-theme="light"]) {
-          --bg: #15140f;
-          --surface: #1c1b15;
-          --surface-2: #23221b;
-          --border: #34322a;
-          --text: #ece8dd;
-          --text-muted: #9c978a;
-          --sage: #8fbfa0;
-          --gold: #d9a441;
-          --rust: #c97b63;
-          --primary: #38bdf8;
-          --primary-dim: rgba(56, 189, 248, 0.14);
-        }
-      }
-      :root[data-theme="dark"] {
-        --bg: #15140f;
-        --surface: #1c1b15;
-        --surface-2: #23221b;
-        --border: #34322a;
-        --text: #ece8dd;
-        --text-muted: #9c978a;
-        --sage: #8fbfa0;
-        --gold: #d9a441;
-        --rust: #c97b63;
-        --primary: #38bdf8;
-        --primary-dim: rgba(56, 189, 248, 0.14);
-      }
-      :root[data-theme="light"] {
-        --bg: #f2efe6;
-        --surface: #ffffff;
-        --surface-2: #eae5d8;
-        --border: #d8d2c1;
-        --text: #211f19;
-        --text-muted: #6b6658;
-        --sage: #3f7a56;
-        --gold: #96690e;
-        --rust: #a64a32;
-        --sage-dim: rgba(63, 122, 86, 0.12);
-        --gold-dim: rgba(150, 105, 14, 0.12);
-        --primary: #0284c7;
-        --primary-dim: rgba(2, 132, 199, 0.12);
-      }
-      html {
-        scroll-padding-top: env(safe-area-inset-top, 0px);
-        scroll-behavior: smooth;
-      }
-      * {
-        box-sizing: inherit;
-      }
-      body {
-        margin: 0;
-        background: var(--bg);
-        color: var(--text);
-        font-family: var(--font-mono);
-        font-size: 15px;
-        line-height: 1.65;
-        -webkit-font-smoothing: antialiased;
-        overflow-x: hidden;
-      }
-      img,
-      svg {
-        max-width: 100%;
-        display: block;
-      }
-      a {
-        color: inherit;
-      }
-      ::selection {
-        background: var(--primary-dim);
-        color: var(--text);
-      }
-      :focus-visible {
-        outline: 2px solid var(--primary);
-        outline-offset: 3px;
-      }
-      .wrap {
-        max-width: var(--maxw);
-        margin: 0 auto;
-        padding: 0 1.5rem;
-      }
-      h1,
-      h2,
-      h3 {
-        font-family: var(--font-display);
-        font-weight: 600;
-        letter-spacing: -0.01em;
-        margin: 0;
-      }
-      p {
-        margin: 0;
-      }
-
-      /* Background particles */
-      .particles {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 0;
-        overflow: hidden;
-      }
-      .particle {
-        position: absolute;
-        width: 2px;
-        height: 2px;
-        background: var(--primary);
-        border-radius: 50%;
-        opacity: 0.3;
-        animation: float-particle 20s infinite ease-in-out;
-      }
-      @keyframes float-particle {
-        0%,
-        100% {
-          transform: translate(0, 0);
-        }
-        25% {
-          transform: translate(100px, -100px);
-        }
-        50% {
-          transform: translate(-50px, -200px);
-        }
-        75% {
-          transform: translate(-100px, -100px);
-        }
-      }
-
-      /* nav */
-      header.nav {
-        position: sticky;
-        top: env(safe-area-inset-top, 0px);
-        z-index: 20;
-        background: color-mix(in srgb, var(--bg) 88%, transparent);
-        backdrop-filter: blur(8px);
-        border-bottom: 1px solid var(--border);
-        transition: all 0.3s ease;
-      }
-      .nav-inner {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 1.1rem 1.5rem;
-        max-width: var(--maxw);
-        margin: 0 auto;
-      }
-      .logo {
-        font-family: var(--font-display);
-        font-weight: 700;
-        font-size: 1.15rem;
-        text-decoration: none;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        transition: transform 0.3s ease;
-      }
-      .logo:hover {
-        transform: scale(1.05);
-      }
-      .logo .dot {
-        width: 0.5rem;
-        height: 0.5rem;
-        border-radius: 50%;
-        background: var(--primary);
-        box-shadow:
-          0 0 0 3px var(--primary-dim),
-          0 0 20px var(--primary);
-        animation: pulse 2s infinite;
-      }
-      @keyframes pulse {
-        0%,
-        100% {
-          transform: scale(1);
-          opacity: 1;
-        }
-        50% {
-          transform: scale(1.1);
-          opacity: 0.8;
-        }
-      }
-      .nav-links {
-        display: flex;
-        gap: 1.75rem;
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        align-items: center;
-      }
-      .nav-links a {
-        text-decoration: none;
-        color: var(--text-muted);
-        font-size: 0.9rem;
-        transition: all 0.2s ease;
-        position: relative;
-      }
-      .nav-links a:hover {
-        color: var(--text);
-        transform: translateY(-2px);
-      }
-      .nav-cta {
-        border: 1px solid var(--border);
-        padding: 0.45rem 0.9rem;
-        border-radius: 4px;
-        color: var(--text) !important;
-      }
-      .nav-cta:hover {
-        border-color: var(--primary);
-        box-shadow: 0 0 20px var(--primary-dim);
-      }
-      .nav-toggle {
-        display: none;
-      }
-
-      /* hero */
-      .hero {
-        padding: 4.5rem 0 3rem;
-        position: relative;
-        z-index: 1;
-      }
-      .hero .kicker {
-        color: var(--text-muted);
-        font-size: 0.9rem;
-        margin-bottom: 1rem;
-        opacity: 0;
-        animation: fade-in-up 0.6s ease forwards;
-      }
-      .hero h1 {
-        font-size: clamp(2.1rem, 1.4rem + 3vw, 3.4rem);
-        line-height: 1.08;
-        max-width: 16ch;
-        opacity: 0;
-        animation: fade-in-up 0.6s ease 0.1s forwards;
-        background: linear-gradient(
-          135deg,
-          var(--text) 0%,
-          var(--primary) 100%
-        );
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-      .hero .sub {
-        margin-top: 1.25rem;
-        color: var(--text-muted);
-        max-width: 56ch;
-        font-size: 1rem;
-        line-height: 1.7;
-        opacity: 0;
-        animation: fade-in-up 0.6s ease 0.2s forwards;
-      }
-      .hero-actions {
-        margin-top: 2rem;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        align-items: center;
-        opacity: 0;
-        animation: fade-in-up 0.6s ease 0.3s forwards;
-      }
-
-      @keyframes fade-in-up {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .install-line {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        padding: 0.7rem 0.5rem 0.7rem 1rem;
-        font-size: 0.88rem;
-        color: var(--text);
-        transition: all 0.3s ease;
-      }
-      .install-line:hover {
-        border-color: var(--primary);
-        box-shadow: 0 0 20px var(--primary-dim);
-      }
-      .install-line .prompt {
-        color: var(--primary);
-      }
-      .install-line button {
-        background: var(--surface-2);
-        border: 1px solid var(--border);
-        color: var(--text-muted);
-        font-family: var(--font-mono);
-        font-size: 0.78rem;
-        padding: 0.4rem 0.6rem;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-      }
-      .install-line button:hover {
-        color: var(--text);
-        border-color: var(--primary);
-        transform: scale(1.05);
-      }
-      .btn-secondary {
-        text-decoration: none;
-        color: var(--text);
-        border: 1px solid var(--border);
-        padding: 0.75rem 1.1rem;
-        border-radius: 6px;
-        font-size: 0.88rem;
-        transition: all 0.2s ease;
-      }
-      .btn-secondary:hover {
-        border-color: var(--gold);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(217, 164, 65, 0.2);
-      }
-
-      /* terminal */
-      .terminal {
-        margin: 3rem 0 1rem;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        overflow: hidden;
-        opacity: 0;
-        animation: fade-in-up 0.8s ease 0.4s forwards;
-        box-shadow: 0 0 40px var(--primary-dim);
-      }
-      .terminal .bar {
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-        padding: 0.7rem 1rem;
-        border-bottom: 1px solid var(--border);
-      }
-      .terminal .bar span {
-        width: 0.6rem;
-        height: 0.6rem;
-        border-radius: 50%;
-        background: var(--border);
-        transition: background 0.3s;
-      }
-      .terminal .bar span:nth-child(1) {
-        background: var(--rust);
-      }
-      .terminal .bar span:nth-child(2) {
-        background: var(--gold);
-      }
-      .terminal .bar span:nth-child(3) {
-        background: var(--sage);
-      }
-      .terminal .bar .label {
-        margin-left: 0.75rem;
-        color: var(--text-muted);
-        font-size: 0.78rem;
-      }
-      .terminal .body {
-        padding: 1.25rem 1.5rem 1.6rem;
-        overflow-x: auto;
-      }
-      .term-line {
-        font-size: 0.86rem;
-        white-space: pre-wrap;
-        word-break: break-word;
-        margin: 0 0 0.45rem;
-        opacity: 0;
-        transform: translateY(4px);
-        animation: reveal 0.35s ease forwards;
-      }
-      .term-line.add {
-        color: var(--sage);
-      }
-      .term-line.del {
-        color: var(--rust);
-      }
-      .term-line.step {
-        color: var(--primary);
-      }
-      .term-line.muted {
-        color: var(--text-muted);
-      }
-      .term-line.file {
-        color: var(--text);
-        margin-top: 0.9rem;
-      }
-      @keyframes reveal {
-        to {
-          opacity: 1;
-          transform: none;
-        }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .term-line,
-        .hero .kicker,
-        .hero h1,
-        .hero .sub,
-        .hero-actions,
-        .terminal {
-          animation: none;
-          opacity: 1;
-          transform: none;
-        }
-      }
-
-      /* section */
-      section {
-        padding: 4rem 0;
-        border-top: 1px solid var(--border);
-        position: relative;
-        z-index: 1;
-      }
-      .section-head {
-        max-width: 46ch;
-        margin-bottom: 2.5rem;
-      }
-      .section-head h2 {
-        font-size: clamp(1.5rem, 1.2rem + 1vw, 2.1rem);
-      }
-      .section-head p {
-        color: var(--text-muted);
-        margin-top: 0.85rem;
-        font-size: 0.95rem;
-        line-height: 1.7;
-      }
-
-      /* features */
-      .features {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0;
-        border-top: 1px solid var(--border);
-      }
-      .feature {
-        padding: 1.6rem 1.8rem 1.6rem 0;
-        border-bottom: 1px solid var(--border);
-        transition: all 0.3s ease;
-        position: relative;
-      }
-      .feature:hover {
-        background: var(--surface);
-        transform: translateY(-2px);
-      }
-      .features .feature:nth-child(odd) {
-        border-right: 1px solid var(--border);
-        padding-left: 0;
-      }
-      .features .feature:nth-child(even) {
-        padding-left: 1.8rem;
-      }
-      .feature h3 {
-        font-size: 1.02rem;
-        font-family: var(--font-mono);
-        font-weight: 600;
-      }
-      .feature p {
-        color: var(--text-muted);
-        margin-top: 0.6rem;
-        font-size: 0.89rem;
-        line-height: 1.7;
-      }
-
-      /* philosophy */
-      .philosophy {
-        display: grid;
-        grid-template-columns: 0.9fr 1.1fr;
-        gap: 3rem;
-        align-items: start;
-      }
-      .philosophy .stmt {
-        font-family: var(--font-display);
-        font-size: clamp(1.3rem, 1.1rem + 0.8vw, 1.8rem);
-        line-height: 1.35;
-        background: linear-gradient(
-          135deg,
-          var(--text) 0%,
-          var(--primary) 100%
-        );
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-      .philosophy .body p + p {
-        margin-top: 1.1rem;
-      }
-      .philosophy .body p {
-        color: var(--text-muted);
-        font-size: 0.93rem;
-        line-height: 1.75;
-        max-width: 60ch;
-      }
-
-      /* architecture */
-      .arch-list {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        border-top: 1px solid var(--border);
-        border-left: 1px solid var(--border);
-      }
-      .arch-item {
-        padding: 1.8rem;
-        border-right: 1px solid var(--border);
-        border-bottom: 1px solid var(--border);
-        transition: all 0.3s ease;
-      }
-      .arch-item:hover {
-        background: var(--surface);
-        transform: scale(1.02);
-        box-shadow: 0 4px 20px var(--primary-dim);
-      }
-      .arch-item .idx {
-        color: var(--text-muted);
-        font-size: 0.78rem;
-      }
-      .arch-item h3 {
-        margin-top: 0.6rem;
-        font-size: 1.05rem;
-        font-family: var(--font-mono);
-        font-weight: 600;
-        color: var(--primary);
-      }
-      .arch-item p {
-        margin-top: 0.65rem;
-        color: var(--text-muted);
-        font-size: 0.87rem;
-        line-height: 1.7;
-      }
-
-      /* install steps */
-      .steps {
-        counter-reset: step;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-      }
-      .step {
-        display: grid;
-        grid-template-columns: 2.5rem 1fr;
-        gap: 1rem;
-        padding: 1.4rem 0;
-        border-bottom: 1px solid var(--border);
-      }
-      .step:first-child {
-        border-top: 1px solid var(--border);
-      }
-      .step .num {
-        counter-increment: step;
-        font-family: var(--font-display);
-        color: var(--primary);
-        font-size: 1.1rem;
-        font-weight: 700;
-      }
-      .step .num::before {
-        content: counter(step);
-      }
-      .step h3 {
-        font-size: 0.98rem;
-        font-family: var(--font-mono);
-        font-weight: 600;
-      }
-      .step pre {
-        margin: 0.7rem 0 0;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        padding: 0.75rem 1rem;
-        font-size: 0.83rem;
-        overflow-x: auto;
-        color: var(--primary);
-        transition: all 0.3s ease;
-      }
-      .step pre:hover {
-        border-color: var(--primary);
-        box-shadow: 0 0 20px var(--primary-dim);
-      }
-      .step p {
-        color: var(--text-muted);
-        font-size: 0.88rem;
-        margin-top: 0.5rem;
-      }
-
-      /* footer */
-      footer {
-        border-top: 1px solid var(--border);
-        padding: 2.5rem 0 3rem;
-        position: relative;
-        z-index: 1;
-      }
-      .footer-inner {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 1.5rem;
-        align-items: center;
-      }
-      .footer-links {
-        display: flex;
-        gap: 1.5rem;
-        list-style: none;
-        padding: 0;
-        margin: 0;
-      }
-      .footer-links a {
-        color: var(--text-muted);
-        text-decoration: none;
-        font-size: 0.85rem;
-        transition: all 0.2s ease;
-      }
-      .footer-links a:hover {
-        color: var(--primary);
-        transform: translateY(-2px);
-      }
-      .footer-note {
-        color: var(--text-muted);
-        font-size: 0.8rem;
-      }
-
-      @media (max-width: 860px) {
-        .philosophy {
-          grid-template-columns: 1fr;
-          gap: 1.5rem;
-        }
-        .arch-list {
-          grid-template-columns: 1fr;
-        }
-        .arch-item {
-          border-right: none;
-        }
-      }
-      @media (max-width: 640px) {
-        .nav-links {
-          display: none;
-        }
-        .features {
-          grid-template-columns: 1fr;
-        }
-        .features .feature:nth-child(odd) {
-          border-right: none;
-          padding-right: 0;
-        }
-        .features .feature:nth-child(even) {
-          padding-left: 0;
-        }
-        .hero {
-          padding-top: 3rem;
-        }
-        .step {
-          grid-template-columns: 1fr;
-        }
-      }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f3f5f3" />
+    <meta name="description" content="Open-source coding agent for the terminal, VS Code, Chrome, and Edge. Explore your codebase, review changes, and stay in control." />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="SynAI — Understand your codebase. Ship with confidence." />
+    <meta property="og:description" content="An open-source coding agent that works in your project and keeps files, commands, and changes visible." />
+    <meta property="og:image" content="/synai-wordmark-black.png" />
+    <title>SynAI — Understand your codebase. Ship with confidence.</title>
+    <link rel="icon" type="image/png" href="/synai-mark.png" />
+    <link rel="preload" as="image" href="/synai-wordmark-black.png" />
+    <link rel="stylesheet" href="/style.css" />
+    <script type="module" src="/script.js"></script>
   </head>
   <body>
-    <div class="particles" id="particles"></div>
-    <header class="nav">
-      <div class="nav-inner">
-        <a class="logo" href="#top"><span class="dot"></span>SynAI</a>
-        <ul class="nav-links">
-          <li><a href="#why">Neden SynAI</a></li>
-          <li><a href="#architecture">Nasıl Çalışır</a></li>
-          <li><a href="#install">Kurulum</a></li>
-          <li>
-            <a
-              class="nav-cta"
-              href="https://github.com/synai/synai"
-              target="_blank"
-              rel="noopener"
-              >GitHub</a
-            >
-          </li>
-        </ul>
-      </div>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <nav class="nav shell" aria-label="Primary navigation">
+        <a class="wordmark" href="#top" aria-label="SynAI home"><img src="/synai-wordmark-black.png" alt="SynAI" width="104" height="39" /></a>
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open menu"><span></span><span></span></button>
+        <div class="nav-links" id="nav-links">
+          <a href="#workflow">Workflows</a>
+          <a href="#capabilities">Capabilities</a>
+          <a href="#install">Get started</a>
+          <a class="mobile-source" href="https://github.com/realutj/synai" target="_blank" rel="noopener noreferrer">Source code ↗</a>
+        </div>
+        <a class="nav-source" href="https://github.com/realutj/synai" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+      </nav>
     </header>
-    <main id="top">
-      <div class="wrap hero">
-        <p class="kicker">
-          Açık Kaynak · Terminal, VS Code ve Web · Apache 2.0 Lisans
-        </p>
-        <h1>Tamamen otonom AI kodlama asistanı</h1>
-        <p class="sub">
-          SynAI, açık kaynak bir AI kodlama agent'ıdır. OpenRouter üzerinden 20+
-          ücretsiz modele erişir, dosyalarınızı okur ve düzenler, testlerinizi
-          çalıştırır ve işi gerçekten bitirir.
-        </p>
-        <div class="hero-actions">
-          <div class="install-line">
-            <span class="prompt">$</span>
-            <span id="install-cmd">npm install -g synai</span>
-            <button id="copy-btn" type="button">kopyala</button>
+
+    <main id="main">
+      <section class="hero shell" id="top">
+        <div class="hero-meta"><span><i aria-hidden="true"></i> OPEN SOURCE · CODING AGENT</span><span>FROM TERMINAL TO BROWSER <b>01 / 04</b></span></div>
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">YOUR CODE. YOUR CALL.</p>
+            <h1>Understand the code.<br /> <em>Ship the change.</em></h1>
+            <p class="hero-intro">SynAI explores your project, makes changes, and shows its work. Start in your terminal; your files and decisions stay yours.</p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#install">Get started <span aria-hidden="true">↓</span></a>
+              <a class="button button-outline" href="https://github.com/realutj/synai" target="_blank" rel="noopener noreferrer">Browse the source <span aria-hidden="true">↗</span></a>
+            </div>
+            <div class="install-snippet" aria-label="CLI install command"><span aria-hidden="true">$</span><code>npm install -g synai</code><button type="button" data-copy="npm install -g synai" aria-label="Copy install command">COPY</button></div>
+            <p class="hero-footnote"><span>MIT License</span><i></i><span>Choose your model</span><i></i><span>You decide when to approve</span></p>
           </div>
-          <a
-            class="btn-secondary"
-            href="https://github.com/synai/synai"
-            target="_blank"
-            rel="noopener"
-            >Kaynak kodu</a
-          >
-        </div>
-        <div class="terminal">
-          <div class="bar">
-            <span></span><span></span><span></span
-            ><span class="label">~/projects/api</span>
-          </div>
-          <div class="body" id="term-body"></div>
-        </div>
-      </div>
-      <section id="why">
-        <div class="wrap">
-          <div class="philosophy">
-            <p class="stmt">
-              Çoğu AI agent güvenli görünür. Ama hepsi güvenilir değildir.
-            </p>
-            <div class="body">
-              <p>
-                SynAI is built on a single rule: an agent should never hide what
-                it changes. Every edit shows up as a diff, every run displays
-                its plan first, and every operation goes through a tool call you
-                can log, replay, or block.
-              </p>
-              <p>
-                It's not locked to a single model provider. Point it at a local
-                model to work offline, or use a hosted API when you need more
-                reasoning power — the planning loop, tool set, and CLI stay the
-                same.
-              </p>
-              <p>
-                And because it's open source, the agent loop itself isn't a
-                black box. Read how it decides what to do, change the parts you
-                don't like, and publish your own fork if that's what your team
-                needs.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section>
-        <div class="wrap">
-          <div class="section-head">
-            <h2>Built to finish the job, not just start it</h2>
-            <p>
-              Every feature below maps to a real step in how SynAI works —
-              nothing here is decoration.
-            </p>
-          </div>
-          <div class="features">
-            <div class="feature">
-              <h3>🎯 Plans before it edits</h3>
-              <p>
-                Breaks the task into steps and states the plan up front, so you
-                know what's about to change before it changes.
-              </p>
-            </div>
-            <div class="feature">
-              <h3>✨ Shows real diffs</h3>
-              <p>
-                Every file change is a reviewable diff, never a silent
-                overwrite. Reject a hunk and SynAI adjusts the rest of the plan
-                around it.
-              </p>
-            </div>
-            <div class="feature">
-              <h3>🧪 Runs your tests</h3>
-              <p>
-                A change isn't marked done until your existing test suite passes
-                against it — no separate "trust me" step.
-              </p>
-            </div>
-            <div class="feature">
-              <h3>🔧 Full tool access</h3>
-              <p>
-                Reads, writes, greps, and runs shell commands directly, and can
-                call out to any MCP server already in your setup.
-              </p>
-            </div>
-            <div class="feature">
-              <h3>🤖 Model-agnostic</h3>
-              <p>
-                Works with local models or hosted APIs. Swap providers per
-                project without touching the agent loop or your workflows.
-              </p>
-            </div>
-            <div class="feature">
-              <h3>⚡ Scriptable CLI</h3>
-              <p>
-                Every capability is available as a flag or a piped command, so
-                SynAI fits into scripts and CI the same way it fits into a
-                terminal session.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section id="architecture">
-        <div class="wrap">
-          <div class="section-head">
-            <h2>Üç parça, tek döngü</h2>
-            <p>
-              SynAI is deliberately split into pieces you can reason about — and
-              change — on their own.
-            </p>
-          </div>
-          <div class="arch-list">
-            <div class="arch-item">
-              <p class="idx">beyin</p>
-              <h3>Planlama &amp; akıl yürütme</h3>
-              <p>
-                Bir görevi sıralı bir plana dönüştürür, hangi toolları
-                çağıracağını karar verir ve bir adım başarısız olduğunda körü
-                körüne ilerlemek yerine yeniden planlar.
-              </p>
-            </div>
-            <div class="arch-item">
-              <p class="idx">toollar</p>
-              <h3>Dosya işlemleri, shell, arama, MCP</h3>
-              <p>
-                Küçük, typed bir tool yüzeyi — oku, yaz, patch, grep, çalıştır —
-                artı proje-spesifik işlemler için bağladığınız herhangi bir MCP
-                sunucusu.
-              </p>
-            </div>
-            <div class="arch-item">
-              <p class="idx">cli</p>
-              <h3>İçinde yaşadığınız arayüz</h3>
-              <p>
-                İnteraktif oturumlar için hızlı bir terminal UI'ı ve scriptler,
-                hook'lar ve CI pipeline'ları için flag-driven bir mod.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section id="install">
-        <div class="wrap">
-          <div class="section-head">
-            <h2>Kurun ve bir repo'ya yönlendirin</h2>
-            <p>Üç adım, başlamak için config dosyası gerekmez.</p>
-          </div>
-          <div class="steps">
-            <div class="step">
-              <span class="num"></span>
-              <div>
-                <h3>CLI'ı kurun</h3>
-                <pre>npm install -g synai</pre>
-                <p>
-                  Veya kaynak koddan:
-                  <code
-                    >git clone https://github.com/synai/synai && npm
-                    install</code
-                  >
-                </p>
+
+          <div class="hero-art" aria-label="Sample SynAI workflow">
+            <div class="art-index"><span>SAMPLE WORKFLOW</span><span>01 — REVIEW</span></div>
+            <div class="workbench">
+              <div class="workbench-top"><span class="window-lights" aria-hidden="true"><i></i><i></i><i></i></span><span class="window-title">~/projects/atlas <b>·</b> synai</span><span class="window-mark">SYN</span></div>
+              <div class="workbench-tabs" role="tablist" aria-label="Choose a sample SynAI workflow">
+                <button type="button" role="tab" aria-selected="true" aria-controls="workflow-panel" data-workflow="map">01 <span>Explore</span></button>
+                <button type="button" role="tab" aria-selected="false" aria-controls="workflow-panel" data-workflow="review" tabindex="-1">02 <span>Review</span></button>
+                <button type="button" role="tab" aria-selected="false" aria-controls="workflow-panel" data-workflow="browser" tabindex="-1">03 <span>Browser</span></button>
+              </div>
+              <div class="workflow-panel" id="workflow-panel" role="tabpanel" tabindex="0" data-workflow-panel="map">
+                <div class="command-line"><span aria-hidden="true">›</span><code data-workflow-command>synai /map</code><span class="example-tag">EXAMPLE</span></div>
+                <h2 data-workflow-title>Understand the project first.</h2>
+                <p data-workflow-copy>SynAI maps entry points, modules, and test paths without changing files.</p>
+                <div class="workflow-output" aria-live="polite" data-workflow-output>
+                  <div><span class="output-index">01</span><span>Entry points and project commands</span><b>find</b></div>
+                  <div><span class="output-index">02</span><span>Data flow between modules</span><b>trace</b></div>
+                  <div><span class="output-index">03</span><span>Test structure and verification steps</span><b>summarize</b></div>
+                </div>
+                <div class="workbench-footer"><span><i></i> EXAMPLE · NO FILES ARE CHANGED</span><span>STOP AT ANY TIME</span></div>
               </div>
             </div>
-            <div class="step">
-              <span class="num"></span>
-              <div>
-                <h3>API anahtarını ayarlayın</h3>
-                <pre>
-$env:OPENROUTER_API_KEY="sk-or-your-key-here"
-# Linux/Mac: export OPENROUTER_API_KEY="sk-or-your-key-here"</pre
-                >
-                <p>
-                  Ücretsiz API anahtarını
-                  <a
-                    href="https://openrouter.ai"
-                    target="_blank"
-                    rel="noopener"
-                    style="color: var(--primary); text-decoration: underline"
-                    >openrouter.ai</a
-                  >
-                  adresinden alın.
-                </p>
+            <div class="art-caption"><span>QUICK COMMANDS</span><code>/map</code><code>/review</code><code>/tests</code><code>/debug</code></div>
+            <div class="art-shape" aria-hidden="true"><span></span><span></span><span></span></div>
+          </div>
+        </div>
+        <div class="hero-rule"><span>EXPLORE</span><i></i><span>PLAN</span><i></i><span>BUILD</span><i></i><span>REVIEW</span><span class="rule-note">YOU’RE IN CONTROL</span></div>
+      </section>
+
+      <section class="principles" aria-label="SynAI principles">
+        <div class="shell principles-grid">
+          <div><span class="principle-mark">01</span><p><b>Real project</b><small>Your workspace context</small></p></div>
+          <div><span class="principle-mark">02</span><p><b>Visible changes</b><small>Every file diff is reviewable</small></p></div>
+          <div><span class="principle-mark">03</span><p><b>Your approval, your choice</b><small>Choose how SynAI works</small></p></div>
+          <div><span class="principle-mark">04</span><p><b>Open source</b><small>MIT · Explore on GitHub</small></p></div>
+        </div>
+      </section>
+
+      <section class="workflow-section" id="workflow">
+        <div class="shell section-shell">
+          <div class="section-top"><span>01 / WORKFLOWS</span><span>SHORT COMMANDS, CLEAR TASKS</span></div>
+          <div class="section-intro">
+            <h2>Start every task<br /><em>with a clear plan.</em></h2>
+            <p>Launch common engineering tasks with short commands. SynAI maps each request to the files and rules in your actual project.</p>
+          </div>
+          <div class="recipe-list">
+            <article class="recipe-row"><span class="recipe-number">01</span><code>/map</code><div><h3>Explore the project</h3><p>Map entry points, architecture, commands, and test paths without changing files.</p></div><span class="recipe-action">EXPLORE <b>↗</b></span></article>
+            <article class="recipe-row"><span class="recipe-number">02</span><code>/review</code><div><h3>Review changes</h3><p>Inspect the diff and surrounding code; report findings with file and line references.</p></div><span class="recipe-action">REVIEW <b>↗</b></span></article>
+            <article class="recipe-row"><span class="recipe-number">03</span><code>/tests</code><div><h3>Catch regressions</h3><p>Add focused tests that fit the existing test setup and protect expected behavior.</p></div><span class="recipe-action">VERIFY <b>↗</b></span></article>
+            <article class="recipe-row"><span class="recipe-number">04</span><code>/debug</code><div><h3>Find the root cause</h3><p>Trace the failure from input to outcome, then make a focused, durable fix.</p></div><span class="recipe-action">FIX <b>↗</b></span></article>
+          </div>
+          <p class="recipe-note"><i></i> Type <code>/</code> in the terminal or desktop chat to run these commands.</p>
+        </div>
+      </section>
+
+      <section class="surfaces-section" id="capabilities">
+        <div class="shell section-shell">
+          <div class="section-top"><span>02 / WHERE YOU WORK</span><span>ONE PROJECT · DIFFERENT INTERFACES</span></div>
+          <div class="section-intro surfaces-intro">
+            <h2>From the terminal<br /><em>to the browser.</em></h2>
+            <p>Choose the interface that fits the task. SynAI brings the same project context to each surface.</p>
+          </div>
+          <div class="surface-grid">
+            <article class="surface-card surface-cli">
+              <div class="surface-card-head"><span>01 — TERMINAL</span><span>READY</span></div>
+              <div class="surface-visual cli-visual"><div class="cli-line"><span>$</span> synai /review</div><div class="cli-separator"></div><div class="cli-file"><span>src/auth.ts</span><b>+4</b><b>−2</b></div><div class="cli-status"><i></i> Reviewing diff <span>files stay untouched</span></div></div>
+              <h3>Go deeper in the command line.</h3><p>Start in a project folder to read files, make changes, and use tools in one flow.</p>
+              <a href="#install">Install the CLI <span aria-hidden="true">↗</span></a>
+            </article>
+            <article class="surface-card surface-editor">
+              <div class="surface-card-head"><span>02 — VS CODE</span><span>EXTENSION</span></div>
+              <div class="surface-visual editor-visual" aria-hidden="true"><div class="editor-rail"><i></i><i></i><i></i><i></i></div><div class="editor-code"><span>chat.tsx</span><b><i>const</i> task = await synai.start({</b><b>  workspace: <em>"./project"</em>,</b><b>  approval: <em>"review"</em></b><b>});</b><div class="editor-caret"></div></div><div class="editor-aside"><i></i><i></i><b>DIFF</b><i></i><i></i></div></div>
+              <h3>Stay in your editor.</h3><p>Add SynAI to your VS Code workspace and keep code and conversation in context.</p>
+              <a href="https://marketplace.visualstudio.com/items?itemName=realutj.synai-vscode" target="_blank" rel="noopener noreferrer">Open the Marketplace <span aria-hidden="true">↗</span></a>
+            </article>
+            <article class="surface-card surface-browser">
+              <div class="surface-card-head"><span>03 — BROWSER</span><span>CHROME · EDGE</span></div>
+              <div class="surface-visual browser-visual"><div class="browser-address"><span>● ● ●</span><code>https://localhost:3000</code><b>↻</b></div><div class="browser-body"><div class="browser-side"><b>APP</b><i></i><i></i><i></i></div><div class="browser-main"><span>SAMPLE PAGE</span><b>Account settings</b><i></i><i></i><button type="button" tabindex="-1">Save</button></div></div></div>
+              <h3>Inspect web flows, too.</h3><p>Open a page in Chrome or Edge, inspect its interactions, and capture text or a screenshot.</p>
+              <a href="#install">See the browser command <span aria-hidden="true">↗</span></a>
+            </article>
+          </div>
+          <div class="desktop-note"><span class="desktop-stamp">IN DEVELOPMENT</span><p><b>SynAI Desktop</b> · The desktop app is in development, with workspace access, session history, and diff review. Official installers will be shared after release verification.</p><a href="https://github.com/realutj/synai" target="_blank" rel="noopener noreferrer">Follow development ↗</a></div>
+        </div>
+      </section>
+
+      <section class="control-section">
+        <div class="shell control-grid">
+          <div class="control-copy"><span class="control-kicker">03 / YOUR PERMISSIONS</span><h2>Set the<br />boundaries.</h2><p>Choose the approval level that fits your task. Review file changes, see commands, and pause the agent whenever you need.</p><a href="https://github.com/realutj/synai" target="_blank" rel="noopener noreferrer">Review code and settings <span aria-hidden="true">↗</span></a></div>
+          <div class="permission-card" aria-label="Sample approval options">
+            <div class="permission-head"><span>APPROVAL MODE</span><span>SETTINGS</span></div>
+            <div class="permission-option"><span class="permission-icon">01</span><span><b>Ask for approval</b><small>Ask before editing files or using the internet</small></span><span class="permission-radio"></span></div>
+            <div class="permission-option selected"><span class="permission-icon">02</span><span><b>Approve for me</b><small>Pause for actions detected as unsafe</small></span><span class="permission-radio"></span></div>
+            <div class="permission-option"><span class="permission-icon">03</span><span><b>Full access</b><small>Unrestricted access to files and the internet</small></span><span class="permission-radio"></span></div>
+            <p class="permission-caption">Illustrative UI · choose your approval mode in the app</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="install-section" id="install">
+        <div class="shell section-shell">
+          <div class="section-top"><span>04 / GET STARTED</span><span>YOUR FIRST SESSION IS ONE COMMAND AWAY</span></div>
+          <div class="install-layout">
+            <div class="install-intro"><p class="eyebrow">TRY IT IN YOUR PROJECT</p><h2>Bring your project.<br /><em>Start anywhere.</em></h2><p>Install the CLI or add the VS Code extension. The desktop app is in development.</p><div class="prerequisite"><span>REQUIREMENT</span><b>Node.js 22+</b></div></div>
+            <div class="install-console">
+              <div class="install-tabs" role="tablist" aria-label="Choose an installation method">
+                <button class="install-tab" id="tab-cli" role="tab" aria-selected="true" aria-controls="panel-cli" tabindex="0">Terminal <span>01</span></button>
+                <button class="install-tab" id="tab-editor" role="tab" aria-selected="false" aria-controls="panel-editor" tabindex="-1">VS Code <span>02</span></button>
+                <button class="install-tab" id="tab-browser" role="tab" aria-selected="false" aria-controls="panel-browser" tabindex="-1">Browser <span>03</span></button>
               </div>
-            </div>
-            <div class="step">
-              <span class="num"></span>
-              <div>
-                <h3>Repo'nuzda çalıştırın</h3>
-                <pre>
-cd your-project
-synai "istediğiniz değişikliği açıklayın"</pre
-                >
-                <p>
-                  SynAI repo'yu okur, bir plan önerir ve her diff'i onaylamanızı
-                  bekler.
-                </p>
+              <div class="install-panel" id="panel-cli" role="tabpanel" aria-labelledby="tab-cli">
+                <p>Install the package, then run it in your project folder.</p>
+                <div class="install-command"><span>$</span><code>npm install -g synai</code><button type="button" data-copy="npm install -g synai" aria-label="Copy the CLI install command">COPY</button></div>
+                <div class="install-followup"><code>cd my-project</code><b>→</b><code>synai</code><span>then describe what you need</span></div>
+                <div class="install-links"><a href="https://www.npmjs.com/package/synai" target="_blank" rel="noopener noreferrer">View the npm package ↗</a><span>npm · pnpm · Bun</span></div>
+              </div>
+              <div class="install-panel" id="panel-editor" role="tabpanel" aria-labelledby="tab-editor" hidden>
+                <p>Add SynAI to your current VS Code workspace.</p>
+                <div class="install-command"><span>$</span><code>code --install-extension realutj.synai-vscode</code><button type="button" data-copy="code --install-extension realutj.synai-vscode" aria-label="Copy the VS Code install command">COPY</button></div>
+                <div class="install-links"><a href="https://marketplace.visualstudio.com/items?itemName=realutj.synai-vscode" target="_blank" rel="noopener noreferrer">Marketplace listing ↗</a></div>
+              </div>
+              <div class="install-panel" id="panel-browser" role="tabpanel" aria-labelledby="tab-browser" hidden>
+                <p>Read page text and inspect interactions in Chrome or Edge.</p>
+                <div class="install-command"><span>$</span><code>synai browser example.com --inspect</code><button type="button" data-copy="synai browser example.com --inspect" aria-label="Copy the browser command">COPY</button></div>
+                <div class="install-links"><span>Chrome or Edge must be installed</span><span>Use <code>--text</code> to read without opening the browser</span></div>
               </div>
             </div>
           </div>
         </div>
+      </section>
+
+      <section class="closing-section">
+        <div class="shell closing-inner"><img src="/synai-mark.png" width="56" height="56" alt="" aria-hidden="true" /><div><p class="eyebrow">OPEN SOURCE · MIT LICENSE</p><h2>Explore. Contribute.<br /><em>Build your workflow.</em></h2></div><a class="button button-primary" href="https://github.com/realutj/synai" target="_blank" rel="noopener noreferrer">Explore SynAI source <span aria-hidden="true">↗</span></a></div>
       </section>
     </main>
-    <footer>
-      <div class="wrap footer-inner">
-        <a class="logo" href="#top"><span class="dot"></span>SynAI</a>
-        <ul class="footer-links">
-          <li>
-            <a
-              href="https://github.com/synai/synai"
-              target="_blank"
-              rel="noopener"
-              >GitHub</a
-            >
-          </li>
-          <li>
-            <a
-              href="https://www.npmjs.com/package/synai"
-              target="_blank"
-              rel="noopener"
-              >npm</a
-            >
-          </li>
-          <li><a href="#why">Neden SynAI</a></li>
-          <li><a href="#install">Kurulum</a></li>
-        </ul>
-        <p class="footer-note">Açık kaynak. Herkes için yapıldı.</p>
-      </div>
+
+    <footer class="site-footer">
+      <div class="shell footer-main"><a class="wordmark" href="#top" aria-label="SynAI home"><img src="/synai-wordmark-black.png" alt="SynAI" width="104" height="39" /></a><p>Open-source tools that keep your code and decisions yours.</p><nav aria-label="Links"><a href="https://github.com/realutj/synai" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="https://www.npmjs.com/package/synai" target="_blank" rel="noopener noreferrer">npm ↗</a><a href="https://marketplace.visualstudio.com/items?itemName=realutj.synai-vscode" target="_blank" rel="noopener noreferrer">VS Code ↗</a></nav></div>
+      <div class="shell footer-legal"><span>© <span data-year>2026</span> SynAI contributors</span><a href="#top">BACK TO TOP ↑</a></div>
     </footer>
-    <script>
-      (function () {
-        // Particles
-        var particlesContainer = document.getElementById("particles");
-        for (var i = 0; i < 30; i++) {
-          var particle = document.createElement("div");
-          particle.className = "particle";
-          particle.style.left = Math.random() * 100 + "%";
-          particle.style.top = Math.random() * 100 + "%";
-          particle.style.animationDelay = Math.random() * 20 + "s";
-          var size = Math.random() * 3 + 2;
-          particle.style.width = size + "px";
-          particle.style.height = size + "px";
-          particlesContainer.appendChild(particle);
-        }
-
-        // Terminal animation
-        var lines = [
-          { t: '$ synai "merhaba dünya uygulaması yap"', cls: "muted" },
-          { t: "", cls: "muted" },
-          { t: "→ package.json, src/ klasörünü okuyorum", cls: "step" },
-          {
-            t: "→ plan: index.js oluştur, console.log ekle, package.json güncelle",
-            cls: "step",
-          },
-          { t: "", cls: "muted" },
-          { t: "  index.js  (yeni)", cls: "file" },
-          { t: "  + #!/usr/bin/env node", cls: "add" },
-          { t: '  + console.log("🎉 Merhaba Dünya!");', cls: "add" },
-          { t: "", cls: "muted" },
-          { t: "  package.json", cls: "file" },
-          { t: '  - "main": "index.js",', cls: "del" },
-          { t: '  + "main": "index.js",', cls: "add" },
-          { t: '  + "bin": { "hello": "./index.js" }', cls: "add" },
-          { t: "", cls: "muted" },
-          { t: "→ değişiklikleri test ediyorum", cls: "step" },
-          { t: "  ✓ index.js çalışıyor", cls: "add" },
-          { t: "  ✓ bin bağlantısı başarılı", cls: "add" },
-          { t: "", cls: "muted" },
-          {
-            t: "→ tamamlandı — 2 dosya değişti, incelemeye hazır",
-            cls: "step",
-          },
-        ];
-        var body = document.getElementById("term-body");
-        var reduce = window.matchMedia(
-          "(prefers-reduced-motion: reduce)",
-        ).matches;
-        lines.forEach(function (line, i) {
-          var el = document.createElement("p");
-          el.className = "term-line " + line.cls;
-          el.textContent = line.t.length ? line.t : "\u00A0";
-          if (!reduce) {
-            el.style.animationDelay = i * 0.07 + "s";
-          }
-          body.appendChild(el);
-        });
-
-        // Copy button
-        var btn = document.getElementById("copy-btn");
-        var cmdEl = document.getElementById("install-cmd");
-        btn.addEventListener("click", function () {
-          var text = cmdEl.textContent;
-          try {
-            navigator.clipboard.writeText(text).then(function () {
-              btn.textContent = "kopyalandı!";
-              setTimeout(function () {
-                btn.textContent = "kopyala";
-              }, 1500);
-            });
-          } catch (e) {
-            btn.textContent = "seç & kopyala";
-          }
-        });
-
-        // Scroll effects
-        var nav = document.querySelector(".nav");
-        var lastScroll = 0;
-        window.addEventListener("scroll", function () {
-          var currentScroll = window.pageYOffset;
-          if (currentScroll > 100) {
-            nav.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.5)";
-          } else {
-            nav.style.boxShadow = "";
-          }
-          lastScroll = currentScroll;
-        });
-
-        // Intersection Observer for sections
-        var observer = new IntersectionObserver(
-          function (entries) {
-            entries.forEach(function (entry) {
-              if (entry.isIntersecting) {
-                entry.target.style.opacity = "1";
-                entry.target.style.transform = "translateY(0)";
-              }
-            });
-          },
-          { threshold: 0.1 },
-        );
-
-        document.querySelectorAll("section").forEach(function (section) {
-          section.style.opacity = "0";
-          section.style.transform = "translateY(30px)";
-          section.style.transition = "opacity 0.6s ease, transform 0.6s ease";
-          observer.observe(section);
-        });
-      })();
-    </script>
   </body>
 </html>

@@ -233,11 +233,11 @@ describe("cli e2e", () => {
 		expect(asText(result.stderr)).toContain('unknown command "nonesuch"');
 	});
 
-	it("returns an error for interactive auth when no TTY is available", () => {
+	it("returns an error for interactive provider setup when no TTY is available", () => {
 		const homeDir = mkdtempSync(path.join(os.tmpdir(), "cli-e2e-home-"));
 		const dataDir = mkdtempSync(path.join(os.tmpdir(), "cli-e2e-data-"));
 		tempDirs.push(homeDir, dataDir);
-		const result = runCli(["auth"], {
+		const result = runCli(["provider"], {
 			env: {
 				...createIsolatedEnv(),
 				HOME: homeDir,
@@ -680,7 +680,7 @@ Break work into clear steps.`,
 	it("lists configured mcp servers", () => {
 		const tempRoot = mkdtempSync(path.join(os.tmpdir(), "cli-e2e-mcp-"));
 		tempDirs.push(tempRoot);
-		const settingsPath = path.join(tempRoot, "cline_mcp_settings.json");
+		const settingsPath = path.join(tempRoot, "synai_mcp_settings.json");
 		writeFileSync(
 			settingsPath,
 			JSON.stringify(
@@ -770,7 +770,7 @@ Break work into clear steps.`,
 	it("routes mcp uninstall and its rm alias", () => {
 		const tempRoot = mkdtempSync(path.join(os.tmpdir(), "cli-e2e-mcp-rm-"));
 		tempDirs.push(tempRoot);
-		const settingsPath = path.join(tempRoot, "cline_mcp_settings.json");
+		const settingsPath = path.join(tempRoot, "synai_mcp_settings.json");
 		const writeSettings = () => {
 			writeFileSync(
 				settingsPath,
@@ -976,7 +976,7 @@ Break work into clear steps.`,
 			stdin: JSON.stringify({
 				hookName: "tool_call",
 				taskId: "conversation_1",
-				clineVersion: "",
+				synaiVersion: "",
 				timestamp: new Date().toISOString(),
 				workspaceRoots: [],
 				userId: "agent_1",

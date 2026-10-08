@@ -81,9 +81,9 @@ type ParsedAuthCommandArgs = {
  */
 export function createAuthCommand(): Command {
 	const cmd = new Command("provider")
-		.alias("auth")
 		.alias("login")
 		.alias("key")
+		.alias("auth")
 		.description("Configure model providers, API credentials, and default endpoints")
 		.exitOverride()
 		.configureOutput({ writeOut: () => {}, writeErr: () => {} })
@@ -147,8 +147,23 @@ async function ensureQuickSetupInputValid(
 	if (!input.apikey.trim()) {
 		return "auth quick setup requires --apikey <key>";
 	}
-	if (!input.modelid.trim()) {
-		return "auth quick setup requires --modelid <id>";
+	if (!input.modelid?.trim()) {
+		const defaultModels: Record<string, string> = {
+			openrouter: "openrouter/free",
+			anthropic: "claude-3-7-sonnet-20250219",
+			openai: "gpt-4o",
+			"openai-codex": "gpt-5.6-luna",
+			deepseek: "deepseek-chat",
+			google: "gemini-2.0-flash",
+			groq: "llama-3.3-70b-versatile",
+			ollama: "llama3.2",
+			mistral: "mistral-large-latest",
+			xai: "grok-2-latest",
+			"openai-compatible": "default",
+			byo: "default",
+			opencode: "openrouter/free",
+		};
+		input.modelid = defaultModels[normalizedProvider] || "openrouter/free";
 	}
 	if (
 		input.baseurl?.trim() &&
@@ -222,16 +237,16 @@ function createOAuthCallbacks(io: AuthIo): {
 	}) => Promise<string>;
 } {
 	return createOAuthClientCallbacks({
-		onPrompt: ({ message, defaultValue }) =>
+		onPrompt: ({ message, defaultValue }: any) =>
 			askForInputInTerminal(message).then((value) => {
 				const trimmed = value.trim();
 				return trimmed || defaultValue || "";
 			}),
-		onOutput: (message) => {
+		onOutput: (message: any) => {
 			io.writeln(`${c.dim}[auth] ${message}${c.reset}`);
 		},
-		openUrl: (url) => open(url, { wait: false }).then(() => undefined),
-		onOpenUrlError: ({ error }) => {
+		openUrl: (url: any) => open(url, { wait: false }).then(() => undefined),
+		onOpenUrlError: ({ error }: any) => {
 			io.writeln(
 				`${c.dim}[auth] Could not open browser automatically; open the URL above manually.${c.reset}`,
 			);
@@ -290,14 +305,15 @@ async function runQuickAuthSetup(input: AuthCommandInput): Promise<number> {
 	const modelid = input.modelid?.trim() ?? "";
 	const baseurl = input.baseurl?.trim();
 	const azureApiVersion = input.azureApiVersion?.trim();
+	const quickInput = {
+		provider: providerId,
+		apikey,
+		modelid,
+		baseurl,
+		azureApiVersion,
+	};
 	const validationError = await ensureQuickSetupInputValid(
-		{
-			provider: providerId,
-			apikey,
-			modelid,
-			baseurl,
-			azureApiVersion,
-		},
+		quickInput,
 		input.providerSettingsManager,
 	);
 	if (validationError) {
@@ -308,12 +324,12 @@ async function runQuickAuthSetup(input: AuthCommandInput): Promise<number> {
 		providerSettingsManager: input.providerSettingsManager,
 		providerId,
 		apikey,
-		modelid,
+		modelid: quickInput.modelid,
 		baseurl,
 		azureApiVersion,
 	});
 	input.io.writeln(
-		`${c.green}Provider configured:${c.reset} ${c.cyan}${providerId}${c.reset} (${modelid})`,
+		`${c.green}Provider configured:${c.reset} ${c.cyan}${providerId}${c.reset} (${quickInput.modelid})`,
 	);
 	return 0;
 }
@@ -322,6 +338,8 @@ export async function loadAuthTuiRuntime() {
 	disableOpenTuiGraphicsProbe();
 	const { createCliRenderer } = await import("@opentui/core");
 	const { createRoot } = await import("@opentui/react");
+	const { ensureSpinnerRegistered } = await import("../tui/spinner-register");
+	ensureSpinnerRegistered();
 	const { OnboardingView } = await import("../tui/views/onboarding");
 	return { createCliRenderer, createRoot, OnboardingView };
 }
@@ -339,7 +357,16 @@ async function runInteractiveAuthTui(input: AuthCommandInput): Promise<number> {
 		exitOnCtrlC: false,
 		autoFocus: false,
 		enableMouseMovement: true,
+		consoleMode: "disabled",
+		openConsoleOnError: false,
 	});
+	if (renderer.console) {
+		renderer.console.hide?.();
+		renderer.console.deactivate?.();
+		renderer.console.show = () => {};
+		renderer.console.toggle = () => {};
+		renderer.console.focus = () => {};
+	}
 
 	return await new Promise<number>((resolve, reject) => {
 		let root: ReturnType<typeof createRoot>;
@@ -417,8 +444,20 @@ export async function runAuthCommand(input: AuthCommandInput): Promise<number> {
 				input.io,
 			);
 		}
+		if (process.stdin.isTTY && process.stdout.isTTY) {
+			const enteredKey = await askForInputInTerminal(
+				`Enter API key for ${providerId}:`,
+			);
+			if (enteredKey.trim()) {
+				return runQuickAuthSetup({
+					...input,
+					explicitProvider: providerId,
+					apikey: enteredKey.trim(),
+				});
+			}
+		}
 		input.io.writeErr(
-			`provider "${providerId}" requires API key setup (use subcommand: auth --provider ${providerId} --apikey <key> --modelid <id>)`,
+			`provider "${providerId}" requires API key setup (run: synai provider -p ${providerId} -k <key>)`,
 		);
 		return 1;
 	}

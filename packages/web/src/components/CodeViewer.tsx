@@ -1,20 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { Save, Check, FileCode, Copy } from 'lucide-react';
-import { WorkspaceFile } from '../types/index.js';
+import React, { useState, useEffect } from "react";
+import { Save, Check, FileCode, Copy } from "lucide-react";
+import { WorkspaceFile } from "../types/index.js";
 
 interface CodeViewerProps {
   file: WorkspaceFile | null;
+  onRefresh?: () => void;
 }
 
 export const CodeViewer: React.FC<CodeViewerProps> = ({ file }) => {
-  const [content, setContent] = useState<string>('');
+  const [content, setContent] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [saved, setSaved] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
 
   useEffect(() => {
     if (!file || file.isDirectory) {
-      setContent('');
+      setContent("");
       return;
     }
 
@@ -23,7 +24,7 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ file }) => {
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          setContent(data.content || '');
+          setContent(data.content || "");
         } else {
           setContent(`// Failed to load file: ${data.error}`);
         }
@@ -39,9 +40,9 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ file }) => {
   const handleSave = async () => {
     if (!file) return;
     try {
-      const res = await fetch('/api/file', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/file", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path: file.relativePath, content }),
       });
       const data = await res.json();
@@ -50,7 +51,7 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ file }) => {
         setTimeout(() => setSaved(false), 2000);
       }
     } catch (err) {
-      console.error('Failed to save file:', err);
+      console.error("Failed to save file:", err);
     }
   };
 
@@ -72,7 +73,7 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ file }) => {
     );
   }
 
-  const lines = content.split('\n');
+  const lines = content.split("\n");
 
   return (
     <div className="flex flex-col h-full bg-[#0a0a0a] overflow-hidden text-xs">
@@ -80,8 +81,12 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ file }) => {
       <div className="flex items-center justify-between px-3 py-2 bg-surface border-b border-border">
         <div className="flex items-center gap-2 font-mono truncate">
           <FileCode className="w-4 h-4 text-neutral-300 shrink-0" />
-          <span className="text-gray-200 font-semibold truncate">{file.relativePath}</span>
-          <span className="text-[11px] text-gray-500 font-mono">({lines.length} lines)</span>
+          <span className="text-gray-200 font-semibold truncate">
+            {file.relativePath}
+          </span>
+          <span className="text-[11px] text-gray-500 font-mono">
+            ({lines.length} lines)
+          </span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -90,16 +95,24 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ file }) => {
             title="Copy code"
             className="flex items-center gap-1 px-2 py-1 bg-surface-hover hover:bg-border text-gray-300 rounded text-xs transition"
           >
-            {copied ? <Check className="w-3 h-3 text-white" /> : <Copy className="w-3 h-3" />}
-            <span>{copied ? 'Copied' : 'Copy'}</span>
+            {copied ? (
+              <Check className="w-3 h-3 text-white" />
+            ) : (
+              <Copy className="w-3 h-3" />
+            )}
+            <span>{copied ? "Copied" : "Copy"}</span>
           </button>
           <button
             onClick={handleSave}
             title="Save file changes"
             className="flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-neutral-200 text-black font-medium rounded text-xs transition shadow-sm"
           >
-            {saved ? <Check className="w-3 h-3" /> : <Save className="w-3 h-3" />}
-            <span>{saved ? 'Saved' : 'Save'}</span>
+            {saved ? (
+              <Check className="w-3 h-3" />
+            ) : (
+              <Save className="w-3 h-3" />
+            )}
+            <span>{saved ? "Saved" : "Save"}</span>
           </button>
         </div>
       </div>
@@ -127,7 +140,7 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ file }) => {
               onChange={(e) => setContent(e.target.value)}
               spellCheck={false}
               className="flex-1 p-2 bg-transparent text-gray-200 resize-none outline-none font-mono text-[12px] leading-relaxed whitespace-pre"
-              style={{ lineHeight: '1.25rem' }}
+              style={{ lineHeight: "1.25rem" }}
             />
           </div>
         )}

@@ -346,7 +346,7 @@ describe("slack binding lookup", () => {
 			__test__.stripSlackBotMention("<@U0B8E8H3U1F> hi", "U0B8E8H3U1F"),
 		).toBe("hi");
 		expect(
-			__test__.stripSlackBotMention("<@U0B8E8H3U1F|cline> hi", "U0B8E8H3U1F"),
+			__test__.stripSlackBotMention("<@U0B8E8H3U1F|synai> hi", "U0B8E8H3U1F"),
 		).toBe("hi");
 		expect(
 			__test__.stripSlackBotMention("  @U0B8E8H3U1F: hi", "U0B8E8H3U1F"),
@@ -366,8 +366,8 @@ describe("slack binding lookup", () => {
 		expect(__test__.stripSlackBotMention("@U999999 hi", "U0B8E8H3U1F")).toBe(
 			"@U999999 hi",
 		);
-		expect(__test__.stripSlackBotMention("@cline hi", "U0B8E8H3U1F")).toBe(
-			"@cline hi",
+		expect(__test__.stripSlackBotMention("@synai hi", "U0B8E8H3U1F")).toBe(
+			"@synai hi",
 		);
 		expect(__test__.stripSlackBotMention("@U0B8E8H3U1F hi", undefined)).toBe(
 			"@U0B8E8H3U1F hi",

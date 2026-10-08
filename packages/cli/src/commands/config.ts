@@ -30,7 +30,7 @@ type ConfigIo = {
 
 function resolveCliAgentConfigSearchPaths(cwd: string): string[] {
 	const synaiDir = process.env.SYNAI_DIR?.trim() || process.env.SYNAI_DIR?.trim() || join(homedir(), ".synai");
-	return [join(cwd, ".synai", "agents"), join(cwd, ".cline", "agents"), join(synaiDir, "agents")];
+	return [join(cwd, ".synai", "agents"), join(cwd, ".synai", "agents"), join(synaiDir, "agents")];
 }
 
 function createConfigUserInstructionService(cwd: string) {

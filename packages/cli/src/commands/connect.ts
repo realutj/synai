@@ -120,8 +120,8 @@ export async function runStopConnector(
  * Reap one connector instance that is no longer running.
  *
  * Invoked by the hub supervisor when it observes a connector die. It clears the
- * same things a normal stop does — process state file, thread→session bindings,
- * the instance's hub sessions — but deliberately leaves the autostart record
+ * same things a normal stop does - process state file, thread->session bindings,
+ * the instance's hub sessions - but deliberately leaves the autostart record
  * intact: the instance crashed, it was not retired, so the supervisor still
  * intends to restart it. `runStopConnector` with `autostart: "disable"` would
  * make every crash silently opt the connector out of recovery.

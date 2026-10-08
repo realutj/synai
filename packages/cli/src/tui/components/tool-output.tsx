@@ -14,7 +14,7 @@ import {
 } from "../utils/tool-parsing";
 
 const MAX_COLLAPSED_LINES = 5;
-const RESULT = "\u23bf";
+const RESULT = "|-";
 
 export interface ToolOutputProps {
 	toolName: string;

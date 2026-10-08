@@ -23,7 +23,7 @@ function isSyntheticUserText(text: string): boolean {
 
 /**
  * Replay a persisted conversation to the client as session/update
- * notifications. Used by `session/load` — the ACP spec requires the entire
+ * notifications. Used by `session/load` - the ACP spec requires the entire
  * conversation to be replayed before the load request resolves, so each
  * notification is awaited.
  */
@@ -72,7 +72,7 @@ function translateProjectedHistoricalMessage(
 				// <user_input mode="..."> wrapper and <mode_notice> elements (they are
 				// the durable record of the mode each turn was sent in). Replaying them
 				// verbatim leaks markup to the client, which renders the unknown
-				// element as bare text — so `s` shows up as `s` with the wrapper
+				// element as bare text - so `s` shows up as `s` with the wrapper
 				// swallowed. Strip them the same way every other surface does.
 				const text = formatDisplayUserInput(block.text);
 				if (!text || isSyntheticUserText(text)) break;
@@ -163,7 +163,7 @@ function flattenToolResultContent(
 		return content;
 	}
 	return content
-		.map((part) => {
+		.map((part: any) => {
 			switch (part.type) {
 				case "text":
 					return part.text;

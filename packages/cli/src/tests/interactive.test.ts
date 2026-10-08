@@ -1,15 +1,15 @@
 import { expect, test } from "@microsoft/tui-test";
 import { SYNAI_BIN } from "./helpers/constants.js";
-import { clineEnv } from "./helpers/env.js";
+import { synaiEnv } from "./helpers/env.js";
 import { waitForChatReady } from "./helpers/page-objects/chat.js";
 import { expectVisible, waitForTerminalExit } from "./helpers/terminal.js";
 
-test.describe("cline interactive basics", () => {
+test.describe("synai interactive basics", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: [] },
 		rows: 50,
 		columns: 120,
-		env: clineEnv("default"),
+		env: synaiEnv("default"),
 	});
 
 	test("shows logo, prompt, and hints", async ({ terminal }) => {
@@ -37,12 +37,12 @@ test.describe("cline interactive basics", () => {
 	});
 });
 
-test.describe("cline interactive provider flag", () => {
+test.describe("synai interactive provider flag", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["-P", "synai"] },
 		rows: 50,
 		columns: 120,
-		env: clineEnv("default"),
+		env: synaiEnv("default"),
 	});
 
 	test("exits idle TUI after one Ctrl+C", async ({ terminal }) => {

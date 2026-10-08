@@ -59,9 +59,9 @@ The `build:sdk` step is required because `bun link` runs without the `--conditio
 After linking, you can run `synai` from any directory:
 
 ```bash
-cline              # interactive mode
-cline "prompt"     # single-prompt mode
-cline auth         # authenticate a provider
+synai              # interactive mode
+synai "prompt"     # single-prompt mode
+synai login        # authenticate a provider
 ```
 
 If you prefer to skip the build step, use `bun run dev` from `apps/cli/` instead -- it passes `--conditions=development` which resolves packages directly from source.
@@ -362,7 +362,7 @@ bun run dev
 Use a temporary config directory to simulate a fresh install:
 
 ```bash
-bun run dev -- --interactive --config /tmp/cline-test
+bun run dev -- --interactive --config /tmp/synai-test
 ```
 
 Or set `SYNAI_FORCE_ONBOARDING=1` to force the onboarding view regardless of existing config.
@@ -387,7 +387,7 @@ bunx tuistory -s synai snapshot --trim     # current screen as text
 bunx tuistory -s synai screenshot          # current screen as a styled PNG
 
 # A human can watch/drive the same session from another terminal
-tuistory attach -s cline
+tuistory attach -s synai
 
 # Tear down
 bunx tuistory -s synai close
@@ -488,7 +488,7 @@ See [DISTRIBUTION.md](./DISTRIBUTION.md) for details on how the CLI is packaged.
 - Hub-backed sessions include a serialized logger payload in `ChatStartSessionRequest.logger`; the runtime reconstructs the same `pino` settings and injects them into core.
 - Hosts can attach stable runtime logger bindings (for example `clientId`, `clientType`, `clientApp`) through `RuntimeLoggerConfig.bindings`.
 
-After login, OAuth credentials are persisted with `auth.expiresAt`, and `@synai/core` refreshes these tokens automatically during session turns. Provider auth and model settings should be changed through `synai auth`, the interactive config UI, or core provider-settings APIs rather than editing provider settings files directly.
+After login, OAuth credentials are persisted with `auth.expiresAt`, and `@synai/core` refreshes these tokens automatically during session turns. Provider auth and model settings should be changed through `synai provider`, the interactive config UI, or core provider-settings APIs rather than editing provider settings files directly.
 
 On startup, `synai` also attempts a legacy settings import:
 

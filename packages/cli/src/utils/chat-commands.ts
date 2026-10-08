@@ -276,7 +276,7 @@ function usage(text: string): string {
 
 function formatHelp(state: ChatCommandState): string {
 	return [
-		"SynAI connector commands:",
+		"Synai connector commands:",
 		"/help or /start - show this help",
 		"/new or /clear - start a fresh session",
 		"/whereami - show thread, cwd, tools, and yolo state",

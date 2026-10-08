@@ -18,8 +18,7 @@ const createHandlerMock = vi.fn();
 // real LLM handler. Stub only `createHandlerAsync` so no network call (or API
 // key) is needed; every other `@synai/llms` export stays real because
 // `@synai/core` re-exports them.
-vi.mock("@synai/llms", async (importOriginal) => ({
-	...(await importOriginal<typeof import("@synai/llms")>()),
+vi.mock("@synai/llms", () => ({
 	createHandlerAsync: (config: unknown) => createHandlerMock(config),
 }));
 
@@ -207,7 +206,7 @@ describe("compactInteractiveMessages", () => {
 
 		const compactedMessages = result.compactionState?.messages ?? [];
 		const compactedTextLength = compactedMessages.reduce(
-			(total, message) =>
+			(total: number, message: any) =>
 				total +
 				(typeof message.content === "string" ? message.content.length : 0),
 			0,
@@ -225,7 +224,7 @@ describe("compactInteractiveMessages", () => {
 		const [summaryMessage] = compactedMessages;
 		const summaryText = Array.isArray(summaryMessage?.content)
 			? summaryMessage.content
-					.map((block) => ("text" in block ? block.text : ""))
+					.map((block: any) => ("text" in block ? block.text : ""))
 					.join("\n")
 			: String(summaryMessage?.content ?? "");
 		expect(summaryText).toContain(mockSummary);

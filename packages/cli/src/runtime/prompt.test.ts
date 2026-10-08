@@ -55,11 +55,11 @@ describe("buildUserInputMessage", () => {
 
 describe("resolveSystemPrompt workspace metadata", () => {
 	it("includes git remotes and the latest commit for synai requests", async () => {
-		const cwd = mkdtempSync(join(tmpdir(), "cline-prompt-"));
+		const cwd = mkdtempSync(join(tmpdir(), "synai-prompt-"));
 		workspaceDirectories.push(cwd);
 		execFileSync("git", ["init"], { cwd });
-		execFileSync("git", ["config", "user.email", "test@cline.bot"], { cwd });
-		execFileSync("git", ["config", "user.name", "Cline Test"], { cwd });
+		execFileSync("git", ["config", "user.email", "test@synai.bot"], { cwd });
+		execFileSync("git", ["config", "user.name", "Synai Test"], { cwd });
 		writeFileSync(join(cwd, "README.md"), "test\n");
 		execFileSync("git", ["add", "README.md"], { cwd });
 		execFileSync("git", ["commit", "-m", "initial"], { cwd });
@@ -80,7 +80,7 @@ describe("resolveSystemPrompt workspace metadata", () => {
 	});
 
 	it("includes parseable metadata outside a project", async () => {
-		const cwd = mkdtempSync(join(tmpdir(), "cline-prompt-"));
+		const cwd = mkdtempSync(join(tmpdir(), "synai-prompt-"));
 		workspaceDirectories.push(cwd);
 
 		const prompt = await resolveSystemPrompt({ cwd, providerId: "synai" });

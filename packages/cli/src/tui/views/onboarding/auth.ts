@@ -1,13 +1,13 @@
 import {
-	completeClineDeviceAuth,
+	completeSynaiDeviceAuth,
 	type ITelemetryService,
 	isOAuthProvider,
 	loginLocalProvider,
 	type ProviderSettingsManager,
 	saveLocalProviderOAuthCredentials,
-	startClineDeviceAuth,
+	startSynaiDeviceAuth,
 } from "@synai/core";
-import { getClineEnvironmentConfig } from "@synai/shared";
+import { getSynaiEnvironmentConfig } from "@synai/shared";
 import { identifyFeatureFlagsAccount } from "../../../utils/feature-flags";
 import open from "../../../utils/open";
 
@@ -19,8 +19,8 @@ export function isOnboardingOAuthProviderId(
 	return isOAuthProvider(providerId);
 }
 
-function isClineAccountOAuthProvider(providerId: string): boolean {
-	return providerId === "cline" || providerId === "cline-pass";
+function isSynaiAccountOAuthProvider(providerId: string): boolean {
+	return providerId === "synai" || providerId === "synai-pass";
 }
 
 export function runOAuthAuthFlow(input: {
@@ -55,13 +55,18 @@ export function runOAuthAuthFlow(input: {
 	)
 		.then((credentials) => {
 			if (input.isAborted()) return;
+			if (!credentials) {
+				input.setError("Failed to retrieve authentication credentials.");
+				input.setStatus("Authentication failed");
+				return;
+			}
 			saveLocalProviderOAuthCredentials(
 				input.providerSettingsManager,
 				input.providerId,
 				existing,
 				credentials,
 			);
-			if (isClineAccountOAuthProvider(input.providerId)) {
+			if (isSynaiAccountOAuthProvider(input.providerId)) {
 				void identifyFeatureFlagsAccount({
 					id: credentials.accountId,
 					email: credentials.email,
@@ -91,18 +96,23 @@ export function runDeviceCodeAuthFlow(input: {
 		input.providerId,
 	);
 	const apiBaseUrl =
-		existing?.baseUrl?.trim() || getClineEnvironmentConfig().apiBaseUrl;
+		existing?.baseUrl?.trim() || getSynaiEnvironmentConfig().apiBaseUrl;
 
-	// `startClineDeviceAuth` only requests the user/device code pair; the
-	// `auth_started` telemetry event is emitted by `completeClineDeviceAuth`
+	// `startSynaiDeviceAuth` only requests the user/device code pair; the
+	// `auth_started` telemetry event is emitted by `completeSynaiDeviceAuth`
 	// (which owns the actual login lifecycle), so we intentionally do NOT
-	// pass telemetry into `startClineDeviceAuth` here.
-	startClineDeviceAuth()
+	// pass telemetry into `startSynaiDeviceAuth` here.
+	startSynaiDeviceAuth()
 		.then((result) => {
 			if (input.isAborted()) return;
+			if (!result) {
+				input.setError("Device authentication service is unavailable.");
+				input.setStatus("Authentication failed");
+				return;
+			}
 			const verifyUrl =
-				result.verificationUriComplete || result.verificationUri;
-			input.setUserCode(result.userCode);
+				result.verificationUriComplete || result.verificationUri || "https://synai.bot/auth/device";
+			input.setUserCode(result.userCode || "");
 			input.setVerifyUrl(verifyUrl);
 			input.setStatus("Enter the code at the URL below");
 			try {
@@ -113,7 +123,7 @@ export function runDeviceCodeAuthFlow(input: {
 				input.setStatus("Could not open browser. Visit the URL below.");
 			}
 
-			completeClineDeviceAuth({
+			completeSynaiDeviceAuth({
 				deviceCode: result.deviceCode,
 				expiresInSeconds: result.expiresInSeconds,
 				pollIntervalSeconds: result.pollIntervalSeconds,
@@ -123,13 +133,18 @@ export function runDeviceCodeAuthFlow(input: {
 			})
 				.then((credentials) => {
 					if (input.isAborted()) return;
+					if (!credentials) {
+						input.setError("Failed to retrieve authentication credentials.");
+						input.setStatus("Authentication failed");
+						return;
+					}
 					saveLocalProviderOAuthCredentials(
 						input.providerSettingsManager,
 						input.providerId,
 						existing,
 						credentials,
 					);
-					if (isClineAccountOAuthProvider(input.providerId)) {
+					if (isSynaiAccountOAuthProvider(input.providerId)) {
 						void identifyFeatureFlagsAccount({
 							id: credentials.accountId,
 							email: credentials.email,

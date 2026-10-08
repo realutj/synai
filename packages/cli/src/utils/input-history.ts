@@ -1,11 +1,11 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { resolveClineDataDir } from "@synai/shared/storage";
+import { resolveSynaiDataDir } from "@synai/shared/storage";
 
 const MAX_HISTORY = 20;
 
 function resolveHistoryPath(): string {
-	return join(resolveClineDataDir(), "cache", "user_input_history.jsonl");
+	return join(resolveSynaiDataDir(), "cache", "user_input_history.jsonl");
 }
 
 function readEntries(path: string): string[] {

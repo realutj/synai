@@ -10,7 +10,7 @@ import {
 	getMainMenuOptions,
 	getOAuthProviderLabel,
 	resolveProviderSetupRoute,
-	shouldUseFeaturedClineModelPicker,
+	shouldUseFeaturedSynaiModelPicker,
 	toModelEntriesFromKnownModels,
 	toModelEntry,
 	toProviderEntry,
@@ -183,9 +183,9 @@ describe("onboarding model helpers", () => {
 	});
 
 	it("uses the featured synai model picker for the synai and SynAIPass providers", () => {
-		expect(shouldUseFeaturedClineModelPicker("synai")).toBe(true);
-		expect(shouldUseFeaturedClineModelPicker("synai-pass")).toBe(true);
-		expect(shouldUseFeaturedClineModelPicker("anthropic")).toBe(false);
+		expect(shouldUseFeaturedSynaiModelPicker("synai")).toBe(true);
+		expect(shouldUseFeaturedSynaiModelPicker("synai-pass")).toBe(true);
+		expect(shouldUseFeaturedSynaiModelPicker("anthropic")).toBe(false);
 	});
 });
 

@@ -5,8 +5,8 @@ import { HOME_VIEW_MAX_WIDTH } from "../../types";
 import { useOnboardingController } from "./controller";
 import { getOAuthProviderLabel, type OnboardingResult } from "./model";
 import {
-	OnboardingClineModelScreen,
-	OnboardingClinePassSubscriptionScreen,
+	OnboardingSynaiModelScreen,
+	OnboardingSynaiPassSubscriptionScreen,
 	OnboardingCustomModelIdScreen,
 	OnboardingDeviceCodeScreen,
 	OnboardingDoneScreen,
@@ -109,11 +109,11 @@ export function OnboardingView(props: OnboardingViewProps) {
 		);
 	}
 
-	if (state.step === "cline_model") {
+	if (state.step === "synai_model") {
 		return (
-			<OnboardingClineModelScreen
-				clineEntries={state.clineEntries}
-				clineModelSelected={state.clineModelSelected}
+			<OnboardingSynaiModelScreen
+				synaiEntries={state.synaiEntries}
+				synaiModelSelected={state.synaiModelSelected}
 				compact={compact}
 				contentWidth={contentWidth}
 				mouse={mouse}
@@ -122,20 +122,20 @@ export function OnboardingView(props: OnboardingViewProps) {
 		);
 	}
 
-	if (state.step === "cline_pass_subscription") {
+	if (state.step === "synai_pass_subscription") {
 		return (
-			<OnboardingClinePassSubscriptionScreen
+			<OnboardingSynaiPassSubscriptionScreen
 				compact={compact}
 				contentWidth={contentWidth}
-				currentPlanName={state.clinePassCurrentPlanName}
-				error={state.clinePassSubscriptionError}
+				currentPlanName={state.synaiPassCurrentPlanName}
+				error={state.synaiPassSubscriptionError}
 				mouse={mouse}
-				openStatus={state.clinePassSubscriptionOpenStatus}
-				options={state.clinePassSubscriptionOptions}
-				planFeatures={state.clinePassPlanFeatures}
-				selected={state.clinePassSubscriptionSelected}
-				status={state.clinePassSubscriptionStatus}
-				subscriptionUrl={state.clinePassSubscriptionUrl}
+				openStatus={state.synaiPassSubscriptionOpenStatus}
+				options={state.synaiPassSubscriptionOptions}
+				planFeatures={state.synaiPassPlanFeatures}
+				selected={state.synaiPassSubscriptionSelected}
+				status={state.synaiPassSubscriptionStatus}
+				subscriptionUrl={state.synaiPassSubscriptionUrl}
 			/>
 		);
 	}
@@ -188,6 +188,7 @@ export function OnboardingView(props: OnboardingViewProps) {
 			menuOptions={state.menuOptions}
 			menuSelected={state.menuSelected}
 			mouse={mouse}
+			onSelect={state.handleMenuSelect}
 		/>
 	);
 }

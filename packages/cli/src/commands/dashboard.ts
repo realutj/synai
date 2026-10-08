@@ -105,7 +105,7 @@ function resolveDefaultWebviewDistDir(): string | undefined {
 		join(moduleDir, "../../../synai-hub/dist/webview"),
 		// Node bundle: apps/cli/dist/index.js
 		join(moduleDir, "synai-hub/webview"),
-		// Compiled platform package: apps/cli/dist/<platform>/bin/cline
+		// Compiled platform package: apps/cli/dist/<platform>/bin/synai
 		join(dirname(process.execPath), "../synai-hub/webview"),
 	];
 
@@ -141,8 +141,17 @@ function resolvePlatformPackageName(): string {
 }
 
 async function startDefaultDashboardServer(): Promise<DashboardServerHandle> {
-	const { startClineHubDashboardServer } = await import("@synai/synai-hub");
-	return await startClineHubDashboardServer();
+	try {
+		// Dynamic optional import of synai-hub
+		const hubModuleName = "@synai/synai-hub";
+		const hub = await import(/* @vite-ignore */ hubModuleName);
+		if (hub && typeof hub.startSynaiHubDashboardServer === "function") {
+			return await hub.startSynaiHubDashboardServer();
+		}
+	} catch {
+		// Fallback when hub is not available
+	}
+	throw new Error("SynAI Studio dashboard server is not available in standalone mode.");
 }
 
 async function openDefaultUrl(url: string): Promise<void> {
@@ -191,7 +200,7 @@ export async function runDashboardCommand(
 		const dashboardUrl =
 			server.inviteUrl || server.publicUrl || server.listenUrl;
 		options.io.writeln(
-			`${c.green}SynAI studio listening at${c.reset} ${dashboardUrl}`,
+			`${c.green}Synai dashboard listening at${c.reset} ${dashboardUrl}`,
 		);
 		if (server.hubUrl) {
 			options.io.writeln(`${c.dim}Hub endpoint: ${server.hubUrl}${c.reset}`);

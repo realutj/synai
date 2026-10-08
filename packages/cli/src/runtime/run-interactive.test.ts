@@ -68,7 +68,7 @@ describe("applyInteractiveModelChange", () => {
 			apiKey: "new-key",
 			thinking: undefined,
 			reasoningEffort: undefined,
-		} as Config;
+		} as unknown as Config;
 		const getProviderSettings = vi.fn(() => ({
 			provider: "openai-compatible",
 			apiKey: "new-key",

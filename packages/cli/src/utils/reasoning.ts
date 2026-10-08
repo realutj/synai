@@ -1,4 +1,3 @@
-import type { ProviderSettings } from "@synai/core";
 import type { CliReasoningEffort } from "./types";
 
 type ActiveCliReasoningEffort = Exclude<CliReasoningEffort, "none">;
@@ -14,7 +13,7 @@ export interface ResolveCliReasoningInput {
 	thinking: boolean;
 	thinkingExplicitlySet?: boolean;
 	reasoningEffort?: CliReasoningEffort;
-	persistedReasoning?: ProviderSettings["reasoning"];
+	persistedReasoning?: any;
 }
 
 export interface ResolvedCliReasoning {

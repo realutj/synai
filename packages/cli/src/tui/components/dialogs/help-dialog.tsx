@@ -9,7 +9,7 @@ type HelpRow =
 	| { kind: "spacer"; id: string };
 
 const HELP_ROWS: HelpRow[] = [
-	{ kind: "heading", id: "h-keys", text: "◈ Interactive Controls & Shortcuts" },
+	{ kind: "heading", id: "h-keys", text: "* Interactive Controls & Shortcuts" },
 	{
 		kind: "entry",
 		id: "k-enter",
@@ -102,7 +102,7 @@ const HELP_ROWS: HelpRow[] = [
 	},
 
 	{ kind: "spacer", id: "s1" },
-	{ kind: "heading", id: "h-slash", text: "◈ Interactive Actions & Directives" },
+	{ kind: "heading", id: "h-slash", text: "* Interactive Actions & Directives" },
 	{
 		kind: "entry",
 		id: "c-model",
@@ -179,7 +179,7 @@ const HELP_ROWS: HelpRow[] = [
 	{ kind: "entry", id: "c-help", key: "/help", desc: "Open this reference panel" },
 
 	{ kind: "spacer", id: "s2" },
-	{ kind: "heading", id: "h-mentions", text: "◈ Context Ingestion" },
+	{ kind: "heading", id: "h-mentions", text: "* Context Ingestion" },
 	{
 		kind: "entry",
 		id: "m-file",
@@ -188,7 +188,7 @@ const HELP_ROWS: HelpRow[] = [
 	},
 
 	{ kind: "spacer", id: "s3" },
-	{ kind: "heading", id: "h-modes", text: "◈ Operating Modes" },
+	{ kind: "heading", id: "h-modes", text: "* Operating Modes" },
 	{
 		kind: "entry",
 		id: "mode-plan",
@@ -203,7 +203,7 @@ const HELP_ROWS: HelpRow[] = [
 	},
 
 	{ kind: "spacer", id: "s4" },
-	{ kind: "heading", id: "h-wizards", text: "◈ SynAI Terminal CLI Tools" },
+	{ kind: "heading", id: "h-wizards", text: "* SynAI Terminal CLI Tools" },
 	{
 		kind: "entry",
 		id: "w-provider",

@@ -1,0 +1,33 @@
+{
+  "name": "@synai/desktop-workspace",
+  "private": true,
+  "workspaces": [
+    "sdk/packages/*",
+    "apps/examples/desktop-app"
+  ],
+  "scripts": {
+    "build:sdk": "bun --production -F \"./sdk/packages/*\" build",
+    "build:ui": "bun -F @synai/ui build",
+    "build:web": "bun --cwd apps/examples/desktop-app run build:web",
+    "build:sidecar": "bun --cwd apps/examples/desktop-app run build:sidecar"
+  },
+  "type": "module",
+  "overrides": {
+    "axios": "1.18.0",
+    "fast-uri": ">=3.1.4",
+    "undici": ">=7.29.0 <8",
+    "@opentui/core": "0.4.3",
+    "@opentui/react": "0.4.3",
+    "tar-fs": ">=3.1.1",
+    "tar": "^7.5.2",
+    "js-yaml": "^4.1.1",
+    "serialize-javascript": ">=7.0.3",
+    "protobufjs": "7.6.5",
+    "mermaid": "11.16.1",
+    "diff": "8.0.4"
+  },
+  "patchedDependencies": {
+    "@opentui-ui/dialog@0.1.2": "patches/@opentui-ui%2Fdialog@0.1.2.patch",
+    "ollama-ai-provider-v2@4.0.1": "patches/ollama-ai-provider-v2@4.0.1.patch"
+  }
+}

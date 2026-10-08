@@ -299,7 +299,7 @@ describe("mcp uninstall command", () => {
 	});
 
 	function writeSettings(): string {
-		const settingsPath = join(root, "cline_mcp_settings.json");
+		const settingsPath = join(root, "synai_mcp_settings.json");
 		writeFileSync(
 			settingsPath,
 			JSON.stringify(

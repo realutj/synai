@@ -11,19 +11,19 @@
 <a href="https://www.npmjs.com/package/synai" target="_blank">NPM</a>
 </td>
 <td align="center">
-<a href="https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev" target="_blank">VS Code Extension</a>
+<a href="https://marketplace.visualstudio.com/items?itemName=realutj.synai-vscode" target="_blank">VS Code Extension</a>
 </td>
 <td align="center">
-<a href="https://discord.gg/cline" target="_blank">Discord</a>
+<a href="https://discord.gg/synai" target="_blank">Discord</a>
 </td>
 <td align="center">
-<a href="https://www.reddit.com/r/synai/" target="_blank">r/cline</a>
+<a href="https://www.reddit.com/r/synai/" target="_blank">r/synai</a>
 </td>
 <td align="center">
-<a href="https://github.com/synai/synai/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop" target="_blank">Feature Requests</a>
+<a href="https://github.com/realutj/synai/discussions" target="_blank">Feature Requests</a>
 </td>
 <td align="center">
-<a href="https://docs.cline.bot" target="_blank">Docs</a>
+<a href="https://docs.synai.bot" target="_blank">Docs</a>
 </td>
 </tbody>
 </table>
@@ -50,13 +50,13 @@ Platform binaries are published for macOS, Linux, and Windows on `arm64` and `x6
 Run interactively:
 
 ```sh
-cline
+synai
 ```
 
 Run a single prompt:
 
 ```sh
-cline "Audit this package and propose fixes"
+synai "Audit this package and propose fixes"
 ```
 
 Pipe input:
@@ -69,17 +69,17 @@ See `synai --help` for the full flag reference.
 
 ## Use any provider
 
-Cline supports the same providers as the VS Code extension. You can sign in to synai directly, use your ChatGPT Subscription through `openai-codex`, or bring an API key from Anthropic, OpenAI, Google Gemini, OpenRouter, AWS Bedrock, GCP Vertex, Cerebras, Groq, and any OpenAI-compatible endpoint.
+SynAI supports the same providers as the VS Code extension. You can sign in to synai directly, use your ChatGPT Subscription through `openai-codex`, or bring an API key from Anthropic, OpenAI, Google Gemini, OpenRouter, AWS Bedrock, GCP Vertex, Cerebras, Groq, and any OpenAI-compatible endpoint.
 
 ```sh
-cline auth                              # interactive sign-in
-cline auth synai                        # OAuth sign-in
-cline auth --provider anthropic --apikey sk-... --modelid claude-sonnet-4-6
+synai login                              # interactive sign-in
+synai login synai                        # OAuth sign-in
+synai provider --provider anthropic --apikey sk-... --modelid claude-sonnet-4-6
 ```
 
-`synai auth` without a provider opens the interactive auth setup TUI with the same options as the old CLI flow (Sign in with Cline, Sign in with ChatGPT Subscription, Sign in with OCA, or use your own API key).
+`synai login` without a provider opens the interactive setup TUI with options (Sign in with SynAI, Sign in with ChatGPT Subscription, Sign in with OCA, or use your own API key).
 
-OAuth-supported providers (`synai`, `openai-codex`, `oca`) do not auto-launch a browser on normal startup. Authenticate explicitly first with `synai auth <provider>`. For non-interactive runs, if an OAuth provider is selected and no saved credentials are available, `synai` fails fast with an authentication message instead of launching a hidden browser flow.
+OAuth-supported providers (`synai`, `openai-codex`, `oca`) do not auto-launch a browser on normal startup. Authenticate explicitly first with `synai login <provider>`. For non-interactive runs, if an OAuth provider is selected and no saved credentials are available, `synai` fails fast with an authentication message instead of launching a hidden browser flow.
 
 ## Modes
 
@@ -97,13 +97,13 @@ Run synai with zero interaction for scripting and automation. Pipe input, get JS
 
 ```sh
 # One-shot prompt, auto-approve all tools
-cline --yolo "Run tests and fix any failures"
+synai --yolo "Run tests and fix any failures"
 
 # Pipe a diff in for review
 git diff origin/main | synai "Review these changes for issues"
 
 # NDJSON output for downstream tooling
-cline --json "List all TODO comments" | jq -r 'select(.type == "agent_event" and .event.text) | .event.text'
+synai --json "List all TODO comments" | jq -r 'select(.type == "agent_event" and .event.text) | .event.text'
 ```
 
 ## Features
@@ -113,7 +113,7 @@ cline --json "List all TODO comments" | jq -r 'select(.type == "agent_event" and
 - Native MCP support for connecting custom tools
 - Checkpoints with `/undo` to rewind workspace state
 - Sub-agent spawning and agent teams for parallel work
-- OAuth login for Cline, ChatGPT Subscription (`openai-codex`), and OCA
+- OAuth login for SynAI, ChatGPT Subscription (`openai-codex`), and OCA
 - Configurable thinking budgets per run
 - Cron and event-driven schedules for recurring agent work
 - Chat connectors for Telegram, Google Chat, and WhatsApp
@@ -122,45 +122,45 @@ cline --json "List all TODO comments" | jq -r 'select(.type == "agent_event" and
 
 ```sh
 # Start SynAI CLI without a prompt to enter interactive mode
-cline
+synai
 
 # Single prompt (one-shot) - includes tools, spawn, and teams
-cline "Audit this package and propose fixes"
+synai "Audit this package and propose fixes"
 
 # Interactive mode with a starting prompt
-cline -i "Let's work on this together. First, analyze the current state."
+synai -i "Let's work on this together. First, analyze the current state."
 
 # With a custom system prompt
-cline -i -s "You are a pirate" "Tell me about the sea"
+synai -i -s "You are a pirate" "Tell me about the sea"
 
 # Require approval before each tool call
-cline --auto-approve false "Inspect and modify this repository"
+synai --auto-approve false "Inspect and modify this repository"
 
 # Explicit yolo: enables submit_and_exit and disables spawn/team tools by default
-cline --yolo --retries 5 "Refactor this package"
+synai --yolo --retries 5 "Refactor this package"
 
 # Override consecutive internal mistake (retry) limit (default: 3)
-cline --retries 5 "Fix failing tests"
+synai --retries 5 "Fix failing tests"
 
 # Team workflow with persistent name
-cline --team-name my-team "Plan, implement, and verify release checklist"
-cline --team-name my-team "Continue yesterday's team workflow"
+synai --team-name my-team "Plan, implement, and verify release checklist"
+synai --team-name my-team "Continue yesterday's team workflow"
 
 # Show verbose run stats (elapsed time, tokens, estimated cost when available)
-cline -v "Explain quantum computing"
+synai -v "Explain quantum computing"
 
 # Use a specific provider, model, and access token for a single prompt
-cline -P openrouter -m google/gemini-3-pro -k sk-... "Set up a storybook"
+synai -P openrouter -m google/gemini-3-pro -k sk-... "Set up a storybook"
 
 # Use a different model with the last used provider
-cline -m anthropic/claude-opus-4-6 "Explain string theory"
+synai -m anthropic/claude-opus-4-6 "Explain string theory"
 
 # Stream structured NDJSON output
-cline --json "Summarize this repository"
+synai --json "Summarize this repository"
 
 # Quick provider setup
-cline auth --provider anthropic --apikey sk-... --modelid claude-sonnet-4-6
-cline auth --provider openai-native --apikey sk-... --modelid gpt-5 --baseurl https://api.example.com/v1
+synai provider --provider anthropic --apikey sk-... --modelid claude-sonnet-4-6
+synai provider --provider openai-native --apikey sk-... --modelid gpt-5 --baseurl https://api.example.com/v1
 ```
 
 ### MCP servers
@@ -168,21 +168,21 @@ cline auth --provider openai-native --apikey sk-... --modelid gpt-5 --baseurl ht
 Manage MCP servers with the interactive wizard:
 
 ```sh
-cline mcp
+synai mcp
 SynAI config mcp
 ```
 
 Open the add-server wizard with the name, transport, and command or URL already filled in with `synai mcp install` (`synai mcp add` also works). Stdio servers use everything after `--` as the command and arguments:
 
 ```sh
-cline mcp install fs -- npx -y @modelcontextprotocol/server-filesystem /tmp
+synai mcp install fs -- npx -y @modelcontextprotocol/server-filesystem /tmp
 ```
 
 Remote HTTP and SSE servers take a name, transport, and URL. The wizard still asks for auth details before saving:
 
 ```sh
-cline mcp install ctx7 --transport http https://mcp.context7.com/mcp
-cline mcp install events --transport sse https://example.com/sse
+synai mcp install ctx7 --transport http https://mcp.context7.com/mcp
+synai mcp install events --transport sse https://example.com/sse
 ```
 
 Because this command opens the wizard, it requires a TTY.
@@ -193,26 +193,26 @@ Bridge a chat surface into RPC-backed synai sessions. Each conversation thread m
 
 ```sh
 # Telegram (polling mode)
-cline connect telegram -k 123456:ABCDEF...
+synai connect telegram -k 123456:ABCDEF...
 
 # Slack (webhook mode)
-cline connect slack --bot-token $SLACK_BOT_TOKEN --signing-secret $SLACK_SIGNING_SECRET --base-url https://your-domain.com
+synai connect slack --bot-token $SLACK_BOT_TOKEN --signing-secret $SLACK_SIGNING_SECRET --base-url https://your-domain.com
 
 # Slack (socket mode)
-cline connect slack --bot-token $SLACK_BOT_TOKEN --app-token $SLACK_APP_TOKEN
+synai connect slack --bot-token $SLACK_BOT_TOKEN --app-token $SLACK_APP_TOKEN
 
 # Google Chat (webhook mode)
-cline connect gchat --base-url https://your-domain.com
+synai connect gchat --base-url https://your-domain.com
 
 # WhatsApp (webhook mode)
-cline connect whatsapp --base-url https://your-domain.com
+synai connect whatsapp --base-url https://your-domain.com
 
 # Linear (webhook mode)
-cline connect linear --api-key $LINEAR_API_KEY --base-url https://your-domain.com
+synai connect linear --api-key $LINEAR_API_KEY --base-url https://your-domain.com
 
 # Stop connector bridges and delete their sessions
-cline connect --stop
-cline connect --stop telegram
+synai connect --stop
+synai connect --stop telegram
 ```
 
 In chat surfaces, connector slash commands include `/help`, `/start`, `/new`, `/clear`, `/whereami`, `/tools`, `/yolo`, `/cwd <path>`, `/schedule`, `/abort`, and `/exit`. Run `synai connect <adapter> --help` to see the full flag list for any adapter.
@@ -226,19 +226,19 @@ provider and model. If only `--provider` is given, the schedule uses that
 provider's saved model.
 
 ```sh
-cline schedule create "Daily code review" \
+synai schedule create "Daily code review" \
   --cron "0 9 * * MON-FRI" \
   --prompt "Review PRs opened yesterday and summarize issues." \
   --workspace /path/to/repo \
   --timeout 3600 \
   --tags automation,review
 
-cline schedule list
-cline schedule get <schedule-id>
-cline schedule trigger <schedule-id>
-cline schedule history <schedule-id> --limit 20
-cline schedule export <schedule-id> > daily-review.yaml
-cline schedule import ./daily-review.yaml
+synai schedule list
+synai schedule get <schedule-id>
+synai schedule trigger <schedule-id>
+synai schedule history <schedule-id> --limit 20
+synai schedule export <schedule-id> > daily-review.yaml
+synai schedule import ./daily-review.yaml
 ```
 
 Schedules can route results back to chat surfaces with `--delivery-adapter`, `--delivery-bot`, and `--delivery-thread`.
@@ -280,7 +280,7 @@ Schedules can route results back to chat surfaces with `--delivery-adapter`, `--
 - `synai history|h [options]` - List session history or manage saved sessions
 - `synai version` - Show CLI version
 - `synai update [options]` - Check for CLI and board updates
-- `synai auth <provider>` - Authenticate or seed provider credentials
+- `synai provider|login <provider>` - Authenticate or configure provider credentials
 - `synai connect <adapter>` - Run a chat connector bridge (`telegram`, `gchat`, `whatsapp`)
 - `synai connect --stop [adapter]` - Stop connector bridge processes and their sessions
 - `synai schedule <command>` - Create and manage scheduled runs
@@ -296,7 +296,7 @@ Schedules can route results back to chat surfaces with `--delivery-adapter`, `--
 `--zen` (alias `-z`) runs a task in the background hub daemon and exits the CLI immediately. It is intended for long-running tasks you want to fire off and walk away from.
 
 ```sh
-cline --zen "Refactor the authentication module and add unit tests"
+synai --zen "Refactor the authentication module and add unit tests"
 ```
 
 Behavior:
@@ -312,7 +312,7 @@ Behavior:
 Tool calls are auto-approved by default. Use `--auto-approve false` to require review before tool execution.
 
 ```sh
-cline --auto-approve false "Inspect and modify this repository"
+synai --auto-approve false "Inspect and modify this repository"
 ```
 
 When approval is required, the CLI prompts in TTY mode:
@@ -330,7 +330,7 @@ Desktop-integrated approval mode is also supported via env wiring (`SYNAI_TOOL_A
 ## Environment variables
 
 - `ANTHROPIC_API_KEY` - API key for Anthropic
-- `SYNAI_API_KEY` - API key for synai (when using `-P cline`)
+- `SYNAI_API_KEY` - API key for synai (when using `-P synai`)
 - `OPENAI_API_KEY` - API key for OpenAI (when using `-P openai`)
 - `OPENROUTER_API_KEY` - API key for OpenRouter (when using `-P openrouter`)
 - `AI_GATEWAY_API_KEY` - API key for Vercel AI Gateway (when using `-P vercel-ai-gateway`)
@@ -346,7 +346,7 @@ Desktop-integrated approval mode is also supported via env wiring (`SYNAI_TOOL_A
 - `SYNAI_TOOL_APPROVAL_DIR` - Directory for desktop approval request/decision files
 - `SYNAI_LOG_ENABLED` - Set to `0`/`false` to disable runtime file logging
 - `SYNAI_LOG_LEVEL` - Runtime log level (`trace|debug|info|warn|error|fatal|silent`, default `info`)
-- `SYNAI_LOG_PATH` - Runtime log file path (default `<SYNAI_DATA_DIR>/logs/cline.log`)
+- `SYNAI_LOG_PATH` - Runtime log file path (default `<SYNAI_DATA_DIR>/logs/synai.log`)
 - `SYNAI_LOG_NAME` - Logger name embedded in runtime log records
 - `SYNAI_DEBUG` - Set to `1`/`true` to print wrapper diagnostics (e.g. the CA bundle summary)
 
@@ -372,4 +372,4 @@ See [DEVELOPMENT.md](./DEVELOPMENT.md) for local development setup, monorepo str
 
 ## License
 
-[Apache 2.0 © synai Bot Inc.](https://github.com/synai/synai/blob/main/LICENSE)
+[MIT © SynAI Contributors](https://github.com/realutj/synai/blob/main/LICENSE)

@@ -635,7 +635,7 @@ export function ConfigPanelContent(props: ConfigPanelProps) {
 						props.onToggleAutoApprove();
 						break;
 					case "auto-update":
-						setAutoUpdateEnabled((previous) => {
+						setAutoUpdateEnabled((previous: any) => {
 							const next = !previous;
 							setAutoUpdateEnabledGlobally(next);
 							return next;
@@ -738,7 +738,16 @@ export function ConfigPanelContent(props: ConfigPanelProps) {
 			handleDeleteSelected();
 			return;
 		}
-		if (key.name === "return" || key.name === "tab") {
+		if (key.name === "tab") {
+			const direction = key.shift ? "left" : "right";
+			setActiveTab((tab) => {
+				const nextTab = getAdjacentConfigTab(tab, direction);
+				return nextTab;
+			});
+			setNavPosition(0);
+			return;
+		}
+		if (key.name === "return") {
 			handleSelect();
 		}
 	}, dialogId);
@@ -773,7 +782,7 @@ export function ConfigPanelContent(props: ConfigPanelProps) {
 
 			{aboveCount > 0 && (
 				<text fg="gray">
-					{"▲ "}
+					{"^ "}
 					{aboveCount} more
 				</text>
 			)}
@@ -781,7 +790,7 @@ export function ConfigPanelContent(props: ConfigPanelProps) {
 			{win.items.map((row, i) => {
 				const absIdx = win.startIndex + i;
 				const isSel = absIdx === selectedRowIdx;
-				const pfx = isSel ? "▸ " : "  ";
+				const pfx = isSel ? "> " : "  ";
 
 				switch (row.kind) {
 					case "spacer":
@@ -847,16 +856,16 @@ export function ConfigPanelContent(props: ConfigPanelProps) {
 							value = currentThemeLabel;
 							valueColor = palette.act;
 						} else if (row.id === "auto-approve") {
-							value = autoApprove ? "● on" : "○ off";
+							value = autoApprove ? "[*] on" : "[ ] off";
 							valueColor = autoApprove ? palette.success : "gray";
 						} else if (row.id === "auto-update") {
-							value = autoUpdateEnabled ? "● on" : "○ off";
+							value = autoUpdateEnabled ? "[*] on" : "[ ] off";
 							valueColor = autoUpdateEnabled ? palette.success : "gray";
 						} else if (row.id === "compaction") {
 							value = formatCliCompactionMode(compactionMode);
 							valueColor = getCompactionModeColor(compactionMode, palette);
 						} else {
-							value = verbose ? "● on" : "○ off";
+							value = verbose ? "[*] on" : "[ ] off";
 							valueColor = verbose ? palette.success : "gray";
 						}
 						return (
@@ -883,10 +892,10 @@ export function ConfigPanelContent(props: ConfigPanelProps) {
 								? isPending
 									? "~ "
 									: enabledState === "partial"
-										? "◐ "
+										? "[~] "
 										: row.enabled
-											? "● "
-											: "○ "
+											? "[*] "
+											: "[ ] "
 								: "";
 						const rightLabel = row.rightLabel ?? "";
 						const prefix = " ".repeat(row.indent ?? 0);
@@ -928,7 +937,7 @@ export function ConfigPanelContent(props: ConfigPanelProps) {
 
 			{belowCount > 0 && (
 				<text fg="gray">
-					{"▼ "}
+					{"v "}
 					{belowCount} more
 				</text>
 			)}

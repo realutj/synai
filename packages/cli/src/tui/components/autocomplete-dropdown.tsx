@@ -76,7 +76,7 @@ export function AutocompleteDropdown(props: AutocompleteDropdownProps) {
 			{showAboveIndicator && (
 				<box paddingX={1} justifyContent="center">
 					<text fg="gray">
-						{"\u25b2"} {aboveCount} more
+						{"^"} {aboveCount} more
 					</text>
 				</box>
 			)}
@@ -97,7 +97,7 @@ export function AutocompleteDropdown(props: AutocompleteDropdownProps) {
 			{showBelowIndicator && (
 				<box paddingX={1} justifyContent="center">
 					<text fg="gray">
-						{"\u25bc"} {belowCount} more
+						{"v"} {belowCount} more
 					</text>
 				</box>
 			)}
@@ -107,12 +107,12 @@ export function AutocompleteDropdown(props: AutocompleteDropdownProps) {
 
 function truncateEnd(str: string, max: number): string {
 	if (str.length <= max) return str;
-	return `${str.slice(0, max - 1)}\u2026`;
+	return `${str.slice(0, max - 1)}...`;
 }
 
 function truncateStart(str: string, max: number): string {
 	if (str.length <= max) return str;
-	return `\u2026${str.slice(-(max - 1))}`;
+	return `...${str.slice(-(max - 1))}`;
 }
 
 function OptionRow(props: {
@@ -135,7 +135,7 @@ function OptionRow(props: {
 		);
 	}
 
-	const prefix = isSelected ? "\u276f " : "  ";
+	const prefix = isSelected ? "> " : "  ";
 	const budgetAfterPrefix = rowBudget - prefix.length;
 
 	let displayName: string;

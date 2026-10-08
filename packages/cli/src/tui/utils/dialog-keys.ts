@@ -18,7 +18,7 @@ export interface DialogDismissKey {
  * hyperlink, and that modifier keystroke must not tear the dialog out from
  * under the click. Bare modifier presses (empty name) are ignored too.
  *
- * Shift and Option are intentionally not treated as blocking — they only
+ * Shift and Option are intentionally not treated as blocking - they only
  * produce ordinary typed characters, not the link-opening chord (Cmd-click
  * on macOS, Ctrl-click elsewhere).
  */

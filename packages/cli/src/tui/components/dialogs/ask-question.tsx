@@ -85,7 +85,7 @@ export function AskQuestionContent(
 							fg={!typing && i === selected ? palette.textOnSelection : "gray"}
 							flexShrink={0}
 						>
-							{!typing && i === selected ? "\u276f" : " "}
+							{!typing && i === selected ? ">" : " "}
 						</text>
 						<text
 							fg={
@@ -112,7 +112,7 @@ export function AskQuestionContent(
 						}
 						flexShrink={0}
 					>
-						{selected === options.length ? "\u276f" : " "}
+						{selected === options.length ? ">" : " "}
 					</text>
 					{typing ? (
 						<input
@@ -136,7 +136,7 @@ export function AskQuestionContent(
 				<em>
 					{typing
 						? "Enter to submit, Esc to go back"
-						: `↑/↓ navigate, Enter to select, 1-${options.length} to pick`}
+						: `Up/Down navigate, Enter to select, 1-${options.length} to pick`}
 				</em>
 			</text>
 		</box>

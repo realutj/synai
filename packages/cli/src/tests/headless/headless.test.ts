@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// CLI headless use cases  (cline -y / synai --json / piped stdin)
+// CLI headless use cases  (synai -y / synai --json / piped stdin)
 //
 // These tests run synai as a child process (no TUI harness) and assert on
 // stdout, stderr, and exit codes.
@@ -15,7 +15,7 @@ import {
 	EXIT_CODE_SUCCESS,
 	TERMINAL_WIDE,
 } from "../helpers/constants.js";
-import { clineEnv } from "../helpers/env.js";
+import { synaiEnv } from "../helpers/env.js";
 import { expectExitCode, expectVisible } from "../helpers/terminal.js";
 
 // ---------------------------------------------------------------------------
@@ -23,11 +23,11 @@ import { expectExitCode, expectVisible } from "../helpers/terminal.js";
 // Golden path: prints only LLM output (no chrome), then exits 0.
 // Unauthenticated: prints "Not authenticated" and exits 1.
 // ---------------------------------------------------------------------------
-test.describe("cline -y (headless auth failure mode) - unauthenticated", () => {
+test.describe("synai -y (headless auth failure mode) - unauthenticated", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["-y", "tell me a joke"] },
 		...TERMINAL_WIDE,
-		env: clineEnv("unauthenticated"),
+		env: synaiEnv("unauthenticated"),
 	});
 
 	test("prints Not authenticated and exits 1", async ({ terminal }) => {
@@ -50,7 +50,7 @@ test.describe("piped stdin | synai - unauthenticated", () => {
 			],
 		},
 		...TERMINAL_WIDE,
-		env: clineEnv("unauthenticated"),
+		env: synaiEnv("unauthenticated"),
 	});
 
 	test("prints Not Authenticated for piped stdin", async ({ terminal }) => {
@@ -63,14 +63,14 @@ test.describe("piped stdin | synai - unauthenticated", () => {
 // synai -y --verbose "tell me a joke" 2>&1
 // Golden path: prints model info, prompt, api request, reasoning, task_completion lines
 // ---------------------------------------------------------------------------
-test.describe("cline -y --verbose - unauthenticated", () => {
+test.describe("synai -y --verbose - unauthenticated", () => {
 	test.use({
 		program: {
 			file: "sh",
 			args: ["-c", `${SYNAI_BIN} -y --verbose "tell me a joke" 2>&1`],
 		},
 		...TERMINAL_WIDE,
-		env: clineEnv("unauthenticated"),
+		env: synaiEnv("unauthenticated"),
 	});
 
 	test("shows verbose output or not-authenticated", async ({ terminal }) => {
@@ -83,11 +83,11 @@ test.describe("cline -y --verbose - unauthenticated", () => {
 // synai -y --json "tell me a joke"
 // Headless yolo with JSON output (one JSON object per line)
 // ---------------------------------------------------------------------------
-test.describe("cline -y --json - unauthenticated", () => {
+test.describe("synai -y --json - unauthenticated", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["-y", "--json", "tell me a joke"] },
 		...TERMINAL_WIDE,
-		env: clineEnv("unauthenticated"),
+		env: synaiEnv("unauthenticated"),
 	});
 
 	test("outputs JSON error for unauthenticated", async ({ terminal }) => {
@@ -97,11 +97,11 @@ test.describe("cline -y --json - unauthenticated", () => {
 	});
 });
 
-test.describe("cline (headless prompt mode) - authenticated @live", () => {
+test.describe("synai (headless prompt mode) - authenticated @live", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["tell me a joke"] },
 		...TERMINAL_WIDE,
-		env: clineEnv("default", {
+		env: synaiEnv("default", {
 			SYNAI_VCR_CASSETTE: "./fixtures/headless-yolo-basic.json",
 		}),
 	});
@@ -127,7 +127,7 @@ test.describe("piped stdin | synai - authenticated", () => {
 			],
 		},
 		...TERMINAL_WIDE,
-		env: clineEnv("default", {
+		env: synaiEnv("default", {
 			SYNAI_VCR_CASSETTE: "./fixtures/headless-piped-stdin.json",
 		}),
 	});
@@ -143,14 +143,14 @@ test.describe("piped stdin | synai - authenticated", () => {
 // synai --verbose "tell me a joke" 2>&1 - authenticated
 // Golden path: prints model info, prompt, api request, reasoning, task_completion
 // ---------------------------------------------------------------------------
-test.describe("cline --verbose - authenticated @live", () => {
+test.describe("synai --verbose - authenticated @live", () => {
 	test.use({
 		program: {
 			file: "sh",
 			args: ["-c", `${SYNAI_BIN} --verbose "tell me a joke" 2>&1`],
 		},
 		...TERMINAL_WIDE,
-		env: clineEnv("default", {
+		env: synaiEnv("default", {
 			SYNAI_VCR_CASSETTE: "./fixtures/headless-verbose.json",
 		}),
 	});
@@ -168,11 +168,11 @@ test.describe("cline --verbose - authenticated @live", () => {
 // synai --json "tell me a joke" - authenticated
 // All output must conform to JSON (one JSON object per line)
 // ---------------------------------------------------------------------------
-test.describe("cline --json - authenticated @live", () => {
+test.describe("synai --json - authenticated @live", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["--json", "tell me a joke"] },
 		...TERMINAL_WIDE,
-		env: clineEnv("default", {
+		env: synaiEnv("default", {
 			SYNAI_VCR_CASSETTE: "./fixtures/headless-json.json",
 		}),
 	});
@@ -187,14 +187,14 @@ test.describe("cline --json - authenticated @live", () => {
 // synai -t 2 -y "tell me a joke"
 // Timeout: should print "Error: Timeout" and exit 1
 // ---------------------------------------------------------------------------
-test.describe("cline -t (timeout) - headless yolo", () => {
+test.describe("synai -t (timeout) - headless yolo", () => {
 	test.use({
 		program: {
 			file: SYNAI_BIN,
 			args: ["-t", "2", "-y", "tell me a long detailed joke"],
 		},
 		...TERMINAL_WIDE,
-		env: clineEnv("default", {
+		env: synaiEnv("default", {
 			SYNAI_VCR_CASSETTE: "./fixtures/headless-timeout.json",
 		}),
 	});
@@ -207,14 +207,14 @@ test.describe("cline -t (timeout) - headless yolo", () => {
 	});
 });
 
-test.describe("cline --json -t (timeout) - JSON mode", () => {
+test.describe("synai --json -t (timeout) - JSON mode", () => {
 	test.use({
 		program: {
 			file: SYNAI_BIN,
 			args: ["--json", "-t", "2", "tell me a long detailed joke"],
 		},
 		...TERMINAL_WIDE,
-		env: clineEnv("default", {
+		env: synaiEnv("default", {
 			SYNAI_VCR_CASSETTE: "./fixtures/headless-json-timeout.json",
 		}),
 	});
@@ -229,14 +229,14 @@ test.describe("cline --json -t (timeout) - JSON mode", () => {
 // synai -y -m <model-id> "what model are you"
 // Model flag in headless mode - should use specified model but not persist
 // ---------------------------------------------------------------------------
-test.describe("cline -m (model flag in headless) @live", () => {
+test.describe("synai -m (model flag in headless) @live", () => {
 	test.use({
 		program: {
 			file: SYNAI_BIN,
 			args: ["-m", "anthropic/claude-sonnet-4", "what model are you"],
 		},
 		...TERMINAL_WIDE,
-		env: clineEnv("default", {
+		env: synaiEnv("default", {
 			SYNAI_VCR_CASSETTE: "./fixtures/headless-model-flag.json",
 		}),
 	});

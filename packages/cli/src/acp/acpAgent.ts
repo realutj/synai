@@ -35,7 +35,7 @@ import { getPersistedProviderApiKey } from "../commands/auth";
 import { resolveSystemPrompt } from "../runtime/prompt";
 import { subscribeToAgentEvents } from "../runtime/session-events";
 import { createCliCore } from "../session/session";
-import { isClineOrgIndividualInferenceSubscriptionErrorMessage } from "../utils/synai-errors";
+import { isSynaiOrgIndividualInferenceSubscriptionErrorMessage } from "../utils/synai-errors";
 import { getCliBuildInfo } from "../utils/common";
 import { randomSessionId, resolveWorkspaceRoot } from "../utils/helpers";
 import type { Config } from "../utils/types";
@@ -53,12 +53,12 @@ import {
 } from "./auto-approve";
 import {
 	buildOrganizationConfigOption,
-	fetchClineOrganizations,
+	fetchSynaiOrganizations,
 	getAcpOrgSubscriptionMessage,
 	ORGANIZATION_CONFIG_ID,
 	PERSONAL_ACCOUNT_VALUE,
-	switchClineOrganization,
-	usesClineAccount,
+	switchSynaiOrganization,
+	usesSynaiAccount,
 } from "./organizations";
 import { requestAcpToolApproval } from "./permissions";
 import { replaySessionHistory } from "./session-load";
@@ -78,7 +78,7 @@ interface SessionState {
 	id: string;
 	cwd: string;
 	mcpServers: NewSessionRequest["mcpServers"];
-	/** Current agent mode — "plan" (read-only) or "act" (full). */
+	/** Current agent mode - "plan" (read-only) or "act" (full). */
 	currentMode: "plan" | "act";
 	/** Current provider id for the session. */
 	currentProviderId: string;
@@ -213,7 +213,7 @@ export class AcpAgent implements Agent {
 		});
 
 		const availableModels = Object.entries(providerModels).map(
-			([modelId, info]) => ({
+			([modelId, info]: [string, any]) => ({
 				modelId,
 				name: info.name ?? modelId,
 				description: info.description,
@@ -250,14 +250,14 @@ export class AcpAgent implements Agent {
 		let messages: MessageWithMetadata[];
 
 		if (session?.sessionManager && session.activeSessionId) {
-			// The session is still live in this connection — replay its current
+			// The session is still live in this connection - replay its current
 			// conversation without restarting anything.
 			messages =
 				(await session.sessionManager.readMessages(session.activeSessionId)) ??
 				[];
 		} else {
 			if (!session) {
-				// Provider/model are not persisted per session — a session
+				// Provider/model are not persisted per session - a session
 				// loaded on a fresh connection starts from the same defaults
 				// as a new session, with the model resolved against the
 				// provider's own catalog just like newSession.
@@ -305,7 +305,7 @@ export class AcpAgent implements Agent {
 			CHAT_MODEL_QUERY_OPTIONS,
 		);
 		const availableModels = Object.entries(providerModels).map(
-			([availableModelId, info]) => ({
+			([availableModelId, info]: [string, any]) => ({
 				modelId: availableModelId,
 				name: info.name ?? availableModelId,
 				description: info.description,
@@ -408,7 +408,7 @@ export class AcpAgent implements Agent {
 			return;
 		}
 
-		// Abort the controller — this handles all stages of prompt():
+		// Abort the controller - this handles all stages of prompt():
 		// - If prompt() hasn't started the agent yet, the signal check will
 		//   short-circuit and resolve with stopReason: 'cancelled'.
 		// - If the agent is running, the "abort" event listener on the signal
@@ -486,7 +486,7 @@ export class AcpAgent implements Agent {
 				// Re-resolve the model against the new provider's catalog: keep the
 				// current one when it's offered there too, otherwise fall back to the
 				// provider's declared default rather than whichever model happens to
-				// be listed first (for cline-pass that is an unrelated free model).
+				// be listed first (for synai-pass that is an unrelated free model).
 				const providerModels = await Llms.getModelsForProvider(
 					value,
 					CHAT_MODEL_QUERY_OPTIONS,
@@ -501,7 +501,7 @@ export class AcpAgent implements Agent {
 
 			case ORGANIZATION_CONFIG_ID: {
 				try {
-					await switchClineOrganization({
+					await switchSynaiOrganization({
 						apiKey: this.accountApiKey,
 						providerSettingsManager: this.providerSettingsManager,
 						organizationId: value === PERSONAL_ACCOUNT_VALUE ? null : value,
@@ -616,10 +616,10 @@ export class AcpAgent implements Agent {
 	private async getOrganizationConfigOption(
 		providerId: string,
 	): Promise<SessionConfigOption | undefined> {
-		if (!usesClineAccount(providerId)) {
+		if (!usesSynaiAccount(providerId)) {
 			return undefined;
 		}
-		const organizations = await fetchClineOrganizations({
+		const organizations = await fetchSynaiOrganizations({
 			apiKey: this.accountApiKey,
 			providerSettingsManager: this.providerSettingsManager,
 		});
@@ -703,7 +703,7 @@ export class AcpAgent implements Agent {
 		const sessionManager = await createCliCore({
 			toolPolicies: config.toolPolicies,
 			capabilities: {
-				requestToolApproval: (request) =>
+				requestToolApproval: (request: any) =>
 					session.autoApproveTools
 						? Promise.resolve({ approved: true })
 						: requestAcpToolApproval(this.conn, acpSessionId, request),
@@ -730,7 +730,7 @@ export class AcpAgent implements Agent {
 		}
 
 		session.unsubscribe = subscribeToAgentEvents(
-			sessionManager,
+			sessionManager as any,
 			(event: AgentEvent) => {
 				// Remember unrecoverable failures so prompt() can fail the turn.
 				if (event.type === "error" && !event.recoverable) {
@@ -842,7 +842,7 @@ async function resolveDefaultModelId(
  * the object ACP actually receives.
  */
 function toAcpPromptError(error: Error): RequestError {
-	if (isClineOrgIndividualInferenceSubscriptionErrorMessage(error)) {
+	if (isSynaiOrgIndividualInferenceSubscriptionErrorMessage(error)) {
 		const message = getAcpOrgSubscriptionMessage();
 		return RequestError.internalError({ message }, message);
 	}

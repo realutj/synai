@@ -25,8 +25,8 @@ export function createContextBar(
 			: 0;
 	const emptyCount = Math.max(0, normalizedWidth - filledCount);
 	return {
-		filled: "\u2588".repeat(filledCount),
-		empty: "\u2588".repeat(emptyCount),
+		filled: "█".repeat(filledCount),
+		empty: "█".repeat(emptyCount),
 	};
 }
 
@@ -41,7 +41,7 @@ function formatCost(cost: number): string {
 }
 
 function formatCostText(providerId: string, totalCost: number): string {
-	// Subscription providers (ClinePass) have no per-use cost worth surfacing.
+	// Subscription providers (SynaiPass) have no per-use cost worth surfacing.
 	if (shouldShowCliUsageCoveredBySubscription(providerId)) {
 		return "";
 	}
@@ -58,7 +58,7 @@ export function formatStatusBarUsageText(input: {
 	totalCost: number;
 	providerId: string;
 }): string {
-	const tokens = `(${input.totalTokens.toLocaleString()})`;
+	const tokens = `(${input.totalTokens.toLocaleString("en-US")})`;
 	const costText = formatCostText(input.providerId, input.totalCost);
 
 	if (!costText) {
@@ -97,6 +97,9 @@ export function resolveModelDisplayName(config: {
 	let displayName = info?.name ?? modelIdTail;
 	if (config.thinking && config.reasoningEffort) {
 		displayName = `${displayName} (${config.reasoningEffort})`;
+	}
+	if (config.providerId === "synai-pass") {
+		return `SynAIPass: ${displayName}`;
 	}
 	return displayName;
 }
@@ -236,10 +239,10 @@ export function StatusBar(props: StatusBarProps) {
 					onMouseDown={onToggleMode}
 				>
 					<text fg={uiMode === "plan" ? planAccent : "gray"}>
-						{uiMode === "plan" ? "●" : "○"} Plan
+						{uiMode === "plan" ? "[*]" : "[ ]"} Plan
 					</text>
 					<text fg={uiMode === "act" ? actAccent : "gray"}>
-						{uiMode === "act" ? "●" : "○"} Act
+						{uiMode === "act" ? "[*]" : "[ ]"} Act
 					</text>
 					<text fg="gray">(Tab)</text>
 				</box>
@@ -263,7 +266,7 @@ export function StatusBar(props: StatusBarProps) {
 			{autoApproveAll ? (
 				<text fg={defaultFg}>
 					<span fg={successColor}>
-						{"\u23f5\u23f5"} Auto-approve all enabled
+						{">>"} Auto-approve all enabled
 					</span>
 					<span fg="gray"> (Shift+Tab)</span>
 				</text>

@@ -127,13 +127,9 @@ function runInteractiveCli(
 }
 
 function outputOf(result: CliResult): string {
-	return normalizeTerminalOutput(
-		`${typeof result.stdout === "string" ? result.stdout : result.stdout.toString("utf8")}\n${
-			typeof result.stderr === "string"
-				? result.stderr
-				: result.stderr.toString("utf8")
-		}`,
-	);
+	const out = result.stdout ? (typeof result.stdout === "string" ? result.stdout : result.stdout.toString("utf8")) : "";
+	const err = result.stderr ? (typeof result.stderr === "string" ? result.stderr : result.stderr.toString("utf8")) : "";
+	return normalizeTerminalOutput(`${out}\n${err}`);
 }
 
 const tempDirs: string[] = [];

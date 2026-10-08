@@ -1,4 +1,6 @@
+import { relative, sep } from "node:path";
 import { Command, CommanderError, Option } from "commander";
+import { getHomeDir, resolveSynaiDataDir, resolveSynaiDir } from "@synai/shared/storage";
 import { version } from "../../package.json";
 import {
 	CLI_COMPACTION_MODE_OPTION_DESCRIPTION,
@@ -64,10 +66,13 @@ export function addRootOptions(cmd: Command): Command {
 				"--acp",
 				"Initialize Agent Client Protocol stdio interface for editor integration",
 			)
-			.option("--config <path>", "Directory path for SynAI settings (default: ~/.synai)")
+			.option(
+				"--config <path>",
+				`Configuration directory (default: ~/${relative(getHomeDir(), resolveSynaiDir()).split(sep).join("/")})`,
+			)
 			.option(
 				"--data-dir <path>",
-				"Isolated sandbox state directory (default: ~/.synai/data)",
+				`Use isolated local state at this directory path (default: ~/${relative(getHomeDir(), resolveSynaiDataDir()).split(sep).join("/")})`,
 			)
 			.option(
 				"--hooks-dir <path>",
@@ -95,10 +100,15 @@ export function addRootOptions(cmd: Command): Command {
 				).hideHelp(),
 			)
 			.addOption(
-				// TODO: Refactor teams to resume session without team name
 				new Option(
 					"--team-name <name>",
 					"Override the runtime team state name",
+				).hideHelp(),
+			)
+			.addOption(
+				new Option(
+					"--board",
+					"Launch the board interface",
 				).hideHelp(),
 			)
 	);
@@ -106,7 +116,7 @@ export function addRootOptions(cmd: Command): Command {
 
 export function createProgram(): Command {
 	const program = new Command("synai")
-		.description("SynAI CLI — Autonomous AI Coding Engineer for Terminal and Enterprise Workflows")
+		.description("SynAI CLI - Autonomous AI Coding Engineer for Terminal and Enterprise Workflows")
 		.version(version, "-V, --version", "Display active SynAI version")
 		.exitOverride() // don't call process.exit
 		.configureOutput({
@@ -139,7 +149,8 @@ export function commanderToParsedArgs(program: Command): ParsedArgs {
 		thinking: false,
 		reasoningEffort: undefined,
 		defaultToolAutoApprove: true,
-		id: opts.id,
+		...(opts.id ? { id: opts.id } : {}),
+		...(opts.board ? { board: true } : {}),
 	};
 
 	// Approval: last-wins semantics
@@ -228,7 +239,7 @@ export function commanderToParsedArgs(program: Command): ParsedArgs {
 	else if (opts.apiKey !== undefined) result.key = opts.apiKey;
 	if (opts.id !== undefined) result.id = opts.id;
 
-	// Positional args → prompt
+	// Positional args -> prompt
 	const positional = program.args;
 	if (positional.length > 0) {
 		result.prompt = positional.join(" ");

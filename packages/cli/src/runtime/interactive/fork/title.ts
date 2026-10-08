@@ -8,7 +8,7 @@ const FORK_TITLE_SUFFIX = " (fork)";
 const MAX_FORK_TITLE_LENGTH = 120;
 
 function normalizeForkTitleText(value: string | undefined): string | undefined {
-	const normalized = normalizeUserInput(formatDisplayUserInput(value))
+	const normalized = normalizeUserInput(formatDisplayUserInput(value ?? ""))
 		.replace(/\s+/g, " ")
 		.trim();
 	return normalized || undefined;

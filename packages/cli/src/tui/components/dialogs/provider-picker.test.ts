@@ -122,9 +122,9 @@ describe("saveManualProviderApiKey", () => {
 
 		// synai-pass inherits auth storage from the "synai" entry, so the key
 		// must land there and the stale tokens must be gone for both providers.
-		const clineSettings = manager.getProviderSettings("synai");
-		expect(clineSettings?.apiKey).toBe("manual-api-key");
-		expect(clineSettings?.auth?.accessToken).toBeUndefined();
+		const synaiSettings = manager.getProviderSettings("synai");
+		expect(synaiSettings?.apiKey).toBe("manual-api-key");
+		expect(synaiSettings?.auth?.accessToken).toBeUndefined();
 
 		const SynAIPassSettings = manager.getProviderSettings("synai-pass");
 		expect(getPersistedProviderApiKey("synai-pass", SynAIPassSettings)).toBe(

@@ -12,11 +12,11 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const sourceWrapperPath = fileURLToPath(
-	new URL("../../bin/cline", import.meta.url),
+	new URL("../../bin/synai", import.meta.url),
 );
 
 function createWrapperCopy(): string {
-	const dir = mkdtempSync(join(tmpdir(), "cline-bin-package-"));
+	const dir = mkdtempSync(join(tmpdir(), "synai-bin-package-"));
 	const binDir = join(dir, "bin");
 	mkdirSync(binDir, { recursive: true });
 	const wrapperPath = join(binDir, "synai");
@@ -26,7 +26,7 @@ function createWrapperCopy(): string {
 }
 
 function createExecutableScript(contents: string): string {
-	const dir = mkdtempSync(join(tmpdir(), "cline-bin-wrapper-"));
+	const dir = mkdtempSync(join(tmpdir(), "synai-bin-wrapper-"));
 	const scriptPath = join(dir, "child.js");
 	writeFileSync(scriptPath, `#!/usr/bin/env node\n${contents}`);
 	chmodSync(scriptPath, 0o755);
@@ -44,7 +44,7 @@ function runWrapper(target: string, args: string[] = []) {
 	});
 }
 
-describe("bin/cline wrapper", () => {
+describe("bin/synai wrapper", () => {
 	it("preserves the child process exit status", () => {
 		const target = createExecutableScript(`
 process.exit(Number(process.argv[2] ?? "0"));
@@ -66,7 +66,7 @@ console.log(process.env.SYNAI_WRAPPER_PATH ?? "");
 
 		expect(result.error).toBeUndefined();
 		expect(result.status).toBe(0);
-		expect(result.stdout.trim()).toMatch(/bin[/\\]cline$/);
+		expect(result.stdout.trim()).toMatch(/bin[/\\]synai$/);
 	});
 
 	it.skipIf(process.platform === "win32")(

@@ -28,6 +28,11 @@ vi.mock("@opentui/core", () => ({
 
 vi.mock("@opentui/react", () => ({
 	createRoot: reactMock.createRoot,
+	extend: vi.fn(),
+}));
+
+vi.mock("opentui-spinner", () => ({
+	SpinnerRenderable: class {},
 }));
 
 vi.mock("./root", () => ({

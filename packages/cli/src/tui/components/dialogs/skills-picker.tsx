@@ -35,8 +35,7 @@ export function SkillsPickerContent(props: SkillsPickerContentProps) {
 		() => commands.filter((command) => matchesFilter(command, filter)),
 		[commands, filter],
 	);
-	const hasFilter = filter.trim().length > 0;
-	const showMarketplace = !hasFilter;
+	const showMarketplace = false;
 	const totalItems = filtered.length + (showMarketplace ? 1 : 0);
 	const marketplaceIndex = filtered.length;
 	const safeSelected = Math.min(selected, Math.max(0, totalItems - 1));
@@ -144,7 +143,7 @@ export function SkillsPickerContent(props: SkillsPickerContentProps) {
 									height={1}
 								>
 									<text fg={isSelected ? palette.textOnSelection : palette.act}>
-										{isSelected ? "❯ " : "  "}
+										{isSelected ? "> " : "  "}
 										Browse more skills at {SKILLS_MARKETPLACE_URL}
 									</text>
 								</box>
@@ -177,7 +176,7 @@ export function SkillsPickerContent(props: SkillsPickerContentProps) {
 				)}
 			</box>
 
-			{commands.length === 0 && !hasFilter && (
+			{commands.length === 0 && !filter && (
 				<text fg="gray">
 					Install skills with: <strong>npx skills add owner/repo</strong>
 				</text>
@@ -185,7 +184,7 @@ export function SkillsPickerContent(props: SkillsPickerContentProps) {
 
 			<text fg="gray">
 				<em>
-					Type to filter, ↑/↓ navigate
+					Type to filter, Up/Down navigate
 					{enterAction ? `, Enter to ${enterAction}` : ""}, Esc to close
 				</em>
 			</text>

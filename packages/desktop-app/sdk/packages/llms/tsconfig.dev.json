@@ -1,0 +1,12 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"baseUrl": ".",
+		"rootDir": "..",
+		"paths": {
+			"@synai/agents": ["../agents/src/index.ts"],
+			"@synai/shared": ["../shared/src/index.ts"],
+			"@synai/shared/*": ["../shared/src/*", "../shared/src/*/index.ts"]
+		}
+	}
+}

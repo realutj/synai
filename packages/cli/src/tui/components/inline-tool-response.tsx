@@ -79,7 +79,7 @@ function countWrappedRows(text: string, width: number): number {
 		const tokens = paragraph.match(/\s+|\S+/g) ?? [];
 
 		for (const token of tokens) {
-			const tokenWidth = Bun.stringWidth(token);
+			const tokenWidth = ((globalThis as any).Bun?.stringWidth ? (globalThis as any).Bun.stringWidth(token) : token.length) as number;
 			const isWhitespace = /^\s+$/.test(token);
 
 			if (
@@ -227,7 +227,7 @@ function ToolApprovalResponse(
 
 	return (
 		<Shell
-			title="Cline needs permission"
+			title="Synai needs permission"
 			accent={props.accent}
 			inputBackground={props.inputBackground}
 			inputForeground={props.inputForeground}
@@ -408,7 +408,7 @@ function AskQuestionResponse(
 
 	return (
 		<Shell
-			title="Cline is asking a question"
+			title="Synai is asking a question"
 			accent={props.accent}
 			inputBackground={props.inputBackground}
 			inputForeground={props.inputForeground}

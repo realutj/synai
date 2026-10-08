@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   GitCommit,
   FileCode,
@@ -9,21 +9,21 @@ import {
   Sparkles,
   Code2,
   X,
-} from 'lucide-react';
-import { useAgentSocket } from './hooks/useAgentSocket.js';
-import { Navbar } from './components/Navbar.js';
-import { SynAISidebar } from './components/SynAISidebar.js';
-import { FileTree } from './components/FileTree.js';
-import { ChatArea } from './components/ChatArea.js';
-import { DiffViewer } from './components/DiffViewer.js';
-import { CodeViewer } from './components/CodeViewer.js';
-import { TaskPlanPanel } from './components/TaskPlanPanel.js';
-import { CheckpointsPanel } from './components/CheckpointsPanel.js';
-import { TerminalPanel } from './components/TerminalPanel.js';
-import { SettingsModal } from './components/SettingsModal.js';
-import { RemoteDebuggingModal } from './components/RemoteDebuggingModal.js';
-import { BrowserControlModal } from './components/BrowserControlModal.js';
-import { WorkspaceFile, ToolCall } from './types/index.js';
+} from "lucide-react";
+import { useAgentSocket } from "./hooks/useAgentSocket.js";
+import { Navbar } from "./components/Navbar.js";
+import { SynAISidebar } from "./components/SynAISidebar.js";
+import { FileTree } from "./components/FileTree.js";
+import { ChatArea } from "./components/ChatArea.js";
+import { DiffViewer } from "./components/DiffViewer.js";
+import { CodeViewer } from "./components/CodeViewer.js";
+import { TaskPlanPanel } from "./components/TaskPlanPanel.js";
+import { CheckpointsPanel } from "./components/CheckpointsPanel.js";
+import { TerminalPanel } from "./components/TerminalPanel.js";
+import { SettingsModal } from "./components/SettingsModal.js";
+import { RemoteDebuggingModal } from "./components/RemoteDebuggingModal.js";
+import { BrowserControlModal } from "./components/BrowserControlModal.js";
+import { WorkspaceFile, ToolCall } from "./types/index.js";
 
 export const App: React.FC = () => {
   const {
@@ -52,15 +52,20 @@ export const App: React.FC = () => {
     refreshFiles,
   } = useAgentSocket();
 
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    return (localStorage.getItem('synai-theme') as 'light' | 'dark') || 'dark';
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    return (localStorage.getItem("synai-theme") as "light" | "dark") || "dark";
   });
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFilesOpen, setIsFilesOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<WorkspaceFile | null>(null);
-  const [activeDiff, setActiveDiff] = useState<{ diff: string; path: string } | null>(null);
-  const [activeTab, setActiveTab] = useState<'diff' | 'code' | 'plan' | 'checkpoints' | 'terminal'>('code');
+  const [activeDiff, setActiveDiff] = useState<{
+    diff: string;
+    path: string;
+  } | null>(null);
+  const [activeTab, setActiveTab] = useState<
+    "diff" | "code" | "plan" | "checkpoints" | "terminal"
+  >("code");
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isRemoteDebugOpen, setIsRemoteDebugOpen] = useState(false);
@@ -68,27 +73,27 @@ export const App: React.FC = () => {
 
   // Sync theme with HTML class
   useEffect(() => {
-    localStorage.setItem('synai-theme', theme);
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
+    localStorage.setItem("synai-theme", theme);
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove("dark");
     }
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
 
   const handleSelectFile = (file: WorkspaceFile) => {
     setSelectedFile(file);
-    setActiveTab('code');
+    setActiveTab("code");
     setIsRightPanelOpen(true);
   };
 
   const handleSelectDiff = (diff: string, path: string) => {
     setActiveDiff({ diff, path });
-    setActiveTab('diff');
+    setActiveTab("diff");
     setIsRightPanelOpen(true);
   };
 
@@ -157,9 +162,9 @@ export const App: React.FC = () => {
             onRespondApproval={respondApproval}
             onSelectDiff={handleSelectDiff}
             onOpenBrowserControl={() => setIsBrowserControlOpen(true)}
-            modelName={config?.model || 'SynAI'}
-            thinkingLevel={config?.thinkingLevel || 'medium'}
-            mode={config?.mode || 'confirm'}
+            modelName={config?.model || "SynAI"}
+            thinkingLevel={config?.thinkingLevel || "medium"}
+            mode={config?.mode || "confirm"}
           />
 
           {/* Right Panel: SynAI Artifacts Side-by-Side Inspector */}
@@ -170,11 +175,11 @@ export const App: React.FC = () => {
                 {/* Tabs */}
                 <div className="flex items-center gap-1 overflow-x-auto">
                   <button
-                    onClick={() => setActiveTab('code')}
+                    onClick={() => setActiveTab("code")}
                     className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition ${
-                      activeTab === 'code'
-                        ? 'bg-clay/10 text-clay font-semibold'
-                        : 'text-synai-secondary hover:text-synai-text'
+                      activeTab === "code"
+                        ? "bg-clay/10 text-clay font-semibold"
+                        : "text-synai-secondary hover:text-synai-text"
                     }`}
                   >
                     <FileCode className="w-3.5 h-3.5" />
@@ -182,11 +187,11 @@ export const App: React.FC = () => {
                   </button>
 
                   <button
-                    onClick={() => setActiveTab('diff')}
+                    onClick={() => setActiveTab("diff")}
                     className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition ${
-                      activeTab === 'diff'
-                        ? 'bg-clay/10 text-clay font-semibold'
-                        : 'text-synai-secondary hover:text-synai-text'
+                      activeTab === "diff"
+                        ? "bg-clay/10 text-clay font-semibold"
+                        : "text-synai-secondary hover:text-synai-text"
                     }`}
                   >
                     <GitCommit className="w-3.5 h-3.5" />
@@ -194,11 +199,11 @@ export const App: React.FC = () => {
                   </button>
 
                   <button
-                    onClick={() => setActiveTab('plan')}
+                    onClick={() => setActiveTab("plan")}
                     className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition ${
-                      activeTab === 'plan'
-                        ? 'bg-clay/10 text-clay font-semibold'
-                        : 'text-synai-secondary hover:text-synai-text'
+                      activeTab === "plan"
+                        ? "bg-clay/10 text-clay font-semibold"
+                        : "text-synai-secondary hover:text-synai-text"
                     }`}
                   >
                     <ListTodo className="w-3.5 h-3.5" />
@@ -206,11 +211,11 @@ export const App: React.FC = () => {
                   </button>
 
                   <button
-                    onClick={() => setActiveTab('checkpoints')}
+                    onClick={() => setActiveTab("checkpoints")}
                     className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition ${
-                      activeTab === 'checkpoints'
-                        ? 'bg-clay/10 text-clay font-semibold'
-                        : 'text-synai-secondary hover:text-synai-text'
+                      activeTab === "checkpoints"
+                        ? "bg-clay/10 text-clay font-semibold"
+                        : "text-synai-secondary hover:text-synai-text"
                     }`}
                   >
                     <Sparkles className="w-3.5 h-3.5" />
@@ -218,11 +223,11 @@ export const App: React.FC = () => {
                   </button>
 
                   <button
-                    onClick={() => setActiveTab('terminal')}
+                    onClick={() => setActiveTab("terminal")}
                     className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition ${
-                      activeTab === 'terminal'
-                        ? 'bg-clay/10 text-clay font-semibold'
-                        : 'text-synai-secondary hover:text-synai-text'
+                      activeTab === "terminal"
+                        ? "bg-clay/10 text-clay font-semibold"
+                        : "text-synai-secondary hover:text-synai-text"
                     }`}
                   >
                     <Terminal className="w-3.5 h-3.5" />
@@ -242,30 +247,30 @@ export const App: React.FC = () => {
 
               {/* Artifacts Body Content */}
               <div className="flex-1 min-h-0 overflow-hidden bg-transparent">
-                {activeTab === 'code' && (
+                {activeTab === "code" && (
                   <CodeViewer file={selectedFile} onRefresh={refreshFiles} />
                 )}
 
-                {activeTab === 'diff' && (
+                {activeTab === "diff" && (
                   <DiffViewer
-                    diff={activeDiff?.diff || ''}
-                    filePath={activeDiff?.path || ''}
+                    diffText={activeDiff?.diff || ""}
+                    filePath={activeDiff?.path || ""}
                   />
                 )}
 
-                {activeTab === 'plan' && (
-                  <TaskPlanPanel tasks={plan} />
-                )}
+                {activeTab === "plan" && <TaskPlanPanel tasks={plan} />}
 
-                {activeTab === 'checkpoints' && (
+                {activeTab === "checkpoints" && (
                   <CheckpointsPanel
                     checkpoints={checkpoints}
-                    onRollback={(id) => triggerUndo(id)}
+                    onUndo={triggerUndo}
                   />
                 )}
 
-                {activeTab === 'terminal' && (
-                  <TerminalPanel toolCalls={messages.flatMap((m) => m.toolCalls || [])} />
+                {activeTab === "terminal" && (
+                  <TerminalPanel
+                    toolCalls={messages.flatMap((m) => m.toolCalls || [])}
+                  />
                 )}
               </div>
             </aside>
@@ -291,7 +296,7 @@ export const App: React.FC = () => {
         isOpen={isRemoteDebugOpen}
         onClose={() => setIsRemoteDebugOpen(false)}
         onLaunchChrome={() => {
-          sendMessage('/browser:launch');
+          sendMessage("/browser:launch");
           setIsRemoteDebugOpen(false);
           setIsBrowserControlOpen(true);
         }}

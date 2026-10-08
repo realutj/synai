@@ -37,7 +37,7 @@ function extractStructuredTrace(messages: Message[]): {
             commandsRun.push(String(args.command).slice(0, 120));
           }
         } catch {
-          // Malformed args in a historical message — nothing useful to extract.
+          // Malformed args in a historical message - nothing useful to extract.
         }
       }
     }
@@ -84,7 +84,7 @@ export function compactConversation(messages: Message[], instructions?: string):
     summaryLines.push(`User compaction note: ${instructions.trim()}`);
   }
   summaryLines.push(
-    'The full detail of these earlier steps is gone — if you need it, re-inspect the relevant files or re-run the relevant commands rather than assuming their exact prior output.'
+    'The full detail of these earlier steps is gone - if you need it, re-inspect the relevant files or re-run the relevant commands rather than assuming their exact prior output.'
   );
 
   const summaryMessage: Message = { role: 'system', content: summaryLines.join('\n') };
@@ -143,6 +143,6 @@ export function formatCostSummary(tokenCount: { input: number; output: number; c
     `Input: ${tokenCount.input} tokens\n` +
     `Output: ${tokenCount.output} tokens\n` +
     `Cached: ${tokenCount.cached} tokens\n` +
-    `Rough Estimate: $${total.toFixed(4)} (generic rate, NOT this model's actual price — check openrouter.ai/models/${model} for exact pricing)`
+    `Rough Estimate: $${total.toFixed(4)} (generic rate, NOT this model's actual price - check openrouter.ai/models/${model} for exact pricing)`
   );
 }

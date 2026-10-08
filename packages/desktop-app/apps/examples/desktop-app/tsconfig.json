@@ -1,0 +1,48 @@
+{
+	"compilerOptions": {
+		"lib": ["dom", "dom.iterable", "esnext"],
+		"allowJs": true,
+		"target": "ES6",
+		"skipLibCheck": true,
+		"strict": true,
+		"noEmit": true,
+		"esModuleInterop": true,
+		"module": "esnext",
+		"moduleResolution": "bundler",
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"jsx": "react-jsx",
+		"incremental": true,
+		"plugins": [
+			{
+				"name": "next"
+			}
+		],
+		"paths": {
+			"@/*": ["./*"],
+			"@synai/agents": ["../../../sdk/packages/agents/src/index.ts"],
+			"@synai/core": ["../../../sdk/packages/core/src/index.ts"],
+			"@synai/core/hub": ["../../../sdk/packages/core/src/hub/index.ts"],
+			"@synai/core/hub/daemon-entry": [
+				"../../../sdk/packages/core/src/hub/daemon/entry.ts"
+			],
+			"@synai/llms": ["../../../sdk/packages/llms/src/index.ts"],
+			"@synai/shared": ["../../../sdk/packages/shared/src/index.ts"],
+			"@synai/shared/storage": [
+				"../../../sdk/packages/shared/src/storage/index.ts"
+			],
+			"@synai/shared/db": ["../../../sdk/packages/shared/src/db/index.ts"],
+			"@synai/shared/*": [
+				"../../../sdk/packages/shared/src/*",
+				"../../../sdk/packages/shared/src/*/index.ts"
+			]
+		}
+	},
+	"include": [
+		"**/*.ts",
+		"**/*.tsx",
+		".next/types/**/*.ts",
+		".next/dev/types/**/*.ts"
+	],
+	"exclude": ["node_modules"]
+}

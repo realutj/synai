@@ -1,5 +1,5 @@
 import type { AgentEvent } from "@synai/core";
-import { getClineEnvironmentConfig } from "@synai/shared";
+import { getSynaiEnvironmentConfig } from "@synai/shared";
 import type { Config } from "./types";
 
 const SYNAI_RECOMMENDED_MODELS_TIMEOUT_MS = 5_000;
@@ -19,15 +19,15 @@ function modelIdsMatch(selectedModelId: string, freeModelId: string): boolean {
 	return selected === free;
 }
 
-function resolveClineRecommendedModelsUrl(baseUrl: string): string {
+function resolveSynaiRecommendedModelsUrl(baseUrl: string): string {
 	const normalizedBaseUrl = baseUrl.trim().replace(/\/+$/, "");
 	const apiBaseUrl = normalizedBaseUrl.endsWith("/api/v1")
 		? normalizedBaseUrl.slice(0, -"/api/v1".length)
 		: normalizedBaseUrl;
-	return `${apiBaseUrl}/api/v1/ai/cline/recommended-models`;
+	return `${apiBaseUrl}/api/v1/ai/SynAI/recommended-models`;
 }
 
-async function fetchClineFreeModelIds(
+async function fetchSynaiFreeModelIds(
 	baseUrl: string,
 ): Promise<readonly string[] | undefined> {
 	const controller = new AbortController();
@@ -36,7 +36,7 @@ async function fetchClineFreeModelIds(
 		SYNAI_RECOMMENDED_MODELS_TIMEOUT_MS,
 	);
 	try {
-		const response = await fetch(resolveClineRecommendedModelsUrl(baseUrl), {
+		const response = await fetch(resolveSynaiRecommendedModelsUrl(baseUrl), {
 			signal: controller.signal,
 		});
 		if (!response.ok) return undefined;
@@ -57,11 +57,11 @@ async function fetchClineFreeModelIds(
 	}
 }
 
-function getClineFreeModelIds(baseUrl: string): Promise<readonly string[]> {
+function getSynaiFreeModelIds(baseUrl: string): Promise<readonly string[]> {
 	const cacheKey = baseUrl.trim();
 	let cached = freeModelIdsByBaseUrl.get(cacheKey);
 	if (!cached) {
-		cached = fetchClineFreeModelIds(cacheKey).then((ids) => {
+		cached = fetchSynaiFreeModelIds(cacheKey).then((ids) => {
 			if (!ids) freeModelIdsByBaseUrl.delete(cacheKey);
 			return ids;
 		});
@@ -70,18 +70,18 @@ function getClineFreeModelIds(baseUrl: string): Promise<readonly string[]> {
 	return cached.then((ids) => ids ?? []);
 }
 
-export async function shouldZeroClineFreeModelCost(
+export async function shouldZeroSynaiFreeModelCost(
 	config: Pick<Config, "providerId" | "modelId" | "baseUrl">,
 ): Promise<boolean> {
-	// Free models are also selectable on ClinePass — they ride usage billing at $0
-	if (config.providerId !== "cline" && config.providerId !== "cline-pass")
+	// Free models are also selectable on SynaiPass - they ride usage billing at $0
+	if (config.providerId !== "synai" && config.providerId !== "synai-pass")
 		return false;
 	const modelId = normalizeModelId(config.modelId);
 	if (!modelId) return false;
 
 	const baseUrl =
-		config.baseUrl?.trim() || getClineEnvironmentConfig().apiBaseUrl;
-	const freeModelIds = await getClineFreeModelIds(baseUrl);
+		config.baseUrl?.trim() || getSynaiEnvironmentConfig().apiBaseUrl;
+	const freeModelIds = await getSynaiFreeModelIds(baseUrl);
 	return freeModelIds.some((freeModelId) =>
 		modelIdsMatch(modelId, freeModelId),
 	);
@@ -120,10 +120,8 @@ export function zeroCliAgentEventCost(
 	return next as unknown as AgentEvent;
 }
 
-export function clearClineFreeModelCostCache(): void {
+export function clearSynaiFreeModelCostCache(): void {
 	freeModelIdsByBaseUrl.clear();
 }
 
-export const shouldZeroSynaiFreeModelCost = shouldZeroClineFreeModelCost;
-export const clearSynaiFreeModelCostCache = clearClineFreeModelCostCache;
 

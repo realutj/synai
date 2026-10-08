@@ -14,7 +14,7 @@ import {
 	EXIT_CODE_SUCCESS,
 	TERMINAL_WIDE,
 } from "../helpers/constants.js";
-import { clineEnv } from "../helpers/env.js";
+import { synaiEnv } from "../helpers/env.js";
 import { expectExitCode, expectVisible } from "../helpers/terminal.js";
 
 function findMessagesArtifacts(root: string): string[] {
@@ -40,14 +40,14 @@ function findMessagesArtifacts(root: string): string[] {
 	return out.sort();
 }
 
-test.describe("cline --json persisted messages contract - authenticated @live", () => {
+test.describe("synai --json persisted messages contract - authenticated @live", () => {
 	const sessionDataDir = mkdtempSync(
-		join(tmpdir(), "cline-headless-messages-contract-"),
+		join(tmpdir(), "synai-headless-messages-contract-"),
 	);
 	test.use({
 		program: { file: SYNAI_BIN, args: ["--json", "tell me a joke"] },
 		...TERMINAL_WIDE,
-		env: clineEnv("default", {
+		env: synaiEnv("default", {
 			SYNAI_VCR_CASSETTE: "./fixtures/headless-json.json",
 			SYNAI_SESSION_DATA_DIR: sessionDataDir,
 		}),

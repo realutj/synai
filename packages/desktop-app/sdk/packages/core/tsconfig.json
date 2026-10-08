@@ -1,0 +1,22 @@
+{
+	"extends": "../tsconfig.base.json",
+	"compilerOptions": {
+		"rootDir": "..",
+		"noEmit": true,
+		"paths": {
+			"@synai/agents": ["../agents/src/index.ts"],
+			"@synai/agents/*": ["../agents/src/*", "../agents/src/*/index.ts"],
+			"@synai/llms": ["../llms/src/index.ts"],
+			"@synai/llms/browser": ["../llms/src/index.browser.ts"],
+			"@synai/shared": ["../shared/src/index.ts"],
+			"@synai/shared/automation": ["../shared/src/automation/index.ts"],
+			"@synai/shared/browser": ["../shared/src/index.browser.ts"],
+			"@synai/shared/db": ["../shared/src/db/index.ts"],
+			"@synai/shared/storage": ["../shared/src/storage/index.ts"],
+			"@synai/shared/types": ["../shared/src/types/index.ts"],
+			"@synai/shared/*": ["../shared/src/*", "../shared/src/*/index.ts"]
+		}
+	},
+	"include": ["src/**/*"],
+	"exclude": ["node_modules", "dist", "fixtures"]
+}

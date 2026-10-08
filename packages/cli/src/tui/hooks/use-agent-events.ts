@@ -239,7 +239,7 @@ export function useAgentEventHandlers(deps: AgentEventDeps) {
 				case "error":
 					// Recoverable errors are in-run notices (the MistakeTracker
 					// emits one for every recorded mistake, e.g. a plan-mode
-					// guard-blocked command) — the run continues, so the footer
+					// guard-blocked command) - the run continues, so the footer
 					// must keep reflecting the active turn instead of flipping
 					// to idle mid-run. Surface them only in verbose mode.
 					if (event.recoverable) {

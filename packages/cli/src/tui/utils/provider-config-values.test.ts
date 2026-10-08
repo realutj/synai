@@ -21,7 +21,7 @@ describe("provider config values", () => {
 	it("updates an auto-filled AWS region when the profile changes", () => {
 		delete process.env.AWS_REGION;
 		delete process.env.AWS_DEFAULT_REGION;
-		const dir = mkdtempSync(join(tmpdir(), "cline-provider-config-"));
+		const dir = mkdtempSync(join(tmpdir(), "synai-provider-config-"));
 		try {
 			const configPath = join(dir, "config");
 			writeFileSync(

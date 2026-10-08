@@ -1,12 +1,12 @@
 // @jsxImportSource @opentui/react
-import type { ClineAccountOrganization } from "@synai/core";
+import type { SynaiAccountOrganization } from "@synai/core";
 import type { ChoiceContext } from "@opentui-ui/dialog";
 import { useDialogKeyboard } from "@opentui-ui/dialog/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-	type ClineAccountSnapshot,
-	formatClineCredits,
-	isClineAccountAuthErrorMessage,
+	type SynaiAccountSnapshot,
+	formatSynaiCredits,
+	isSynaiAccountAuthErrorMessage,
 } from "../../synai-account";
 import { useDialogPalette } from "../../hooks/use-theme";
 
@@ -20,7 +20,7 @@ type AccountView = "overview" | "organizations";
 
 type AccountState =
 	| { status: "loading"; message: string }
-	| { status: "loaded"; snapshot: ClineAccountSnapshot }
+	| { status: "loaded"; snapshot: SynaiAccountSnapshot }
 	| { status: "unauthenticated"; message: string }
 	| { status: "error"; message: string };
 
@@ -99,9 +99,9 @@ function formatDate(dateStr: string): string {
 	});
 }
 
-function userInitial(snapshot: ClineAccountSnapshot): string {
+function userInitial(snapshot: SynaiAccountSnapshot): string {
 	const candidate =
-		snapshot.user.displayName?.trim() || snapshot.user.email?.trim() || "?";
+		snapshot.user.displayName?.trim() || snapshot.user.email?.trim() || "U";
 	return candidate.charAt(0).toUpperCase();
 }
 
@@ -139,7 +139,7 @@ function AccountActionRow(props: {
 					fg={props.selected ? palette.textOnSelection : "gray"}
 					flexShrink={0}
 				>
-					{props.selected ? "❯" : " "}
+					{props.selected ? ">" : " "}
 				</text>
 				<text fg={fg} flexShrink={0}>
 					{props.action.label}
@@ -179,7 +179,7 @@ function OrganizationRow(props: {
 					fg={props.selected ? palette.textOnSelection : "gray"}
 					flexShrink={0}
 				>
-					{props.selected ? "❯" : " "}
+					{props.selected ? ">" : " "}
 				</text>
 				<text
 					fg={props.selected ? palette.textOnSelection : undefined}
@@ -202,7 +202,7 @@ function OrganizationRow(props: {
 	);
 }
 
-function accountActions(snapshot: ClineAccountSnapshot): AccountAction[] {
+function accountActions(snapshot: SynaiAccountSnapshot): AccountAction[] {
 	return LOADED_ACTIONS.map((action) => {
 		if (action.id !== "change-account") {
 			return action;
@@ -216,14 +216,14 @@ function accountActions(snapshot: ClineAccountSnapshot): AccountAction[] {
 	});
 }
 
-function organizationDescription(org: ClineAccountOrganization): string {
+function organizationDescription(org: SynaiAccountOrganization): string {
 	const roles = org.roles.length > 0 ? org.roles.join(", ") : "member";
 	return roles;
 }
 
 export function AccountDialogContent(
 	props: ChoiceContext<AccountDialogAction> & {
-		loadAccount: () => Promise<ClineAccountSnapshot>;
+		loadAccount: () => Promise<SynaiAccountSnapshot>;
 		switchAccount: (organizationId?: string | null) => Promise<void>;
 		onAccountChange?: () => Promise<void>;
 	},
@@ -260,7 +260,7 @@ export function AccountDialogContent(
 			const message = error instanceof Error ? error.message : String(error);
 			if (generation.current === currentGeneration) {
 				setState({
-					status: isClineAccountAuthErrorMessage(message)
+					status: isSynaiAccountAuthErrorMessage(message)
 						? "unauthenticated"
 						: "error",
 					message,
@@ -468,7 +468,7 @@ export function AccountDialogContent(
 					))}
 				</box>
 
-				<text fg="gray">↑/↓ navigate, Enter to select, Esc to close</text>
+				<text fg="gray">Up/Down navigate, Enter to select, Esc to close</text>
 			</box>
 		);
 	}
@@ -492,7 +492,7 @@ export function AccountDialogContent(
 						/>
 					))}
 				</box>
-				<text fg="gray">↑/↓ navigate, Enter to select, Esc to go back</text>
+				<text fg="gray">Up/Down navigate, Enter to select, Esc to go back</text>
 			</box>
 		);
 	}
@@ -534,12 +534,12 @@ export function AccountDialogContent(
 				<AccountField label="Active account" value={activeAccount} />
 				<AccountField
 					label="Credits"
-					value={formatClineCredits(loaded.displayedBalance)}
+					value={formatSynaiCredits(loaded.displayedBalance)}
 				/>
 				{loaded.activeOrganization && (
 					<AccountField
 						label="Personal"
-						value={formatClineCredits(loaded.balance.balance)}
+						value={formatSynaiCredits(loaded.balance.balance)}
 					/>
 				)}
 				<AccountField
@@ -562,7 +562,7 @@ export function AccountDialogContent(
 				))}
 			</box>
 
-			<text fg="gray">↑/↓ navigate, Enter to select, Esc to close</text>
+			<text fg="gray">Up/Down navigate, Enter to select, Esc to close</text>
 		</box>
 	);
 }

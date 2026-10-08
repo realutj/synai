@@ -140,7 +140,7 @@ export function McpManagerContent(
 						const enabled =
 							typeof srv.enabled === "boolean" ? srv.enabled : true;
 						const enabledIcon =
-							typeof srv.enabled === "boolean" ? (enabled ? "● " : "○ ") : "";
+							typeof srv.enabled === "boolean" ? (enabled ? "[*] " : "[ ] ") : "";
 						const status = getMcpManagerEntryStatus(srv);
 						let rowColor = isSel ? palette.act : "gray";
 						if (enabled && typeof srv.enabled === "boolean") {
@@ -156,7 +156,7 @@ export function McpManagerContent(
 								justifyContent="space-between"
 							>
 								<text fg={rowColor}>
-									{isSel ? "\u25b8 " : "  "}
+									{isSel ? "> " : "  "}
 									{enabledIcon}
 									{srv.name}
 									{srv.pluginName ? " *" : ""}

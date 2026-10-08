@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   X,
   Globe,
@@ -16,37 +16,39 @@ import {
   Send,
   MousePointer,
   FileText,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface BrowserControlModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onOpenRemoteDebugModal: () => void;
+  onOpenRemoteDebugging?: () => void;
+  onExecuteBrowserCommand?: (cmd: string) => void;
 }
 
 export const BrowserControlModal: React.FC<BrowserControlModalProps> = ({
   isOpen,
   onClose,
-  onOpenRemoteDebugModal,
+  onOpenRemoteDebugging,
+  onExecuteBrowserCommand,
 }) => {
   const [status, setStatus] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [urlInput, setUrlInput] = useState('https://google.com');
-  const [actionOutput, setActionOutput] = useState<string>('');
+  const [urlInput, setUrlInput] = useState("https://google.com");
+  const [actionOutput, setActionOutput] = useState<string>("");
   const [screenshotUrl, setScreenshotUrl] = useState<string | null>(null);
 
   // Form filling state
-  const [fieldKey, setFieldKey] = useState('');
-  const [fieldValue, setFieldValue] = useState('');
+  const [fieldKey, setFieldKey] = useState("");
+  const [fieldValue, setFieldValue] = useState("");
   const [formFields, setFormFields] = useState<Record<string, string>>({});
-  const [submitBtn, setSubmitBtn] = useState('');
+  const [submitBtn, setSubmitBtn] = useState("");
 
   // Click state
-  const [clickTarget, setClickTarget] = useState('');
+  const [clickTarget, setClickTarget] = useState("");
 
   const fetchStatus = async () => {
     try {
-      const res = await fetch('/api/browser/status');
+      const res = await fetch("/api/browser/status");
       const data = await res.json();
       setStatus(data);
       if (data.activeUrl) {
@@ -69,17 +71,22 @@ export const BrowserControlModal: React.FC<BrowserControlModalProps> = ({
 
   const handleAction = async (payload: any) => {
     setLoading(true);
-    setActionOutput('');
+    setActionOutput("");
     try {
-      const res = await fetch('/api/browser/action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/browser/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
-      setActionOutput(data.output || (data.success ? 'Action executed successfully.' : 'Action failed.'));
+      setActionOutput(
+        data.output ||
+          (data.success ? "Action executed successfully." : "Action failed."),
+      );
       if (data.screenshotPath) {
-        setScreenshotUrl(`/api/file?path=${encodeURIComponent(data.screenshotPath)}`);
+        setScreenshotUrl(
+          `/api/file?path=${encodeURIComponent(data.screenshotPath)}`,
+        );
       }
       await fetchStatus();
     } catch (e: any) {
@@ -91,33 +98,33 @@ export const BrowserControlModal: React.FC<BrowserControlModalProps> = ({
 
   const handleNavigate = () => {
     if (!urlInput.trim()) return;
-    handleAction({ action: 'navigate', url: urlInput.trim() });
+    handleAction({ action: "navigate", url: urlInput.trim() });
   };
 
   const handleInspect = () => {
-    handleAction({ action: 'inspect' });
+    handleAction({ action: "inspect" });
   };
 
   const handleScreenshot = () => {
-    handleAction({ action: 'screenshot' });
+    handleAction({ action: "screenshot" });
   };
 
   const handleClickElement = () => {
     if (!clickTarget.trim()) return;
-    handleAction({ action: 'click', text: clickTarget.trim() });
+    handleAction({ action: "click", text: clickTarget.trim() });
   };
 
   const handleAddField = () => {
     if (!fieldKey.trim()) return;
     setFormFields((prev) => ({ ...prev, [fieldKey.trim()]: fieldValue }));
-    setFieldKey('');
-    setFieldValue('');
+    setFieldKey("");
+    setFieldValue("");
   };
 
   const handleFillForm = () => {
     if (Object.keys(formFields).length === 0) return;
     handleAction({
-      action: 'fill_form',
+      action: "fill_form",
       fields: formFields,
       submit: submitBtn.trim() || undefined,
     });
@@ -136,20 +143,29 @@ export const BrowserControlModal: React.FC<BrowserControlModalProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-sm text-white">Browser Control Center</span>
+                <span className="font-semibold text-sm text-white">
+                  Browser Control Center
+                </span>
                 <span
                   className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${
                     isConnected
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                      : 'bg-neutral-800 text-neutral-400 border border-neutral-700'
+                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                      : "bg-neutral-800 text-neutral-400 border border-neutral-700"
                   }`}
                 >
-                  <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-neutral-500'}`} />
-                  <span>{isConnected ? `Connected (${status?.browserName || 'Chrome'})` : 'Disconnected'}</span>
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${isConnected ? "bg-emerald-400 animate-pulse" : "bg-neutral-500"}`}
+                  />
+                  <span>
+                    {isConnected
+                      ? `Connected (${status?.browserName || "Chrome"})`
+                      : "Disconnected"}
+                  </span>
                 </span>
               </div>
               <p className="text-[11px] text-neutral-400">
-                Manage tabs, fill interactive forms, click buttons, and inspect web elements
+                Manage tabs, fill interactive forms, click buttons, and inspect
+                web elements
               </p>
             </div>
           </div>
@@ -158,7 +174,7 @@ export const BrowserControlModal: React.FC<BrowserControlModalProps> = ({
             {!isConnected && (
               <button
                 type="button"
-                onClick={onOpenRemoteDebugModal}
+                onClick={onOpenRemoteDebugging}
                 className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium transition"
               >
                 <Settings className="w-3.5 h-3.5" />
@@ -192,7 +208,7 @@ export const BrowserControlModal: React.FC<BrowserControlModalProps> = ({
               type="text"
               value={urlInput}
               onChange={(e) => setUrlInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleNavigate()}
+              onKeyDown={(e) => e.key === "Enter" && handleNavigate()}
               placeholder="Enter web address (e.g. https://google.com)..."
               className="w-full bg-[#1e1e22] border border-neutral-700/80 rounded-xl pl-9 pr-4 py-2 text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:border-blue-500 transition"
             />
@@ -203,7 +219,11 @@ export const BrowserControlModal: React.FC<BrowserControlModalProps> = ({
             disabled={loading}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium transition disabled:opacity-50"
           >
-            {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+            {loading ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Play className="w-3.5 h-3.5 fill-current" />
+            )}
             <span>Go</span>
           </button>
           <button
@@ -244,7 +264,7 @@ export const BrowserControlModal: React.FC<BrowserControlModalProps> = ({
                     type="button"
                     onClick={() => {
                       setUrlInput(tab.url);
-                      handleAction({ action: 'navigate', url: tab.url });
+                      handleAction({ action: "navigate", url: tab.url });
                     }}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 hover:border-neutral-700 text-neutral-300 hover:text-white transition text-left max-w-xs truncate"
                   >
@@ -280,7 +300,10 @@ export const BrowserControlModal: React.FC<BrowserControlModalProps> = ({
               {Object.keys(formFields).length > 0 && (
                 <div className="space-y-1 bg-black/30 p-2 rounded-lg border border-neutral-800/80">
                   {Object.entries(formFields).map(([k, v]) => (
-                    <div key={k} className="flex items-center justify-between text-[11px]">
+                    <div
+                      key={k}
+                      className="flex items-center justify-between text-[11px]"
+                    >
                       <span className="font-mono text-neutral-300">{k}:</span>
                       <span className="text-emerald-400 font-mono">"{v}"</span>
                     </div>
@@ -341,7 +364,8 @@ export const BrowserControlModal: React.FC<BrowserControlModalProps> = ({
               </span>
 
               <p className="text-[11px] text-neutral-400 leading-relaxed">
-                Type the button text (e.g. <i>"Submit"</i>, <i>"Save"</i>, <i>"Search"</i>) or CSS selector to click on the live page.
+                Type the button text (e.g. <i>"Submit"</i>, <i>"Save"</i>,{" "}
+                <i>"Search"</i>) or CSS selector to click on the live page.
               </p>
 
               <div className="flex gap-2">
@@ -350,7 +374,7 @@ export const BrowserControlModal: React.FC<BrowserControlModalProps> = ({
                   placeholder="Button text or selector..."
                   value={clickTarget}
                   onChange={(e) => setClickTarget(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleClickElement()}
+                  onKeyDown={(e) => e.key === "Enter" && handleClickElement()}
                   className="flex-1 bg-[#202024] border border-neutral-700 rounded-lg px-2.5 py-1.5 text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:border-blue-500 text-xs"
                 />
                 <button
@@ -367,21 +391,29 @@ export const BrowserControlModal: React.FC<BrowserControlModalProps> = ({
               <div className="pt-2 border-t border-neutral-800 flex items-center justify-between text-[11px]">
                 <button
                   type="button"
-                  onClick={() => handleAction({ action: 'press_key', key: 'Enter' })}
+                  onClick={() =>
+                    handleAction({ action: "press_key", key: "Enter" })
+                  }
                   className="px-2.5 py-1 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition"
                 >
                   Press [Enter]
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleAction({ action: 'scroll', direction: 'down', amount: 500 })}
+                  onClick={() =>
+                    handleAction({
+                      action: "scroll",
+                      direction: "down",
+                      amount: 500,
+                    })
+                  }
                   className="px-2.5 py-1 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition"
                 >
                   Scroll Down
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleAction({ action: 'close' })}
+                  onClick={() => handleAction({ action: "close" })}
                   className="px-2.5 py-1 rounded bg-red-950/40 hover:bg-red-900/50 text-red-300 border border-red-900/40 transition"
                 >
                   Close Browser
@@ -393,7 +425,9 @@ export const BrowserControlModal: React.FC<BrowserControlModalProps> = ({
           {/* Action Output Console */}
           {actionOutput && (
             <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-neutral-400">Action Result / Element Inspector</label>
+              <label className="text-[11px] font-semibold text-neutral-400">
+                Action Result / Element Inspector
+              </label>
               <pre className="p-3 rounded-xl bg-black/60 border border-neutral-800 font-mono text-[11px] text-neutral-300 overflow-x-auto max-h-48 whitespace-pre-wrap select-text">
                 {actionOutput}
               </pre>
@@ -403,9 +437,15 @@ export const BrowserControlModal: React.FC<BrowserControlModalProps> = ({
           {/* Screenshot Preview */}
           {screenshotUrl && (
             <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-neutral-400">Captured Screenshot</label>
+              <label className="text-[11px] font-semibold text-neutral-400">
+                Captured Screenshot
+              </label>
               <div className="rounded-xl overflow-hidden border border-neutral-800 bg-black max-h-64 flex items-center justify-center">
-                <img src={screenshotUrl} alt="Browser snapshot" className="object-contain max-h-64 w-auto" />
+                <img
+                  src={screenshotUrl}
+                  alt="Browser snapshot"
+                  className="object-contain max-h-64 w-auto"
+                />
               </div>
             </div>
           )}

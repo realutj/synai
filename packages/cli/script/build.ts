@@ -54,7 +54,7 @@ const pkg = JSON.parse(readFileSync(join(cliDir, "package.json"), "utf-8"));
 const version: string = pkg.version;
 const repository: unknown = pkg.repository;
 
-console.log(`Building @synai/cli v${version}`);
+console.log(`Building SynAI CLI v${version}`);
 
 const buildOptions = parseBuildOptions(process.argv.slice(2));
 
@@ -76,7 +76,8 @@ const targets = buildOptions.single
     )
   : allTargets;
 
-const opentuiVersion = pkg.dependencies["@opentui/core"];
+const opentuiVersion =
+  pkg.dependencies["@opentui/core"] ?? pkg.optionalDependencies?.["@opentui/core"];
 const optionsError = validateBuildOptions({
   options: buildOptions,
   opentuiVersion,
@@ -99,13 +100,16 @@ if (shouldInstallNativeVariants({ options: buildOptions, opentuiVersion })) {
   await $`bun install --os="*" --cpu="*" @opentui/core@${opentuiVersion}`;
 }
 
-// Build the SDK first (the CLI bundles workspace packages)
+// Build the root workspace packages before compiling the standalone CLI.
 if (!buildOptions.skipSdkBuild) {
-  console.log("Building SDK packages...");
-  await $`bun run build:sdk`.cwd(rootDir);
+	console.log("Building shared package...");
+	await $`npm run build:shared`.cwd(rootDir);
 
-  console.log("Building CLI bundle...");
-  await $`bun -F @synai/cli build`.cwd(rootDir);
+	console.log("Building core package...");
+	await $`npm run build:core`.cwd(rootDir);
+
+	console.log("Building CLI bundle...");
+	await $`npm run build:cli`.cwd(rootDir);
 }
 
 const hubWebviewSource = join(cliDir, "../synai-hub/src/webview");
@@ -192,7 +196,7 @@ async function buildCompiledBinary(input: {
   const tmpDir = join(tmpdir(), `synai-build-${input.dirName}`);
   const tmpOutfile = join(
     tmpDir,
-    input.outfile.endsWith(".exe") ? "cline.exe" : "cline",
+    input.outfile.endsWith(".exe") ? "synai.exe" : "synai",
   );
   mkdirSync(tmpDir, { recursive: true });
 
@@ -233,9 +237,9 @@ async function buildCompiledBinary(input: {
 for (const item of targets) {
   // npm treats "win32" specially in os field, but for package naming use "windows"
   const displayOs = item.os === "win32" ? "windows" : item.os;
-  const name = `@synai/cli-${displayOs}-${item.arch}`;
+  const name = `synai-cli-${displayOs}-${item.arch}`;
   const dirName = `cli-${displayOs}-${item.arch}`;
-  const binaryName = item.os === "win32" ? "cline.exe" : "cline";
+  const binaryName = item.os === "win32" ? "synai.exe" : "synai";
   const bunTarget = getBunTarget(item);
 
   console.log(`\nBuilding ${name} (target: ${bunTarget})...`);
@@ -267,7 +271,7 @@ for (const item of targets) {
   // Copy plugin sandbox bootstrap if it exists
   const bootstrapSrc = join(
     rootDir,
-    "sdk/packages/core/dist/extensions/plugin-sandbox-bootstrap.js",
+    "packages/desktop-app/sdk/packages/core/dist/extensions/plugin-sandbox-bootstrap.js",
   );
   if (existsSync(bootstrapSrc)) {
     const bootstrapDir = join(cliDir, `dist/${dirName}/extensions`);
@@ -292,11 +296,12 @@ for (const item of targets) {
         name,
         version,
         description: `SynAI CLI binary for ${displayOs} ${item.arch}`,
+        license: pkg.license,
         os: [item.os],
         cpu: [item.arch],
         ...(repository ? { repository } : {}),
         bin: {
-          cline: `bin/${binaryName}`,
+          synai: `bin/${binaryName}`,
         },
       },
       null,

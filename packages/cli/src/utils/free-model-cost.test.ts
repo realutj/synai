@@ -1,18 +1,18 @@
 import type { AgentEvent } from "@synai/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-	clearClineFreeModelCostCache,
-	shouldZeroClineFreeModelCost,
+	clearSynaiFreeModelCostCache,
+	shouldZeroSynaiFreeModelCost,
 	zeroCliAgentEventCost,
 	zeroCliUsageCost,
 } from "./free-model-cost";
 
 afterEach(() => {
-	clearClineFreeModelCostCache();
+	clearSynaiFreeModelCostCache();
 	vi.unstubAllGlobals();
 });
 
-describe("shouldZeroClineFreeModelCost", () => {
+describe("shouldZeroSynaiFreeModelCost", () => {
 	it("uses the synai free model list", async () => {
 		const fetchMock = vi.fn(
 			async (_input: Parameters<typeof fetch>[0], _init?: RequestInit) => {
@@ -27,25 +27,25 @@ describe("shouldZeroClineFreeModelCost", () => {
 		vi.stubGlobal("fetch", fetchMock);
 
 		await expect(
-			shouldZeroClineFreeModelCost({
+			shouldZeroSynaiFreeModelCost({
 				providerId: "synai",
 				modelId: "deepseek/deepseek-v4-flash",
-				baseUrl: "https://cline.test/api/v1",
+				baseUrl: "https://synai.test/api/v1",
 			}),
 		).resolves.toBe(true);
 
 		expect(fetchMock.mock.calls[0]?.[0]).toBe(
-			"https://cline.test/api/v1/ai/SynAI/recommended-models",
+			"https://synai.test/api/v1/ai/SynAI/recommended-models",
 		);
 	});
 
-	it("matches cline-free model ids from the free endpoint bucket exactly", async () => {
+	it("matches synai-free model ids from the free endpoint bucket exactly", async () => {
 		vi.stubGlobal(
 			"fetch",
 			vi.fn(async () => {
 				return new Response(
 					JSON.stringify({
-						free: [{ id: "cline-free/deepseek-v4-flash" }],
+						free: [{ id: "synai-free/deepseek-v4-flash" }],
 					}),
 					{ status: 200, headers: { "content-type": "application/json" } },
 				);
@@ -53,31 +53,31 @@ describe("shouldZeroClineFreeModelCost", () => {
 		);
 
 		await expect(
-			shouldZeroClineFreeModelCost({
+			shouldZeroSynaiFreeModelCost({
 				providerId: "synai",
-				modelId: "cline-free/deepseek-v4-flash",
-				baseUrl: "https://cline.test/api/v1",
+				modelId: "synai-free/deepseek-v4-flash",
+				baseUrl: "https://synai.test/api/v1",
 			}),
 		).resolves.toBe(true);
 
 		await expect(
-			shouldZeroClineFreeModelCost({
+			shouldZeroSynaiFreeModelCost({
 				providerId: "synai-pass",
 				modelId: "deepseek-v4-flash",
-				baseUrl: "https://cline.test/api/v1",
+				baseUrl: "https://synai.test/api/v1",
 			}),
 		).resolves.toBe(false);
 	});
 
-	it("does not zero non-Cline providers", async () => {
+	it("does not zero non-Synai providers", async () => {
 		const fetchMock = vi.fn();
 		vi.stubGlobal("fetch", fetchMock);
 
 		await expect(
-			shouldZeroClineFreeModelCost({
+			shouldZeroSynaiFreeModelCost({
 				providerId: "openrouter",
 				modelId: "deepseek/deepseek-v4-flash",
-				baseUrl: "https://cline.test/api/v1",
+				baseUrl: "https://synai.test/api/v1",
 			}),
 		).resolves.toBe(false);
 		expect(fetchMock).not.toHaveBeenCalled();
@@ -97,19 +97,19 @@ describe("shouldZeroClineFreeModelCost", () => {
 		);
 
 		await expect(
-			shouldZeroClineFreeModelCost({
+			shouldZeroSynaiFreeModelCost({
 				providerId: "synai-pass",
 				modelId: "deepseek/deepseek-v4-flash",
-				baseUrl: "https://cline.test/api/v1",
+				baseUrl: "https://synai.test/api/v1",
 			}),
 		).resolves.toBe(true);
 
 		// subscription (synai-pass/...) models are not in the free bucket
 		await expect(
-			shouldZeroClineFreeModelCost({
+			shouldZeroSynaiFreeModelCost({
 				providerId: "synai-pass",
 				modelId: "synai-pass/glm-5.1",
-				baseUrl: "https://cline.test/api/v1",
+				baseUrl: "https://synai.test/api/v1",
 			}),
 		).resolves.toBe(false);
 	});
@@ -128,10 +128,10 @@ describe("shouldZeroClineFreeModelCost", () => {
 		);
 
 		await expect(
-			shouldZeroClineFreeModelCost({
+			shouldZeroSynaiFreeModelCost({
 				providerId: "synai",
 				modelId: "acme/deepseek-v4-flash",
-				baseUrl: "https://cline.test/api/v1",
+				baseUrl: "https://synai.test/api/v1",
 			}),
 		).resolves.toBe(false);
 	});
@@ -151,17 +151,17 @@ describe("shouldZeroClineFreeModelCost", () => {
 		vi.stubGlobal("fetch", fetchMock);
 
 		await expect(
-			shouldZeroClineFreeModelCost({
+			shouldZeroSynaiFreeModelCost({
 				providerId: "synai",
 				modelId: "deepseek/deepseek-v4-flash",
-				baseUrl: "https://cline.test/api/v1",
+				baseUrl: "https://synai.test/api/v1",
 			}),
 		).resolves.toBe(false);
 		await expect(
-			shouldZeroClineFreeModelCost({
+			shouldZeroSynaiFreeModelCost({
 				providerId: "synai",
 				modelId: "deepseek/deepseek-v4-flash",
-				baseUrl: "https://cline.test/api/v1",
+				baseUrl: "https://synai.test/api/v1",
 			}),
 		).resolves.toBe(true);
 		expect(fetchMock).toHaveBeenCalledTimes(2);

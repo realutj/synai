@@ -24,11 +24,11 @@ export async function authorizeMcpServerOAuthWithBrowser(
 		const result = await authorizeMcpServerOAuth({
 			serverName: name,
 			filePath: resolveDefaultMcpSettingsPath(),
-			openUrl: async (url) => {
+			openUrl: async (url: any) => {
 				p.log.message(`Authorization URL: ${url}`);
 				await open(url, { wait: false });
 			},
-			onServerListening: (info) => {
+			onServerListening: (info: any) => {
 				p.log.message(`Waiting for OAuth callback at ${info.callbackUrl}`);
 			},
 		});

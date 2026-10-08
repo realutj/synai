@@ -21,12 +21,12 @@ interface TestMcpSettings {
 
 vi.mock("@synai/core", () => ({
 	resolveDefaultMcpSettingsPath: () =>
-		process.env.SYNAI_MCP_SETTINGS_PATH ?? "cline_mcp_settings.json",
+		process.env.SYNAI_MCP_SETTINGS_PATH ?? "synai_mcp_settings.json",
 	setMcpServerDisabled: (options: SetMcpServerDisabledOptions) => {
 		const filePath =
 			options.filePath ??
 			process.env.SYNAI_MCP_SETTINGS_PATH ??
-			"cline_mcp_settings.json";
+			"synai_mcp_settings.json";
 		const settings = JSON.parse(readFileSync(filePath, "utf8")) as {
 			mcpServers?: Record<string, { disabled?: boolean }>;
 		};
@@ -114,7 +114,7 @@ describe("mcp manager dialog helpers", () => {
 	it("does not toggle plugin-owned servers", async () => {
 		const tempRoot = await mkdtemp(join(tmpdir(), "cli-mcp-manager-"));
 		tempRoots.push(tempRoot);
-		const settingsPath = join(tempRoot, "cline_mcp_settings.json");
+		const settingsPath = join(tempRoot, "synai_mcp_settings.json");
 		await writeFile(
 			settingsPath,
 			`${JSON.stringify(

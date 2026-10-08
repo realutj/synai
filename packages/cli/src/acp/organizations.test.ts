@@ -16,7 +16,7 @@ describe("buildOrganizationConfigOption", () => {
 		{
 			active: true,
 			memberId: "m-2",
-			name: "Cline Bot Inc",
+			name: "Synai Bot Inc",
 			organizationId: "org-2",
 			roles: ["admin" as const],
 		},
@@ -35,7 +35,7 @@ describe("buildOrganizationConfigOption", () => {
 		expect(option.options).toEqual([
 			{ value: PERSONAL_ACCOUNT_VALUE, name: "Personal" },
 			{ value: "org-1", name: "Acme Corp" },
-			{ value: "org-2", name: "Cline Bot Inc" },
+			{ value: "org-2", name: "Synai Bot Inc" },
 		]);
 	});
 

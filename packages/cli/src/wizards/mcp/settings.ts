@@ -85,7 +85,7 @@ function getOwnServerRecord(
 function mutateServers(
 	mutate: (servers: Record<string, unknown>) => void,
 ): void {
-	updateMcpSettingsFileSync(getSettingsPath(), (settings) => {
+	updateMcpSettingsFileSync(getSettingsPath(), (settings: any) => {
 		const serversValue = settings.mcpServers;
 		const servers =
 			serversValue &&

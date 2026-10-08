@@ -10,7 +10,7 @@ import type { ConsecutiveMistakeLimitContext } from "@synai/shared";
 import { createSessionId } from "@synai/shared";
 import { logCliError } from "../logging/errors";
 import { createCliCore } from "../session/session";
-import { resolveClineWelcomeLine } from "../tui/interactive-welcome";
+import { resolveSynaiWelcomeLine } from "../tui/interactive-welcome";
 import {
 	askQuestionInTerminal,
 	requestToolApproval,
@@ -19,7 +19,7 @@ import {
 import { formatCliErrorMessage } from "../utils/synai-errors";
 import { handleEvent, handleTeamEvent } from "../utils/events";
 import {
-	shouldZeroClineFreeModelCost,
+	shouldZeroSynaiFreeModelCost,
 	zeroCliAgentEventCost,
 	zeroCliUsageCost,
 } from "../utils/free-model-cost";
@@ -136,8 +136,8 @@ export async function runAgent(
 	config: Config,
 	userInstructionService?: UserInstructionConfigService,
 	options?: {
-		clineApiBaseUrl?: string;
-		clineProviderSettings?: ProviderSettings;
+		synaiApiBaseUrl?: string;
+		synaiProviderSettings?: ProviderSettings;
 	},
 ): Promise<void> {
 	// A clean one-shot run should not inherit a stale nonzero process exit code
@@ -145,10 +145,10 @@ export async function runAgent(
 	process.exitCode = 0;
 
 	if (config.verbose) {
-		const synaiWelcomeLine = await resolveClineWelcomeLine({
+		const synaiWelcomeLine = await resolveSynaiWelcomeLine({
 			config,
-			clineApiBaseUrl: options?.clineApiBaseUrl,
-			clineProviderSettings: options?.clineProviderSettings,
+			synaiApiBaseUrl: options?.synaiApiBaseUrl,
+			synaiProviderSettings: options?.synaiProviderSettings,
 		});
 		if (synaiWelcomeLine && config.outputMode !== "json") {
 			writeln(synaiWelcomeLine);
@@ -189,7 +189,7 @@ export async function runAgent(
 	let reasoningChunkCount = 0;
 	let redactedReasoningChunkCount = 0;
 	const displayedErrorMessages = new Set<string>();
-	const shouldZeroCost = await shouldZeroClineFreeModelCost(config);
+	const shouldZeroCost = await shouldZeroSynaiFreeModelCost(config);
 
 	const onAgentEvent = (rawEvent: AgentEvent): void => {
 		const event = zeroCliAgentEventCost(rawEvent, shouldZeroCost);
@@ -300,6 +300,7 @@ export async function runAgent(
 			prompt: userInput,
 			userImages: userImages.length > 0 ? userImages : undefined,
 			userFiles: userFiles.length > 0 ? userFiles : undefined,
+			deferInitialSend: true,
 			interactive: false,
 			localRuntime: {
 				onTeamRestored: () => emitTeamRestored(config),
@@ -328,9 +329,9 @@ export async function runAgent(
 			if (timeoutId) clearTimeout(timeoutId);
 		};
 
-		// When start() already ran the first turn (non-interactive with prompt),
-		// the session is finalized before start() returns. Use that result
-		// directly; calling send() would fail with "session not found".
+		// Defer the first turn until after the timeout is installed. Without this,
+		// start() runs a non-interactive prompt inline and the configured timeout
+		// cannot abort the first model/tool pass.
 		let result: AgentResult | undefined;
 		if (started.result) {
 			clearRunTimeout();

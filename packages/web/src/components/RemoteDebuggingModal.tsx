@@ -1,10 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { X, Copy, Check, ExternalLink, Loader2, Sparkles, Globe, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import {
+  X,
+  Copy,
+  Check,
+  ExternalLink,
+  Loader2,
+  Sparkles,
+  Globe,
+  RefreshCw,
+} from "lucide-react";
 
 interface RemoteDebuggingModalProps {
   isOpen: boolean;
   onClose: () => void;
   onProceedAnyway: () => void;
+  onLaunchChrome?: () => void;
   onConnected?: () => void;
 }
 
@@ -12,14 +22,17 @@ export const RemoteDebuggingModal: React.FC<RemoteDebuggingModalProps> = ({
   isOpen,
   onClose,
   onProceedAnyway,
+  onLaunchChrome,
   onConnected,
 }) => {
   const [copied, setCopied] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'checking' | 'connected' | 'error'>('idle');
-  const [browserInfo, setBrowserInfo] = useState<string>('');
+  const [status, setStatus] = useState<
+    "idle" | "checking" | "connected" | "error"
+  >("idle");
+  const [browserInfo, setBrowserInfo] = useState<string>("");
   const [launching, setLaunching] = useState(false);
 
-  const debugUrl = 'chrome://inspect/#remote-debugging';
+  const debugUrl = "chrome://inspect/#remote-debugging";
 
   const handleCopy = () => {
     navigator.clipboard.writeText(debugUrl);
@@ -28,36 +41,36 @@ export const RemoteDebuggingModal: React.FC<RemoteDebuggingModalProps> = ({
   };
 
   const checkConnection = async () => {
-    setStatus('checking');
+    setStatus("checking");
     try {
-      const res = await fetch('/api/browser/check', { method: 'POST' });
+      const res = await fetch("/api/browser/check", { method: "POST" });
       const data = await res.json();
       if (data.available) {
-        setStatus('connected');
-        setBrowserInfo(data.browser || 'Google Chrome');
+        setStatus("connected");
+        setBrowserInfo(data.browser || "Google Chrome");
         if (onConnected) {
           setTimeout(onConnected, 800);
         }
       } else {
-        setStatus('error');
+        setStatus("error");
       }
     } catch {
-      setStatus('error');
+      setStatus("error");
     }
   };
 
   const handleAutoLaunch = async () => {
     setLaunching(true);
     try {
-      const res = await fetch('/api/browser/launch', { method: 'POST' });
+      const res = await fetch("/api/browser/launch", { method: "POST" });
       const data = await res.json();
       if (data.success) {
         setTimeout(checkConnection, 1500);
       } else {
-        setStatus('error');
+        setStatus("error");
       }
     } catch {
-      setStatus('error');
+      setStatus("error");
     } finally {
       setLaunching(false);
     }
@@ -98,7 +111,10 @@ export const RemoteDebuggingModal: React.FC<RemoteDebuggingModalProps> = ({
 
           <ol className="list-decimal list-outside ml-4 space-y-2 text-neutral-700 dark:text-neutral-200">
             <li>
-              Open <span className="text-blue-600 dark:text-blue-400 font-medium">Google Chrome</span>
+              Open{" "}
+              <span className="text-blue-600 dark:text-blue-400 font-medium">
+                Google Chrome
+              </span>
             </li>
             <li className="flex flex-wrap items-center gap-1.5">
               <span>Navigate to</span>
@@ -110,31 +126,41 @@ export const RemoteDebuggingModal: React.FC<RemoteDebuggingModalProps> = ({
                   className="hover:text-blue-600 dark:hover:text-blue-400 p-0.5 rounded transition"
                   title="Copy URL"
                 >
-                  {copied ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3 text-neutral-400" />}
+                  {copied ? (
+                    <Check className="w-3 h-3 text-emerald-500" />
+                  ) : (
+                    <Copy className="w-3 h-3 text-neutral-400" />
+                  )}
                 </button>
               </div>
             </li>
             <li>
-              Enable <span className="font-semibold text-neutral-900 dark:text-white">"Allow remote debugging for this browser instance"</span>.
+              Enable{" "}
+              <span className="font-semibold text-neutral-900 dark:text-white">
+                "Allow remote debugging for this browser instance"
+              </span>
+              .
             </li>
           </ol>
 
           {/* Status feedback pill */}
-          {status === 'checking' && (
+          {status === "checking" && (
             <div className="flex items-center gap-2 p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 text-blue-700 dark:text-blue-300 text-xs">
               <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
               <span>Checking connection on port 9222...</span>
             </div>
           )}
 
-          {status === 'connected' && (
+          {status === "connected" && (
             <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-300 text-xs font-medium">
               <Check className="w-3.5 h-3.5 shrink-0" />
-              <span>Connected to {browserInfo || 'Chrome'} via Remote Debugging!</span>
+              <span>
+                Connected to {browserInfo || "Chrome"} via Remote Debugging!
+              </span>
             </div>
           )}
 
-          {status === 'error' && (
+          {status === "error" && (
             <div className="flex items-center justify-between p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-amber-800 dark:text-amber-300 text-xs">
               <span>Not detected yet on port 9222.</span>
               <button
@@ -143,7 +169,11 @@ export const RemoteDebuggingModal: React.FC<RemoteDebuggingModalProps> = ({
                 disabled={launching}
                 className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
               >
-                {launching ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                {launching ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <Sparkles className="w-3 h-3" />
+                )}
                 <span>Auto-launch Chrome</span>
               </button>
             </div>
@@ -162,10 +192,10 @@ export const RemoteDebuggingModal: React.FC<RemoteDebuggingModalProps> = ({
           <button
             type="button"
             onClick={checkConnection}
-            disabled={status === 'checking'}
+            disabled={status === "checking"}
             className="px-4 py-2 rounded-xl text-xs font-medium text-white bg-[#0284c7] hover:bg-[#0369a1] active:scale-98 transition flex items-center gap-1.5 shadow-sm"
           >
-            {status === 'checking' ? (
+            {status === "checking" ? (
               <>
                 <Loader2 className="w-3 h-3 animate-spin" />
                 <span>Checking...</span>

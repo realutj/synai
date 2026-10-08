@@ -1,6 +1,6 @@
 import { test } from "@microsoft/tui-test";
 import { SYNAI_BIN } from "./helpers/constants.js";
-import { clineEnv } from "./helpers/env.js";
+import { synaiEnv } from "./helpers/env.js";
 import { expectVisible } from "./helpers/terminal.js";
 
 // Wide enough that long option descriptions (e.g. --thinking) render on a
@@ -15,7 +15,7 @@ const HELP_TERMINAL = { columns: 200, rows: 50 };
 test.describe("root flag descriptions", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["--help"] },
-		env: clineEnv("default"),
+		env: synaiEnv("default"),
 		...HELP_TERMINAL,
 	});
 
@@ -49,7 +49,7 @@ test.describe("root flag descriptions", () => {
 test.describe("history flag descriptions", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["history", "--help"] },
-		env: clineEnv("default"),
+		env: synaiEnv("default"),
 		...HELP_TERMINAL,
 	});
 
@@ -66,7 +66,7 @@ test.describe("history flag descriptions", () => {
 test.describe("auth flag descriptions", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["auth", "--help"] },
-		env: clineEnv("default"),
+		env: synaiEnv("default"),
 		...HELP_TERMINAL,
 	});
 
@@ -87,7 +87,7 @@ test.describe("auth flag descriptions", () => {
 test.describe("config flag descriptions", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["config", "--help"] },
-		env: clineEnv("default"),
+		env: synaiEnv("default"),
 		...HELP_TERMINAL,
 	});
 
@@ -102,7 +102,7 @@ test.describe("config flag descriptions", () => {
 test.describe("update flag descriptions", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["update", "--help"] },
-		env: clineEnv("default"),
+		env: synaiEnv("default"),
 		...HELP_TERMINAL,
 	});
 

@@ -1,7 +1,7 @@
 import {
 	type BasicLogger,
 	captureExtensionActivated,
-	createClineTelemetryServiceConfig,
+	createSynaiTelemetryServiceConfig,
 	createConfiguredTelemetryHandle,
 	type ITelemetryService,
 	identifyAccount,
@@ -32,10 +32,10 @@ export function getCliTelemetryService(
 ): ITelemetryService {
 	if (!telemetrySingleton) {
 		const { version, name, os_type, os_version } = getCliBuildInfo();
-		const config = createClineTelemetryServiceConfig({
+		const config = createSynaiTelemetryServiceConfig({
 			metadata: {
 				extension_version: version,
-				cline_type: "cli",
+				synai_type: "cli",
 				platform: name,
 				platform_version: process.version,
 				os_type,
@@ -118,7 +118,7 @@ export function identifyTelemetryAccount(
  *
  * When `account` is provided, `identifyAccount` is called first so the
  * activation event payload includes `organization_id`, `organization_name`,
- * `member_id`, and similar account identifiers — matching the legacy CLI
+ * `member_id`, and similar account identifiers - matching the legacy CLI
  * funnel observed in `otel.otel_logs`.
  *
  * The memoization gate lives in {@link ./telemetry.activation-gate} so a

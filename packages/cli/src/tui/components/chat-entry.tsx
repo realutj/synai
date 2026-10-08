@@ -1,25 +1,26 @@
 import {
-	type ClineSubscriptionPlan,
-	extractClineFreeModelLimitResetTime,
+	type SynaiSubscriptionPlan,
+	extractSynaiFreeModelLimitResetTime,
 } from "@synai/core";
 import { useTerminalDimensions } from "@opentui/react";
 import type React from "react";
 import { useEffect, useState } from "react";
-import "opentui-spinner/react";
+import { ensureSpinnerRegistered } from "../spinner-register";
+ensureSpinnerRegistered();
 import {
-	getClineOrgIndividualInferenceSubscriptionMessage,
-	getClinePassLimitDetailMessage,
+	getSynaiOrgIndividualInferenceSubscriptionMessage,
+	getSynaiPassLimitDetailMessage,
 	getCliSubscriptionUrl,
 	getIndividualPlanFeatures,
-	isClineFreeModelLimitErrorMessage,
-	isClineFreePromotionEndedErrorMessage,
-	isClineOrgIndividualInferenceSubscriptionErrorMessage,
-	isClinePassLimitErrorMessage,
-	isClinePassSubscriptionError,
+	isSynaiFreeModelLimitErrorMessage,
+	isSynaiFreePromotionEndedErrorMessage,
+	isSynaiOrgIndividualInferenceSubscriptionErrorMessage,
+	isSynaiPassLimitErrorMessage,
+	isSynaiPassSubscriptionError,
 } from "../../utils/synai-errors";
 import {
 	SYNAI_CREDITS_DASHBOARD_URL,
-	isClineAccountCreditsErrorMessage,
+	isSynaiAccountCreditsErrorMessage,
 } from "../synai-account";
 import { getUserMessageBackground } from "../palette";
 import type { ResolvedTheme } from "../themes";
@@ -96,7 +97,7 @@ function ReasoningBlock(props: { text: string; streaming: boolean }) {
 		return (
 			<box flexDirection="column" onMouseDown={() => setExpanded(false)}>
 				<text fg="gray">
-					{"\u25bc"} <em>Thinking:</em>
+					{"v"} <em>Thinking:</em>
 				</text>
 				<box flexDirection="column" paddingLeft={2}>
 					{lines.map((line) => (
@@ -110,7 +111,7 @@ function ReasoningBlock(props: { text: string; streaming: boolean }) {
 	}
 
 	const padding = 4;
-	const prefix = "\u25b6 Thinking: ";
+	const prefix = "> Thinking: ";
 	const available = Math.max(10, width - padding - prefix.length - 3);
 	const flat = content.replace(/\n/g, " ").trim();
 	const tail =
@@ -121,7 +122,7 @@ function ReasoningBlock(props: { text: string; streaming: boolean }) {
 	return (
 		<box onMouseDown={() => setExpanded(true)}>
 			<text fg="gray" selectable>
-				{"\u25b6"} <em>Thinking: {tail}</em>
+				{">"} <em>Thinking: {tail}</em>
 			</text>
 		</box>
 	);
@@ -274,12 +275,11 @@ function ToolCallView(props: {
 	);
 }
 
-function ClineCreditsClinePassErrorView(props: {
+function SynaiCreditsSynaiPassErrorView(props: {
 	defaultFg?: string;
 	theme: ResolvedTheme;
 }) {
 	const linkColor = props.theme.accents.act;
-	const subscriptionUrl = getCliSubscriptionUrl();
 	return (
 		<box flexDirection="row">
 			<text fg="red" content="* " />
@@ -317,21 +317,21 @@ function ClineCreditsClinePassErrorView(props: {
 	);
 }
 
-function ClineCreditsErrorView(props: {
+function SynaiCreditsErrorView(props: {
 	defaultFg?: string;
 	theme: ResolvedTheme;
 }) {
 	return (
-		<ClineCreditsClinePassErrorView
+		<SynaiCreditsSynaiPassErrorView
 			defaultFg={props.defaultFg}
 			theme={props.theme}
 		/>
 	);
 }
 
-function ClinePassSubscriptionErrorView(props: {
+function SynaiPassSubscriptionErrorView(props: {
 	defaultFg?: string;
-	loadIndividualSubscriptionPlans?: () => Promise<ClineSubscriptionPlan[]>;
+	loadIndividualSubscriptionPlans?: () => Promise<SynaiSubscriptionPlan[]>;
 	theme: ResolvedTheme;
 }) {
 	const subscriptionUrl = getCliSubscriptionUrl();
@@ -380,7 +380,7 @@ function ClinePassSubscriptionErrorView(props: {
 						<text fg={props.defaultFg}>Plan includes:</text>
 						{planFeatures.map((feature) => (
 							<text key={feature} fg={props.defaultFg} selectable>
-								<span fg="green">✓ </span>
+								<span fg="green">[OK] </span>
 								<span>{feature}</span>
 							</text>
 						))}
@@ -403,7 +403,7 @@ function ClinePassSubscriptionErrorView(props: {
 	);
 }
 
-function ClineOrgIndividualInferenceSubscriptionErrorView(props: {
+function SynaiOrgIndividualInferenceSubscriptionErrorView(props: {
 	defaultFg?: string;
 	theme: ResolvedTheme;
 }) {
@@ -423,7 +423,7 @@ function ClineOrgIndividualInferenceSubscriptionErrorView(props: {
 				<text
 					fg={props.defaultFg}
 					selectable
-					content={getClineOrgIndividualInferenceSubscriptionMessage()}
+					content={getSynaiOrgIndividualInferenceSubscriptionMessage()}
 				/>
 			</box>
 		</box>
@@ -443,7 +443,7 @@ function CompactionDividerRow(props: {
 			: entry.status === "cancelled" || entry.status === "skipped"
 				? "gray"
 				: "cyan";
-	const label = `✻ ${formatCompactionDividerLabel(entry)} ✻`;
+	const label = `* ${formatCompactionDividerLabel(entry)} *`;
 	// Fill the remaining line with a plain rule instead of a flexGrow bordered
 	// box: a single fixed-content text row keeps the renderer's diffing stable.
 	const ruleWidth = Math.max(2, Math.min(40, terminalWidth - label.length - 8));
@@ -454,20 +454,20 @@ function CompactionDividerRow(props: {
 					<spinner name="dots" color={labelColor} />
 				</box>
 			) : (
-				<text fg="gray" content="── " />
+				<text fg="gray" content="-- " />
 			)}
 			<text fg={labelColor} selectable content={label} />
-			<text fg="gray" content={` ${"─".repeat(ruleWidth)}`} />
+			<text fg="gray" content={` ${"-".repeat(ruleWidth)}`} />
 		</box>
 	);
 }
 
-function ClinePassLimitErrorView(props: {
+function SynaiPassLimitErrorView(props: {
 	message: string;
 	defaultFg?: string;
 	theme: ResolvedTheme;
 }) {
-	const detail = getClinePassLimitDetailMessage(props.message) ?? props.message;
+	const detail = getSynaiPassLimitDetailMessage(props.message) ?? props.message;
 	const accent = props.theme.accents.act;
 
 	return (
@@ -503,12 +503,12 @@ function ClinePassLimitErrorView(props: {
 	);
 }
 
-function ClineFreeModelLimitErrorView(props: {
+function SynaiFreeModelLimitErrorView(props: {
 	message: string;
 	defaultFg?: string;
 	theme: ResolvedTheme;
 }) {
-	const resetTime = extractClineFreeModelLimitResetTime(props.message);
+	const resetTime = extractSynaiFreeModelLimitResetTime(props.message);
 	const accent = props.theme.accents.act;
 
 	return (
@@ -544,7 +544,7 @@ function ClineFreeModelLimitErrorView(props: {
 	);
 }
 
-function ClineFreePromotionEndedErrorView(props: {
+function SynaiFreePromotionEndedErrorView(props: {
 	defaultFg?: string;
 	theme: ResolvedTheme;
 }) {
@@ -581,7 +581,7 @@ export function ChatEntryView(props: {
 	accent?: string;
 	/** Mode the entry was produced in (resolved with the current-mode fallback). */
 	mode?: SyntaxAccentMode;
-	loadIndividualSubscriptionPlans?: () => Promise<ClineSubscriptionPlan[]>;
+	loadIndividualSubscriptionPlans?: () => Promise<SynaiSubscriptionPlan[]>;
 	theme: ResolvedTheme;
 }) {
 	const { entry, mode = "act", theme } = props;
@@ -600,7 +600,7 @@ export function ChatEntryView(props: {
 					paddingRight={2}
 				>
 					<box width={2}>
-						<text fg={accent}>{"❯"}</text>
+						<text fg={accent}>{">"}</text>
 					</box>
 					<text fg={defaultFg} selectable>
 						{entry.text}
@@ -618,7 +618,7 @@ export function ChatEntryView(props: {
 					paddingRight={2}
 				>
 					<box width={2}>
-						<text fg={accent}>{"❯"}</text>
+						<text fg={accent}>{">"}</text>
 					</box>
 					{entry.delivery === "steer" && <text fg="yellow">[steer] </text>}
 					{entry.delivery === "queue" && <text fg="gray">[queued] </text>}
@@ -703,20 +703,20 @@ export function ChatEntryView(props: {
 			);
 
 		case "error":
-			if (isClineAccountCreditsErrorMessage(entry.text)) {
-				return <ClineCreditsErrorView defaultFg={defaultFg} theme={theme} />;
+			if (isSynaiAccountCreditsErrorMessage(entry.text)) {
+				return <SynaiCreditsErrorView defaultFg={defaultFg} theme={theme} />;
 			}
-			if (isClineOrgIndividualInferenceSubscriptionErrorMessage(entry.text)) {
+			if (isSynaiOrgIndividualInferenceSubscriptionErrorMessage(entry.text)) {
 				return (
-					<ClineOrgIndividualInferenceSubscriptionErrorView
+					<SynaiOrgIndividualInferenceSubscriptionErrorView
 						defaultFg={defaultFg}
 						theme={theme}
 					/>
 				);
 			}
-			if (isClinePassSubscriptionError(entry.text)) {
+			if (isSynaiPassSubscriptionError(entry.text)) {
 				return (
-					<ClinePassSubscriptionErrorView
+					<SynaiPassSubscriptionErrorView
 						defaultFg={defaultFg}
 						loadIndividualSubscriptionPlans={
 							props.loadIndividualSubscriptionPlans
@@ -725,27 +725,27 @@ export function ChatEntryView(props: {
 					/>
 				);
 			}
-			if (isClinePassLimitErrorMessage(entry.text)) {
+			if (isSynaiPassLimitErrorMessage(entry.text)) {
 				return (
-					<ClinePassLimitErrorView
+					<SynaiPassLimitErrorView
 						message={entry.text}
 						defaultFg={defaultFg}
 						theme={theme}
 					/>
 				);
 			}
-			if (isClineFreeModelLimitErrorMessage(entry.text)) {
+			if (isSynaiFreeModelLimitErrorMessage(entry.text)) {
 				return (
-					<ClineFreeModelLimitErrorView
+					<SynaiFreeModelLimitErrorView
 						defaultFg={defaultFg}
 						message={entry.text}
 						theme={theme}
 					/>
 				);
 			}
-			if (isClineFreePromotionEndedErrorMessage(entry.text)) {
+			if (isSynaiFreePromotionEndedErrorMessage(entry.text)) {
 				return (
-					<ClineFreePromotionEndedErrorView
+					<SynaiFreePromotionEndedErrorView
 						defaultFg={defaultFg}
 						theme={theme}
 					/>

@@ -49,7 +49,7 @@ function formatRelativeDate(dateStr: string): string {
 	const diffDays = Math.floor(diffHours / 24);
 	if (diffDays < 7) return `${diffDays}d ago`;
 	if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
-	return formatHumanReadableDate(dateStr);
+	return formatHumanReadableDate(new Date(dateStr));
 }
 
 const MAX_VISIBLE = 12;
@@ -362,7 +362,7 @@ function HistoryListContent({
 								backgroundColor={isSelected ? palette.selection : undefined}
 							>
 								<text fg={isSelected ? palette.textOnSelection : undefined}>
-									{isSelected ? "\u276f " : "  "}
+									{isSelected ? "> " : "  "}
 									{option.label}
 								</text>
 								<text
@@ -413,7 +413,7 @@ function HistoryListContent({
 			<box flexDirection="column" marginTop={1}>
 				{aboveCount > 0 && (
 					<text fg="gray">
-						{"\u25b2 "}
+						{"^ "}
 						{aboveCount} more
 					</text>
 				)}
@@ -440,7 +440,7 @@ function HistoryListContent({
 								fg={isSel ? palette.textOnSelection : "gray"}
 								flexShrink={0}
 							>
-								{isSel ? "\u276f " : "  "}
+								{isSel ? "> " : "  "}
 							</text>
 							<text
 								fg={isSel ? palette.textOnSelection : undefined}
@@ -470,7 +470,7 @@ function HistoryListContent({
 
 				{belowCount > 0 && (
 					<text fg="gray">
-						{"\u25bc "}
+						{"v "}
 						{belowCount} more
 					</text>
 				)}

@@ -11,7 +11,7 @@ import {
 import type { Config } from "./types";
 
 function createConfig(compaction?: Config["compaction"]): Config {
-	return { compaction } as Config;
+	return { compaction } as unknown as Config;
 }
 
 describe("CLI compaction mode helpers", () => {

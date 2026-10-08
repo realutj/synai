@@ -9,7 +9,7 @@ import {
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import * as path from "node:path";
-import { setClineDir } from "@synai/shared/storage";
+import { setSynaiDir } from "@synai/shared/storage";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createTaskWorktree, getTaskWorktreesHomePath } from "./worktree";
 
@@ -31,19 +31,19 @@ async function pathExists(targetPath: string): Promise<boolean> {
 
 describe("createTaskWorktree", () => {
 	let sandboxRoot: string;
-	let clineDir: string;
+	let synaiDir: string;
 	let repoPath: string;
 	let nonRepoPath: string;
-	let originalClineDir: string | undefined;
+	let originalSynaiDir: string | undefined;
 
 	beforeEach(async () => {
-		sandboxRoot = await mkdtemp(path.join(tmpdir(), "cline-sdk-worktree-"));
-		clineDir = path.join(sandboxRoot, ".synai");
+		sandboxRoot = await mkdtemp(path.join(tmpdir(), "synai-sdk-worktree-"));
+		synaiDir = path.join(sandboxRoot, ".synai");
 		repoPath = path.join(sandboxRoot, "myrepo");
 		nonRepoPath = path.join(sandboxRoot, "not-a-repo");
-		originalClineDir = process.env.SYNAI_DIR;
-		process.env.SYNAI_DIR = clineDir;
-		setClineDir(clineDir);
+		originalSynaiDir = process.env.SYNAI_DIR;
+		process.env.SYNAI_DIR = synaiDir;
+		setSynaiDir(synaiDir);
 
 		await writeFile(path.join(sandboxRoot, ".keep"), "");
 		await rm(repoPath, { recursive: true, force: true });
@@ -67,17 +67,17 @@ describe("createTaskWorktree", () => {
 	});
 
 	afterEach(async () => {
-		if (originalClineDir === undefined) {
+		if (originalSynaiDir === undefined) {
 			delete process.env.SYNAI_DIR;
 		} else {
-			process.env.SYNAI_DIR = originalClineDir;
+			process.env.SYNAI_DIR = originalSynaiDir;
 		}
-		setClineDir(originalClineDir ?? path.join("~", ".synai"));
+		setSynaiDir(originalSynaiDir ?? path.join("~", ".synai"));
 		await rm(sandboxRoot, { recursive: true, force: true });
 	});
 
 	it("places worktrees under ~/.synai/worktrees", () => {
-		expect(getTaskWorktreesHomePath()).toBe(path.join(clineDir, "worktrees"));
+		expect(getTaskWorktreesHomePath()).toBe(path.join(synaiDir, "worktrees"));
 	});
 
 	it("creates a detached worktree at ~/.synai/worktrees/<taskId>/<repoName>", async () => {
@@ -97,7 +97,7 @@ describe("createTaskWorktree", () => {
 
 		expect(await realpath(result.repoRoot)).toBe(await realpath(repoPath));
 		expect(result.path).toBe(
-			path.join(clineDir, "worktrees", "my-task", "myrepo"),
+			path.join(synaiDir, "worktrees", "my-task", "myrepo"),
 		);
 		expect(git(worktreePath, ["rev-parse", "--is-inside-work-tree"])).toBe(
 			"true",
@@ -120,7 +120,7 @@ describe("createTaskWorktree", () => {
 			throw new Error("Expected generated taskId.");
 		}
 		expect(result.path).toBe(
-			path.join(clineDir, "worktrees", result.taskId, "myrepo"),
+			path.join(synaiDir, "worktrees", result.taskId, "myrepo"),
 		);
 	});
 
@@ -143,7 +143,7 @@ describe("createTaskWorktree", () => {
 
 		expect(result.success).toBe(false);
 		expect(result.message).toMatch(/Failed to create worktree/);
-		expect(await pathExists(path.join(clineDir, "worktrees", "empty"))).toBe(
+		expect(await pathExists(path.join(synaiDir, "worktrees", "empty"))).toBe(
 			false,
 		);
 	});

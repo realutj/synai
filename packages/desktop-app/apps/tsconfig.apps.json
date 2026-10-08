@@ -1,0 +1,31 @@
+{
+	"compilerOptions": {
+		"paths": {
+			"@synai/agents": ["../sdk/packages/agents/src/index.ts"],
+			"@synai/agents/*": [
+				"../sdk/packages/agents/src/*",
+				"../sdk/packages/agents/src/*/index.ts"
+			],
+			"@synai/synai-hub": ["./synai-hub/src/server.ts"],
+			"@synai/core": ["../sdk/packages/core/src/index.ts"],
+			"@synai/core/hub/daemon-entry": [
+				"../sdk/packages/core/src/hub/daemon/entry.ts"
+			],
+			"@synai/core/*": [
+				"../sdk/packages/core/src/*",
+				"../sdk/packages/core/src/*/index.ts"
+			],
+			"@synai/core/telemetry": [
+				"../sdk/packages/core/src/services/telemetry/index.ts"
+			],
+			"@synai/llms": ["../sdk/packages/llms/src/index.ts"],
+			"@synai/shared": ["../sdk/packages/shared/src/index.ts"],
+			"@synai/shared/storage": ["../sdk/packages/shared/src/storage/index.ts"],
+			"@synai/shared/db": ["../sdk/packages/shared/src/db/index.ts"],
+			"@synai/shared/*": [
+				"../sdk/packages/shared/src/*",
+				"../sdk/packages/shared/src/*/index.ts"
+			]
+		}
+	}
+}

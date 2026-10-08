@@ -518,7 +518,7 @@ Find installable skills.`,
 	it("loads plugin-owned MCP servers from settings", async () => {
 		const tempRoot = await mkdtemp(join(tmpdir(), "cli-config-data-"));
 		tempRoots.push(tempRoot);
-		const settingsPath = join(tempRoot, "cline_mcp_settings.json");
+		const settingsPath = join(tempRoot, "synai_mcp_settings.json");
 		process.env.SYNAI_MCP_SETTINGS_PATH = settingsPath;
 		const pluginPath = await writeMcpSettingsPlugin(tempRoot);
 		await writeFile(
@@ -739,7 +739,7 @@ Find installable skills.`,
 			JSON.stringify(
 				{
 					name: "delete-plugin",
-					cline: {
+					synai: {
 						plugins: [{ paths: ["./index.ts"] }],
 					},
 				},
@@ -848,8 +848,8 @@ Erase stale plugin commands.`,
 			join(packageDir, "package.json"),
 			JSON.stringify(
 				{
-					name: "cline-sdk-portable-agents",
-					cline: {
+					name: "synai-sdk-portable-agents",
+					synai: {
 						plugins: [{ paths: ["./index.ts"] }],
 					},
 				},
@@ -865,7 +865,7 @@ Erase stale plugin commands.`,
 		const data = await loader.loadConfigData();
 		const plugin = data.plugins.find((item) => item.path === pluginPath);
 
-		expect(plugin?.name).toBe("cline-sdk-portable-agents");
+		expect(plugin?.name).toBe("synai-sdk-portable-agents");
 	});
 
 	it("marks bundled package skills with their plugin owner", async () => {
@@ -888,8 +888,8 @@ Erase stale plugin commands.`,
 			join(installRoot, "package.json"),
 			JSON.stringify(
 				{
-					name: "cline-installed-plugin-demo",
-					cline: {
+					name: "synai-installed-plugin-demo",
+					synai: {
 						plugins: [{ paths: ["./package/index.ts"] }],
 					},
 				},
@@ -901,7 +901,7 @@ Erase stale plugin commands.`,
 			join(packageDir, "package.json"),
 			JSON.stringify(
 				{
-					name: "cline-sdk-portable-agents",
+					name: "synai-sdk-portable-agents",
 				},
 				null,
 				2,
@@ -949,7 +949,7 @@ Review with the bundled skill.`,
 
 		expect(skill).toMatchObject({
 			name: "review",
-			pluginName: "cline-sdk-portable-agents",
+			pluginName: "synai-sdk-portable-agents",
 			pluginPath,
 			source: "workspace-plugin",
 		});
@@ -958,7 +958,7 @@ Review with the bundled skill.`,
 	it("toggles MCP server enabled state through core settings", async () => {
 		const tempRoot = await mkdtemp(join(tmpdir(), "cli-config-data-"));
 		tempRoots.push(tempRoot);
-		const settingsPath = join(tempRoot, "cline_mcp_settings.json");
+		const settingsPath = join(tempRoot, "synai_mcp_settings.json");
 		process.env.SYNAI_MCP_SETTINGS_PATH = settingsPath;
 		await writeFile(
 			settingsPath,
@@ -1002,7 +1002,7 @@ Review with the bundled skill.`,
 	it("disables and re-syncs plugin-owned MCP servers when toggling plugins", async () => {
 		const tempRoot = await mkdtemp(join(tmpdir(), "cli-config-data-"));
 		tempRoots.push(tempRoot);
-		const settingsPath = join(tempRoot, "cline_mcp_settings.json");
+		const settingsPath = join(tempRoot, "synai_mcp_settings.json");
 		process.env.SYNAI_GLOBAL_SETTINGS_PATH = join(
 			tempRoot,
 			"global-settings.json",
@@ -1079,7 +1079,7 @@ Review with the bundled skill.`,
 		async () => {
 			const tempRoot = await mkdtemp(join(tmpdir(), "cli-config-data-"));
 			tempRoots.push(tempRoot);
-			const settingsPath = join(tempRoot, "cline_mcp_settings.json");
+			const settingsPath = join(tempRoot, "synai_mcp_settings.json");
 			const globalSettingsPath = join(tempRoot, "global-settings.json");
 			process.env.SYNAI_GLOBAL_SETTINGS_PATH = globalSettingsPath;
 			process.env.SYNAI_MCP_SETTINGS_PATH = settingsPath;
@@ -1138,7 +1138,7 @@ Review with the bundled skill.`,
 	it("surfaces MCP OAuth status and errors", async () => {
 		const tempRoot = await mkdtemp(join(tmpdir(), "cli-config-data-"));
 		tempRoots.push(tempRoot);
-		const settingsPath = join(tempRoot, "cline_mcp_settings.json");
+		const settingsPath = join(tempRoot, "synai_mcp_settings.json");
 		process.env.SYNAI_MCP_SETTINGS_PATH = settingsPath;
 		await writeFile(
 			settingsPath,

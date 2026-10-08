@@ -73,7 +73,7 @@ export function wordWrap(text: string, width: number): string[] {
 /**
  * Create a visual separator line
  */
-export function separator(char: string = '─', width: number = 45): string {
+export function separator(char: string = '-', width: number = 45): string {
   return chalk.dim(char.repeat(width));
 }
 
@@ -81,37 +81,37 @@ export function separator(char: string = '─', width: number = 45): string {
  * Format success message
  */
 export function success(message: string): string {
-  return chalk.white('✓ ') + chalk.white(message);
+  return chalk.white('[OK] ') + chalk.white(message);
 }
 
 /**
  * Format error message
  */
 export function error(message: string): string {
-  return chalk.white('✗ ') + chalk.white(message);
+  return chalk.white('[X] ') + chalk.white(message);
 }
 
 /**
  * Format warning message
  */
 export function warning(message: string): string {
-  return chalk.gray('⚠ ') + chalk.gray(message);
+  return chalk.gray('[!] ') + chalk.gray(message);
 }
 
 /**
  * Format info message
  */
 export function info(message: string): string {
-  return chalk.white('ℹ ') + chalk.white(message);
+  return chalk.white('[i] ') + chalk.white(message);
 }
 
 /**
  * Format code block
  */
-export function codeBlock(code: string, language?: string): string {
+export function codeBlock(code: string, _language?: string): string {
   const lines = code.split('\n');
   const formatted = lines.map((line, i) => {
-    const lineNum = chalk.dim(`${(i + 1).toString().padStart(3)} │ `);
+    const lineNum = chalk.dim(`${(i + 1).toString().padStart(3)} | `);
     return lineNum + chalk.white(line);
   });
   
@@ -135,7 +135,7 @@ export function badge(text: string, color: 'green' | 'yellow' | 'red' | 'cyan' =
 /**
  * Format list item
  */
-export function listItem(text: string, icon: string = '•'): string {
+export function listItem(text: string, icon: string = '*'): string {
   return chalk.dim(icon) + ' ' + chalk.white(text);
 }
 
@@ -146,7 +146,7 @@ export function tableRow(columns: string[], widths: number[]): string {
   return columns.map((col, i) => {
     const width = widths[i] || 20;
     return col.padEnd(width).slice(0, width);
-  }).join(' │ ');
+  }).join(' | ');
 }
 
 /**

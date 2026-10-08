@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 const zipOutput = path.join(rootDir, 'synai-v1.0.0.zip');
 
-console.log('📦 Bundling SynAI Open-Source Project into standalone ZIP archive...');
+console.log('[*] Bundling SynAI Open-Source Project into standalone ZIP archive...');
 
 // Remove existing zip if any
 if (fs.existsSync(zipOutput)) {
@@ -82,11 +82,11 @@ try {
   const stats = fs.statSync(zipOutput);
   const sizeMb = (stats.size / (1024 * 1024)).toFixed(2);
   const sizeKb = (stats.size / 1024).toFixed(1);
-  console.log(`\n🎉 DONE! Standalone Open-Source archive created:`);
-  console.log(`📁 File: ${zipOutput}`);
-  console.log(`📊 Size: ${sizeMb > 1 ? sizeMb + ' MB' : sizeKb + ' KB'}`);
+  console.log(`\n[OK] DONE! Standalone Open-Source archive created:`);
+  console.log(`[File] File: ${zipOutput}`);
+  console.log(`[Size] Size: ${sizeMb > 1 ? sizeMb + ' MB' : sizeKb + ' KB'}`);
 } catch (err) {
-  console.error('❌ Failed to bundle ZIP:', err);
+  console.error('[X] Failed to bundle ZIP:', err);
   if (fs.existsSync(tempStagingDir)) {
     try {
       fs.rmSync(tempStagingDir, { recursive: true, force: true });

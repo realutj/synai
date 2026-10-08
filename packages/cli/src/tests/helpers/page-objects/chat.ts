@@ -28,7 +28,7 @@ export async function submitPrompt(
 export async function togglePlanAct(terminal: Terminal): Promise<void> {
 	terminal.write("\t");
 	// Wait for the mode indicator to update rather than sleeping a fixed amount
-	await expectVisible(terminal, /● Plan|● Act/);
+	await expectVisible(terminal, /[*] Plan|[*] Act/);
 }
 
 /** Toggle auto-approve-all with Shift+Tab */

@@ -1,6 +1,6 @@
 [
 	{
-		"scope": "https://api.cline.bot",
+		"scope": "https://api.Synai.bot",
 		"method": "POST",
 		"path": "/api/v1/chat/completions",
 		"status": 200,
@@ -9,7 +9,7 @@
 		"contentType": "text/event-stream"
 	},
 	{
-		"scope": "https://api.cline.bot",
+		"scope": "https://api.Synai.bot",
 		"method": "POST",
 		"path": "/api/v1/chat/completions",
 		"status": 200,

@@ -8,7 +8,7 @@ import {
 } from "node:fs";
 import { dirname, join } from "node:path";
 import type { BasicLogger, RuntimeLoggerConfig } from "@synai/core";
-import { resolveClineDataDir } from "@synai/core";
+import { resolveSynaiDataDir } from "@synai/core";
 import { registerDisposable } from "@synai/shared";
 import pino, {
 	type DestinationStream,
@@ -60,28 +60,25 @@ function normalizeRuntimeConfig(input: {
 	runtimeConfig?: RuntimeLoggerConfig;
 }): Required<RuntimeLoggerConfig> {
 	const base = input.runtimeConfig;
-	const baseDir = join(resolveClineDataDir(), "logs");
+	const baseDir = join(resolveSynaiDataDir(), "logs");
 	const explicitDestinationPath = base?.destination?.trim();
-	const enabledEnv = (process.env.SYNAI_LOG_ENABLED ?? process.env.SYNAI_LOG_ENABLED)?.trim();
+	const enabledEnv = process.env.SYNAI_LOG_ENABLED?.trim();
 	const enabled =
 		base?.enabled ??
 		!(enabledEnv === "0" || enabledEnv?.toLowerCase() === "false");
-	const level = normalizeLogLevel(base?.level ?? process.env.SYNAI_LOG_LEVEL ?? process.env.SYNAI_LOG_LEVEL);
+	const level = normalizeLogLevel(base?.level ?? process.env.SYNAI_LOG_LEVEL);
 	const destination =
 		explicitDestinationPath ??
-		process.env.SYNAI_LOG_PATH?.trim() ??
 		process.env.SYNAI_LOG_PATH?.trim() ??
 		join(
 			baseDir,
 			`${
 				process.env.SYNAI_LOG_NAME?.trim() ??
-				process.env.SYNAI_LOG_NAME?.trim() ??
-				"synai"
+				getCliBuildInfo().name
 			}.log`,
 		);
 	const name =
 		base?.name?.trim() ||
-		process.env.SYNAI_LOG_NAME?.trim() ||
 		process.env.SYNAI_LOG_NAME?.trim() ||
 		`${getCliBuildInfo().name}.${input.runtime}`;
 	const bindings = base?.bindings ?? {};
@@ -100,7 +97,7 @@ function getOrCreatePinoLogger(
 	runtime: "cli" | "rpc-runtime",
 ): PinoLogger {
 	if (!config.enabled) {
-		return pino({
+		return (pino as any)({
 			name: config.name,
 			level: "silent",
 			enabled: false,
@@ -140,6 +137,9 @@ function createWritableDestination(
 	_runtime: "cli" | "rpc-runtime",
 ): DestinationStream | undefined {
 	try {
+		if (existsSync(destinationPath) && statSync(destinationPath).isDirectory()) {
+			return undefined;
+		}
 		mkdirSync(dirname(destinationPath), { recursive: true });
 		const fd = openSync(destinationPath, "a");
 		closeSync(fd);
@@ -296,7 +296,7 @@ export function createCliLoggerAdapter(
 	});
 	const baseLogger = getOrCreatePinoLogger(runtimeConfig, input.runtime);
 	const logger = baseLogger.child({
-		...runtimeConfig.bindings,
+		...(runtimeConfig.bindings || {}),
 		...(input.component ? { component: input.component } : {}),
 	});
 	return createAdapterFromPino(logger, runtimeConfig);
@@ -352,8 +352,10 @@ export function shutdownCliLoggerAdapters(): void {
 		try {
 			const closableDestination = entry.destination as DestinationStream & {
 				end?: () => void;
+				destroy?: () => void;
 			};
 			closableDestination.end?.();
+			closableDestination.destroy?.();
 		} catch (error) {
 			if (!isIgnorableLoggerShutdownError(error)) {
 				// no-op: shutdown close is best-effort.

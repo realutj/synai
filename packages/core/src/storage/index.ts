@@ -40,17 +40,17 @@ export function generateIntelligentTitle(userPrompt: string): string {
   const lower = userPrompt.toLowerCase();
 
   // 1. Simple greetings & conversational openers
-  if (/^(merhaba|selam|hi|hello|hey|günaydın|iyi günler|good morning|howdy|nasılsın|how are you|whats up|ne haber|naber)/i.test(lower)) {
+  if (/^(hi|hello|hey|good morning|good afternoon|howdy|how are you|whats up)/i.test(lower)) {
     return 'General Introduction & Greeting';
   }
 
   // 2. Legal / Contract topics
-  if (/(sözleşme|kontrat|contract|nda|fesih|ihtarname|dava|tazminat|hukuk|legal|lawyer|attorney|tbk|ttk|tck)/i.test(lower)) {
-    if (/(fesih|terminate|breach)/i.test(lower)) return 'Contract Termination Analysis';
-    if (/(nda|gizlilik|confidential)/i.test(lower)) return 'NDA & Confidentiality Review';
-    if (/(ihtarname|dilekçe|petition|notice)/i.test(lower)) return 'Formal Legal Drafting';
-    if (/(ceza|tck|crime|fraud)/i.test(lower)) return 'Penal Law & Compliance';
-    if (/(şirket|ttk|merger|incorporation)/i.test(lower)) return 'Corporate Governance & TTK';
+  if (/(contract|nda|legal|lawyer|attorney|compliance|lawsuit|governance)/i.test(lower)) {
+    if (/(terminate|breach)/i.test(lower)) return 'Contract Termination Analysis';
+    if (/(nda|confidential)/i.test(lower)) return 'NDA & Confidentiality Review';
+    if (/(petition|notice)/i.test(lower)) return 'Formal Legal Drafting';
+    if (/(crime|fraud)/i.test(lower)) return 'Penal Law & Compliance';
+    if (/(merger|incorporation|governance)/i.test(lower)) return 'Corporate Governance';
     return 'Legal Advisory & Contract Review';
   }
 
@@ -74,7 +74,7 @@ export function generateIntelligentTitle(userPrompt: string): string {
   if (/(test|jest|vitest|playwright|cypress|mock)/i.test(lower)) {
     return 'Automated Test Suite';
   }
-  if (/(bug|error|hata|crash|fix|resolve|exception)/i.test(lower)) {
+  if (/(bug|error|crash|fix|resolve|exception)/i.test(lower)) {
     return 'Bug Investigation & Resolution';
   }
   if (/(refactor|clean code|architecture|rewrite)/i.test(lower)) {
@@ -82,17 +82,17 @@ export function generateIntelligentTitle(userPrompt: string): string {
   }
 
   // 4. Conversation & Strategy
-  if (/(felsefe|philosophy|hayat|life|kitap|book|sohbet|chat|idea|fikir)/i.test(lower)) {
+  if (/(philosophy|life|book|chat|idea)/i.test(lower)) {
     return 'Deep Conversation & Ideation';
   }
-  if (/(startup|business|yatırım|invest|pitch|saas|pricing)/i.test(lower)) {
+  if (/(startup|business|invest|pitch|saas|pricing)/i.test(lower)) {
     return 'Startup Strategy & Business Plan';
   }
 
   // 5. Fallback clean word extraction
   const cleaned = userPrompt
     .replace(/^(\s*(\/|\#|\!|\?|\>)\s*)+/, '')
-    .replace(/^(can you|please|could you|help me|i want to|create a|make a|build a|write a|fix|add|baksana|lütfen|yap|yaz)\s+/i, '')
+    .replace(/^(can you|please|could you|help me|i want to|create a|make a|build a|write a|fix|add)\s+/i, '')
     .replace(/[^\p{L}\p{N}\s-]/gu, '')
     .trim();
 

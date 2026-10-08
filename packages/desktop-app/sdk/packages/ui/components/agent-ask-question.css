@@ -1,0 +1,103 @@
+.synai-ui-agent-ask-question,
+.synai-ui-agent-ask-question__item,
+.synai-ui-agent-ask-question__option,
+.synai-ui-agent-ask-question__option-key {
+	box-sizing: border-box;
+	border-style: solid;
+}
+
+.synai-ui-agent-ask-question__item {
+	overflow: hidden;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	background: var(--background);
+	padding-top: 0.75rem;
+	-webkit-user-select: text;
+	user-select: text;
+}
+
+.synai-ui-agent-ask-question__item-header {
+	padding-inline: 1rem 0.75rem;
+}
+
+.synai-ui-agent-ask-question__option {
+	font-family: inherit;
+	font-size: inherit;
+	font-style: inherit;
+	font-variant: inherit;
+	letter-spacing: inherit;
+	line-height: inherit;
+	/* The Button base sets `whitespace-nowrap`, and clsx keeps both classes on
+	 * the element, letting the utility stylesheet's order pick nowrap. This
+	 * unlayered rule beats layered utilities so long options wrap instead of
+	 * clipping under the item's overflow:hidden. */
+	white-space: normal;
+	overflow-wrap: anywhere;
+}
+
+.synai-ui-agent-ask-question__option:hover:not(:disabled) {
+	background: var(--surface-hover-lighter);
+}
+
+.synai-ui-agent-ask-question__option-label {
+	font-size: var(--text-md);
+	line-height: var(--text-md--line-height);
+	letter-spacing: var(--text-md--letter-spacing);
+}
+
+.synai-ui-agent-ask-question__option[aria-pressed="true"] {
+	background: var(--surface-hover);
+}
+
+.synai-ui-agent-ask-question__option[aria-pressed="true"]
+	.synai-ui-agent-ask-question__option-key {
+	border-color: var(--neutral-6);
+	background: var(--neutral-5);
+}
+
+.synai-ui-agent-ask-question__option-key {
+	display: inline-flex;
+	height: 1.375rem;
+	width: 1.375rem;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-md);
+	background: var(--surface-hover-lighter);
+	color: var(--muted-foreground);
+	font-family: var(--font-mono);
+	font-size: var(--text-xs);
+	font-weight: var(--font-weight-medium);
+	line-height: var(--text-xs--line-height);
+}
+
+.synai-ui-agent-ask-question__spinner {
+	animation: synai-ui-agent-ask-question-spin 1s linear infinite;
+}
+
+.synai-ui-agent-ask-question__footer {
+	border-style: solid;
+	border-width: 1px 0 0;
+}
+
+.synai-ui-agent-ask-question__submit:not(:disabled) {
+	background: var(--foreground);
+	color: var(--background);
+}
+
+.synai-ui-agent-ask-question__submit:hover:not(:disabled) {
+	opacity: 0.9;
+}
+
+@keyframes synai-ui-agent-ask-question-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.synai-ui-agent-ask-question__spinner {
+		animation: none;
+	}
+}

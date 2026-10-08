@@ -176,7 +176,7 @@ export class SynAIServer {
           ws.send(JSON.stringify({
             type: 'error',
             payload: {
-              message: 'OpenRouter API Key tanımlı değil. İlerlemek için lütfen Ayarlar menüsünden geçerli bir API anahtarı girin.'
+              message: 'OpenRouter API Key is not configured. Please enter a valid API key in Settings.'
             }
           }));
           return;

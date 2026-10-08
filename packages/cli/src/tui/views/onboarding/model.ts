@@ -20,8 +20,8 @@ export type OnboardingStep =
 	| "byo_provider"
 	| "byo_apikey"
 	| "local_cli_setup"
-	| "cline_pass_subscription"
-	| "cline_model"
+	| "synai_pass_subscription"
+	| "synai_model"
 	| "model_picker"
 	| "custom_model_id"
 	| "thinking_level"
@@ -53,14 +53,14 @@ export interface MenuOption {
 	icon: string;
 }
 
-export type ClinePassSubscriptionAction =
+export type SynaiPassSubscriptionAction =
 	| "subscribe"
 	| "refresh"
 	| "skip"
 	| "back";
 
-export interface ClinePassSubscriptionOption {
-	value: ClinePassSubscriptionAction;
+export interface SynaiPassSubscriptionOption {
+	value: SynaiPassSubscriptionAction;
 	label: string;
 }
 
@@ -69,31 +69,31 @@ export const MAIN_MENU: MenuOption[] = [
 		label: "OpenRouter Engine (Recommended)",
 		value: "openrouter",
 		detail: "Unified gateway to frontier coding models (Claude, GPT, DeepSeek)",
-		icon: "\u25c8",
+		icon: "*",
 	},
 	{
 		label: "Anthropic Claude",
 		value: "anthropic",
 		detail: "Direct API integration for Claude 3.7 Sonnet & Opus",
-		icon: "\u25c6",
+		icon: "*",
 	},
 	{
 		label: "OpenAI Platform",
 		value: "openai",
 		detail: "Direct API integration for GPT-4o, o1, and o3-mini",
-		icon: "\u25c8",
+		icon: "*",
 	},
 	{
 		label: "ChatGPT OAuth",
 		value: "openai-codex",
 		detail: "Authenticate using your ChatGPT Plus account",
-		icon: "\u25c7",
+		icon: "o",
 	},
 	{
 		label: "Custom / Local Provider",
 		value: "byo",
 		detail: "Connect custom API key or local model endpoint (Ollama, LM Studio)",
-		icon: "\u229e",
+		icon: "[+]",
 	},
 ];
 
@@ -121,20 +121,31 @@ export function canContinueLocalCliSetup(
 	// The probe only looks on PATH, while the runtime also accepts an explicit
 	// pathToClaudeCodeExecutable and a bundled platform binary, and Codex falls
 	// back through `npx`. A PATH miss therefore means "not on PATH", not
-	// "unusable", so the screen reports it without blocking — a provider that
+	// "unusable", so the screen reports it without blocking - a provider that
 	// really cannot start says so on the first turn, in its own words.
 	return true;
 }
 
 export function getMainMenuOptions(options?: {
-	isClinePassEnabled?: boolean;
+	isSynaiPassEnabled?: boolean;
+	isSynAIPassEnabled?: boolean;
 }): MenuOption[] {
-	return MAIN_MENU.filter(
-		(option) => option.value !== "cline-pass" || options?.isClinePassEnabled,
+	const passEnabled = Boolean(
+		options?.isSynaiPassEnabled || options?.isSynAIPassEnabled,
 	);
+	const list = MAIN_MENU.filter((option) => option.value !== "synai-pass");
+	if (passEnabled) {
+		list.push({
+			label: "SynAIPass Subscription",
+			value: "synai-pass",
+			detail: "Access frontier LLMs via SynAIPass membership",
+			icon: "*",
+		});
+	}
+	return list;
 }
 
-export const SYNAI_PASS_SUBSCRIPTION_OPTIONS: ClinePassSubscriptionOption[] = [
+export const SYNAI_PASS_SUBSCRIPTION_OPTIONS: SynaiPassSubscriptionOption[] = [
 	{
 		value: "subscribe",
 		label: "Subscribe to plan",
@@ -178,7 +189,7 @@ export interface ModelEntry {
 	supportsReasoning: boolean;
 }
 
-export type ClinePassSubscriptionStatus =
+export type SynaiPassSubscriptionStatus =
 	| "loading"
 	| "subscribed"
 	| "unsubscribed"
@@ -256,9 +267,12 @@ export function getOAuthProviderLabel(providerId: string): string {
 	if (providerId === "openai-codex") {
 		return "ChatGPT";
 	}
+	if (providerId === "synai-pass") {
+		return "SynAIPass";
+	}
 	return providerId;
 }
 
-export function shouldUseFeaturedClineModelPicker(_providerId: string): boolean {
-	return false;
+export function shouldUseFeaturedSynaiModelPicker(providerId: string): boolean {
+	return providerId === "synai" || providerId === "synai-pass";
 }

@@ -47,8 +47,8 @@ describe("runDashboardCommand", () => {
 		let observedEnv:
 			| {
 					workspaceRoot: string | undefined;
-					clineDir: string | undefined;
-					clineDataDir: string | undefined;
+					synaiDir: string | undefined;
+					synaiDataDir: string | undefined;
 					providerSettingsPath: string | undefined;
 					host: string | undefined;
 					port: string | undefined;
@@ -57,12 +57,12 @@ describe("runDashboardCommand", () => {
 					webviewDistDir: string | undefined;
 			  }
 			| undefined;
-		const webviewDistDir = mkdtempSync(join(tmpdir(), "cline-webview-dist-"));
+		const webviewDistDir = mkdtempSync(join(tmpdir(), "synai-webview-dist-"));
 		mkdirSync(webviewDistDir, { recursive: true });
 		process.env.SYNAI_HUB_WEBVIEW_DIST_DIR = webviewDistDir;
 
 		const exitCode = await runDashboardCommand({
-			configDir: "/tmp/cline-config",
+			configDir: "/tmp/synai-config",
 			cwd: "sdk",
 			dataDir: ".synai-dashboard-data",
 			host: "127.0.0.1",
@@ -76,8 +76,8 @@ describe("runDashboardCommand", () => {
 			startServer: async () => {
 				observedEnv = {
 					workspaceRoot: process.env.WORKSPACE_ROOT,
-					clineDir: process.env.SYNAI_DIR,
-					clineDataDir: process.env.SYNAI_DATA_DIR,
+					synaiDir: process.env.SYNAI_DIR,
+					synaiDataDir: process.env.SYNAI_DATA_DIR,
 					providerSettingsPath: process.env.SYNAI_PROVIDER_SETTINGS_PATH,
 					host: process.env.HOST,
 					port: process.env.SYNAI_HUB_DASHBOARD_PORT,
@@ -104,8 +104,8 @@ describe("runDashboardCommand", () => {
 		expect(exitCode).toBe(0);
 		expect(observedEnv).toEqual({
 			workspaceRoot: resolve("sdk"),
-			clineDir: "/tmp/cline-config",
-			clineDataDir: resolve("sdk", ".synai-dashboard-data"),
+			synaiDir: "/tmp/synai-config",
+			synaiDataDir: resolve("sdk", ".synai-dashboard-data"),
 			providerSettingsPath: join(
 				resolve("sdk", ".synai-dashboard-data"),
 				"settings",
@@ -119,7 +119,7 @@ describe("runDashboardCommand", () => {
 		});
 		expect(opened).toEqual(["http://127.0.0.1:9090/?roomSecret=secret"]);
 		expect(stop).toHaveBeenCalledTimes(1);
-		expect(output.join("\n")).toContain("Cline dashboard listening at");
+		expect(output.join("\n")).toContain("Synai dashboard listening at");
 		expect(output.join("\n")).toContain("ws://127.0.0.1:25463/hub");
 		expect(errors).toEqual([]);
 		expect(process.env.WORKSPACE_ROOT).toBe(originalEnv.WORKSPACE_ROOT);
@@ -150,7 +150,7 @@ describe("runDashboardCommand", () => {
 	});
 
 	it("finds webview assets from the published wrapper package layout", async () => {
-		const root = mkdtempSync(join(tmpdir(), "cline-wrapper-layout-"));
+		const root = mkdtempSync(join(tmpdir(), "synai-wrapper-layout-"));
 		const wrapperPath = join(root, "node_modules", "synai", "bin", "synai");
 		const platformName = platform() === "win32" ? "windows" : platform();
 		const webviewDistDir = join(
@@ -158,7 +158,7 @@ describe("runDashboardCommand", () => {
 			"node_modules",
 			"synai",
 			"node_modules",
-			"@cline",
+			"@synai",
 			`cli-${platformName}-${arch()}`,
 			"synai-hub",
 			"webview",

@@ -1,7 +1,6 @@
 import type {
 	AgentMode,
 	CoreSessionConfig,
-	Llms,
 	ProviderSettings,
 	RuntimeLoggerConfig,
 	SessionLineage,
@@ -19,7 +18,11 @@ export type CliCompactionMode = "agentic" | "basic" | "off";
 
 export interface Config extends Omit<CoreSessionConfig, "apiKey" | "mode"> {
 	apiKey: string;
-	knownModels?: Record<string, Llms.ModelInfo>;
+	providerId: string;
+	modelId: string;
+	baseUrl?: string;
+	logger?: any;
+	knownModels?: Record<string, any>;
 	loggerConfig?: RuntimeLoggerConfig;
 	verbose: boolean;
 	timeoutSeconds?: number;
@@ -30,6 +33,7 @@ export interface Config extends Omit<CoreSessionConfig, "apiKey" | "mode"> {
 	mode: CliAgentMode;
 	defaultToolAutoApprove: boolean;
 	toolPolicies: Record<string, ToolPolicy>;
+	[key: string]: any;
 }
 
 export interface ActiveCliSession {
@@ -98,4 +102,5 @@ export interface ParsedArgs {
 	teamName?: string;
 	defaultToolAutoApprove: boolean;
 	autoApproveOverride?: boolean;
+	board?: boolean;
 }

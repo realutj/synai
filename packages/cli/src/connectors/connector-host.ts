@@ -1045,7 +1045,7 @@ export async function handleConnectorUserTurn<
 			if (!isUnusableSessionError(error)) {
 				throw error;
 			}
-			// The tracked turn points at a session that can no longer serve it —
+			// The tracked turn points at a session that can no longer serve it -
 			// the hub does not know it, or its runtime is stuck on a run that never
 			// drained.
 			// Remove only the entry we attempted to steer, then route recovery

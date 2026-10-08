@@ -1,10 +1,15 @@
 {
   "name": "synai-vscode",
   "displayName": "SynAI",
-  "description": "Autonomous AI Coding Agent for VS Code - Powered by OpenRouter",
-  "version": "1.0.0",
-  "publisher": "synai",
+  "description": "Autonomous AI Coding Assistant for VS Code - Powered by OpenRouter & Frontier AI Models",
+  "version": "1.6.0",
+  "publisher": "realutj",
+  "license": "MIT",
   "icon": "assets/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/realutj/synai.git"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -14,15 +19,17 @@
     "Other"
   ],
   "keywords": [
+    "synai",
     "ai",
     "assistant",
     "coding",
     "agent",
     "openrouter",
-    "automation",
-    "copilot",
-    "chatgpt",
-    "claude"
+    "claude-3-7-sonnet",
+    "deepseek-r1",
+    "o3-mini",
+    "gemini",
+    "gpt-4o"
   ],
   "activationEvents": [
     "onStartupFinished"
@@ -32,30 +39,74 @@
     "commands": [
       {
         "command": "synai.start",
-        "title": "SynAI: Start Agent",
+        "title": "SynAI: Open Chat",
         "icon": "$(rocket)"
       },
       {
         "command": "synai.stop",
-        "title": "SynAI: Stop Agent",
+        "title": "SynAI: Stop Generation",
         "icon": "$(stop)"
       },
       {
-        "command": "synai.openSettings",
-        "title": "SynAI: Open Settings",
-        "icon": "$(settings-gear)"
+        "command": "synai.selectModel",
+        "title": "SynAI: Select Model (All Models)",
+        "icon": "$(symbol-parameter)"
       },
       {
-        "command": "synai.selectModel",
-        "title": "SynAI: Select Model",
-        "icon": "$(symbol-parameter)"
+        "command": "synai.explainCode",
+        "title": "SynAI: Explain Selected Code",
+        "icon": "$(lightbulb)"
+      },
+      {
+        "command": "synai.refactorCode",
+        "title": "SynAI: Refactor Selected Code",
+        "icon": "$(zap)"
+      },
+      {
+        "command": "synai.findBugs",
+        "title": "SynAI: Find Bugs in Selection",
+        "icon": "$(bug)"
+      },
+      {
+        "command": "synai.generateTests",
+        "title": "SynAI: Generate Unit Tests",
+        "icon": "$(beaker)"
       },
       {
         "command": "synai.clearHistory",
         "title": "SynAI: Clear Chat History",
         "icon": "$(clear-all)"
+      },
+      {
+        "command": "synai.openSettings",
+        "title": "SynAI: Open Settings",
+        "icon": "$(settings-gear)"
       }
     ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "synai.explainCode",
+          "group": "synai@1",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "synai.refactorCode",
+          "group": "synai@2",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "synai.findBugs",
+          "group": "synai@3",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "synai.generateTests",
+          "group": "synai@4",
+          "when": "editorHasSelection"
+        }
+      ]
+    },
     "viewsContainers": {
       "activitybar": [
         {
@@ -80,33 +131,69 @@
         "synai.apiKey": {
           "type": "string",
           "default": "",
-          "description": "OpenRouter API Key",
+          "description": "OpenRouter API Key (Get yours at https://openrouter.ai/keys)",
           "order": 1
         },
         "synai.model": {
           "type": "string",
-          "default": "anthropic/claude-3.5-sonnet",
-          "description": "Default model to use",
+          "default": "anthropic/claude-3.7-sonnet",
+          "description": "Active AI Model. Supports all OpenRouter models (e.g. anthropic/claude-3.7-sonnet, openai/o3-mini, deepseek/deepseek-r1, openrouter/free, or any custom model ID).",
           "enum": [
+            "anthropic/claude-3.7-sonnet",
+            "anthropic/claude-3.7-sonnet:thinking",
+            "openai/o3-mini",
+            "openai/o3-mini-high",
+            "deepseek/deepseek-r1",
+            "deepseek/deepseek-r1:free",
             "anthropic/claude-3.5-sonnet",
-            "anthropic/claude-3-opus",
-            "openai/gpt-4-turbo",
-            "openai/gpt-4",
-            "google/gemini-pro",
-            "meta-llama/llama-3-70b-instruct"
+            "deepseek/deepseek-chat",
+            "google/gemini-2.0-flash-001",
+            "google/gemini-2.0-flash-thinking-exp:free",
+            "google/gemini-2.0-flash-exp:free",
+            "openai/gpt-4o",
+            "openai/gpt-4o-mini",
+            "openai/o1",
+            "qwen/qwen-2.5-coder-32b-instruct",
+            "qwen/qwen-2.5-coder-32b-instruct:free",
+            "meta-llama/llama-3.3-70b-instruct",
+            "meta-llama/llama-3.3-70b-instruct:free",
+            "mistralai/codestral-2501",
+            "openrouter/free"
+          ],
+          "enumDescriptions": [
+            "Claude 3.7 Sonnet - Frontier hybrid coding & reasoning (Recommended)",
+            "Claude 3.7 Sonnet Thinking - Extended chain-of-thought enabled",
+            "OpenAI o3-mini - SOTA STEM & coding reasoning",
+            "OpenAI o3-mini High - High reasoning effort for complex tasks",
+            "DeepSeek R1 - Frontier open reasoning model",
+            "DeepSeek R1 Free - 100% free reasoning model",
+            "Claude 3.5 Sonnet - Industry coding benchmark",
+            "DeepSeek V3 - Powerful 671B MoE coding model",
+            "Gemini 2.0 Flash - Ultra fast next-gen multimodal model",
+            "Gemini 2.0 Flash Thinking Free - Experimental Google reasoning",
+            "Gemini 2.0 Flash Free - Fast free tier model",
+            "OpenAI GPT-4o - Omni multimodal flagship",
+            "OpenAI GPT-4o Mini - Fast & economical general model",
+            "OpenAI o1 - Deep reasoning frontier model",
+            "Qwen 2.5 Coder 32B - Premier open coding model",
+            "Qwen 2.5 Coder 32B Free - Free access to Qwen Coder",
+            "Llama 3.3 70B - Meta's flagship open model",
+            "Llama 3.3 70B Free - 100% free Llama 3.3 access",
+            "Mistral Codestral 2501 - Specialized 256K coding model",
+            "OpenRouter Free - Auto-routes to best active free model"
           ],
           "order": 2
         },
-        "synai.autoApprove": {
-          "type": "boolean",
-          "default": false,
-          "description": "Automatically approve tool usage without confirmation",
+        "synai.systemPrompt": {
+          "type": "string",
+          "default": "",
+          "description": "Optional custom system instructions for SynAI",
           "order": 3
         },
         "synai.maxTokens": {
           "type": "number",
-          "default": 4096,
-          "description": "Maximum tokens for model responses",
+          "default": 8192,
+          "description": "Maximum tokens for model completions",
           "order": 4
         },
         "synai.temperature": {
@@ -114,8 +201,14 @@
           "default": 0.7,
           "minimum": 0,
           "maximum": 2,
-          "description": "Model temperature (creativity level)",
+          "description": "Model temperature (creativity vs determinism)",
           "order": 5
+        },
+        "synai.customBaseUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Optional custom API Base URL (defaults to https://openrouter.ai/api/v1)",
+          "order": 6
         }
       }
     },
@@ -129,40 +222,16 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run build",
-    "build": "tsc && npm run build:webview",
-    "build:webview": "vite build",
+    "build": "bun build ./src/extension.ts --target=node --format=cjs --external vscode --outfile=dist/extension.js",
     "dev": "tsc --watch",
-    "dev:webview": "vite",
-    "package": "vsce package",
-    "publish": "vsce publish",
-    "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
-  },
-  "dependencies": {
-    "@synai/core": "workspace:*",
-    "@synai/shared": "workspace:*",
-    "axios": "^1.7.2"
+    "package": "npm run build && npx --yes @vscode/vsce package --no-dependencies",
+    "publish": "npm run build && npx --yes @vscode/vsce publish --no-dependencies"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
     "@types/vscode": "^1.85.0",
     "@vscode/vsce": "^2.22.0",
-    "typescript": "^5.7.2",
-    "vite": "^6.0.0",
-    "@vitejs/plugin-react": "^4.3.0",
-    "react": "^18.3.0",
-    "react-dom": "^18.3.0",
-    "@types/react": "^18.3.0",
-    "@types/react-dom": "^18.3.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/synai/synai.git",
-    "directory": "packages/vscode-extension"
-  },
-  "bugs": {
-    "url": "https://github.com/synai/synai/issues"
-  },
-  "homepage": "https://github.com/synai/synai#readme",
-  "license": "MIT"
+    "axios": "^1.7.2",
+    "typescript": "^5.7.2"
+  }
 }

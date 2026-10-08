@@ -1,8 +1,8 @@
 {
 	"name": "synai",
 	"displayName": "SynAI CLI",
-	"version": "1.4.4",
-	"description": "SynAI — Autonomous Next-Gen AI Coding Assistant CLI in your terminal",
+	"version": "3.0.65",
+	"description": "SynAI - Autonomous Next-Gen AI Coding Assistant CLI in your terminal",
 	"type": "module",
 	"publishConfig": {
 		"access": "public"
@@ -44,14 +44,15 @@
 	},
 	"files": [
 		"dist",
-		"bin"
+		"bin",
+		"scripts"
 	],
 	"scripts": {
-		"build": "echo 'Using pre-built dist'",
+		"build": "bun build ./src/index.ts --target=node --outfile=dist/index.js --external \"commander\" --external \"fzf\" --external \"marked\" --external \"nanoid\" --external \"open\" --external \"pino\" --external \"posthog-node\" --external \"react\" --external \"react-devtools-core\" --external \"react-reconciler\" --external \"yaml\" --external \"zod\" --external \"@clack/prompts\" --external \"@chat-adapter/*\" --external \"@agentclientprotocol/sdk\" --external \"chat\" --external \"@gramio/format\" --external \"@opentui/*\" --external \"@opentui-ui/*\" --external \"opentui-spinner\" --external \"@anthropic-ai/vertex-sdk\" && bun build ./src/tui/index.tsx --target=bun --outfile=dist/tui.js --external \"@opentui/*\" --external \"@opentui-ui/*\" --external \"opentui-spinner\" --external \"react\" --external \"react-reconciler\" --external \"fzf\" --external \"marked\" --external \"zod\" && node --input-type=module -e \"import fs from 'node:fs'; fs.cpSync('../core/src/prompts/templates', 'dist/prompts/templates', { recursive: true, force: true }); fs.mkdirSync('scripts', { recursive: true }); fs.cpSync('../../scripts/browser-client.mjs', 'scripts/browser-client.mjs', { force: true }); fs.mkdirSync('dist/scripts', { recursive: true }); fs.cpSync('../../scripts/browser-client.mjs', 'dist/scripts/browser-client.mjs', { force: true });\"",
 		"build:platforms": "bun script/build.ts --install-native-variants",
 		"build:platforms:single": "bun script/build.ts --single",
-		"prepack": "echo 'Skipping prepack'",
-		"prepublishOnly": "echo 'Skipping prepublish'",
+		"prepack": "bun script/guard-direct-publish.ts",
+		"prepublishOnly": "bun script/guard-direct-publish.ts",
 		"publish:npm": "bun script/publish-npm.ts",
 		"publish:npm:dry": "bun script/publish-npm.ts --dry-run",
 		"dev": "SYNAI_BUILD_ENV=development bun --conditions=development ./src/index.ts",
@@ -76,27 +77,31 @@
 		"@clack/prompts": "^1.2.0",
 		"@gramio/format": "^0.7.0",
 		"@opentui-ui/dialog": "^0.1.2",
-		"@opentui/core": "0.4.3",
 		"@opentui/react": "0.4.3",
 		"chat": "^4.23.0",
 		"commander": "^14.0.3",
 		"fzf": "^0.5.2",
 		"marked": "^15.0.12",
+		"nanoid": "^5.1.7",
 		"open": "^10.2.0",
+		"opentui-spinner": "^0.0.7",
 		"pino": "^10.3.1",
 		"posthog-node": "^5.8.0",
 		"react": "19.2.4",
 		"react-devtools-core": "^7.0.1",
 		"react-reconciler": "0.33.0",
 		"yaml": "^2.8.2",
-		"nanoid": "^5.1.7",
 		"zod": "^4.1.11"
 	},
+	"optionalDependencies": {
+		"@opentui/core": "0.4.3"
+	},
 	"devDependencies": {
+		"@microsoft/tui-test": "^0.0.2",
 		"@synai/core": "^1.3.0",
 		"@synai/shared": "^1.3.0",
-		"@microsoft/tui-test": "^0.0.2",
 		"@types/bun": "^1.3.10",
+		"@types/node-notifier": "^8.0.5",
 		"@types/react": "19.2.14",
 		"tuistory": "^0.10.1",
 		"vitest": "^4.0.18"

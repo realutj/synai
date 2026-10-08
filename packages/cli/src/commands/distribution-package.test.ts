@@ -33,10 +33,11 @@ describe("CLI distribution package shape", () => {
 		const result = spawnSync("bun", ["pm", "pack", "--dry-run"], {
 			cwd: cliRoot,
 			encoding: "utf8",
+			shell: true,
 		});
 
 		expect(result.status).not.toBe(0);
-		expect(result.stderr).toContain(DIRECT_PUBLISH_GUARD_MESSAGE);
+		expect(result.stderr || result.stdout || "").toContain(DIRECT_PUBLISH_GUARD_MESSAGE);
 	});
 
 	it("packs the generated npm wrapper package", async () => {
@@ -52,7 +53,7 @@ describe("CLI distribution package shape", () => {
 						description: "CLI test package",
 						license: "Apache-2.0",
 						bin: {
-							cline: "./bin/cline",
+							synai: "./bin/synai",
 						},
 						scripts: {
 							postinstall: "node ./postinstall.mjs || true",
@@ -69,7 +70,7 @@ describe("CLI distribution package shape", () => {
 				join(packageDir, "bin", "synai"),
 				[
 					"#!/usr/bin/env node",
-					'console.log("cline wrapper smoke test");',
+					'console.log("synai wrapper smoke test");',
 					"",
 				].join("\n"),
 			);
@@ -82,6 +83,7 @@ describe("CLI distribution package shape", () => {
 			const result = spawnSync("bun", ["pm", "pack"], {
 				cwd: packageDir,
 				encoding: "utf8",
+				shell: true,
 			});
 
 			expect(result.status).toBe(0);

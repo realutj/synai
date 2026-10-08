@@ -1,4 +1,4 @@
-import { formatUserCommandBlock } from "@synai/shared";
+import { formatUserCommandBlock, PROMPT_RECIPES } from "@synai/shared";
 import type { InteractiveSlashCommand } from "../interactive-welcome";
 
 export type SlashCommandSource =
@@ -110,7 +110,7 @@ const TUI_LOCAL_COMMANDS: Array<{
 	},
 	{
 		name: "quit",
-		description: "Exit Cline",
+		description: "Exit Synai",
 	},
 ];
 
@@ -203,6 +203,19 @@ export function buildSlashCommandRegistry(input: {
 			visible,
 			selectable: visible,
 			preserveInput: command.preserveInput,
+		});
+	}
+
+	for (const recipe of PROMPT_RECIPES) {
+		addEntry(byName, {
+			name: recipe.name,
+			description: recipe.description,
+			instructions: recipe.instructions,
+			source: "workflow",
+			kind: "workflow",
+			execution: "user-command",
+			visible: true,
+			selectable: true,
 		});
 	}
 

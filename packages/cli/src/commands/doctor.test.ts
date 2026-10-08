@@ -14,7 +14,7 @@ import { getCliBuildInfo } from "../utils/common";
 
 const {
 	mockSpawnSync,
-	mockResolveClineDataDir,
+	mockResolveSynaiDataDir,
 	mockResolveProductionHubOwnerContext,
 	mockResolveSharedHubOwnerContext,
 	mockReadHubDiscovery,
@@ -28,11 +28,11 @@ const {
 	mockListSupervisedConnectors,
 } = vi.hoisted(() => ({
 	mockSpawnSync: vi.fn(),
-	mockResolveClineDataDir: vi.fn(() => "/tmp/cline-data"),
+	mockResolveSynaiDataDir: vi.fn(() => "/tmp/synai-data"),
 	mockResolveProductionHubOwnerContext: vi.fn(() => ({
 		ownerId: "hub-production",
 		discoveryPath: path.join(
-			"/tmp/cline-data",
+			"/tmp/synai-data",
 			"locks",
 			"hub",
 			"production.json",
@@ -41,7 +41,7 @@ const {
 	mockResolveSharedHubOwnerContext: vi.fn(() => ({
 		ownerId: "hub-owner",
 		discoveryPath: path.join(
-			"/tmp/cline-data",
+			"/tmp/synai-data",
 			"locks",
 			"hub",
 			"owners",
@@ -69,7 +69,7 @@ vi.mock("node:child_process", () => ({
 }));
 
 vi.mock("@synai/core", () => ({
-	resolveClineDataDir: mockResolveClineDataDir,
+	resolveSynaiDataDir: mockResolveSynaiDataDir,
 	resolveProductionHubOwnerContext: mockResolveProductionHubOwnerContext,
 	resolveSharedHubOwnerContext: mockResolveSharedHubOwnerContext,
 	clearHubDiscovery: mockClearHubDiscovery,
@@ -100,11 +100,11 @@ describe("runDoctorCommand", () => {
 
 	afterEach(() => {
 		vi.clearAllMocks();
-		mockResolveClineDataDir.mockReturnValue("/tmp/cline-data");
+		mockResolveSynaiDataDir.mockReturnValue("/tmp/synai-data");
 		mockResolveProductionHubOwnerContext.mockReturnValue({
 			ownerId: "hub-production",
 			discoveryPath: path.join(
-				"/tmp/cline-data",
+				"/tmp/synai-data",
 				"locks",
 				"hub",
 				"production.json",
@@ -215,7 +215,7 @@ describe("runDoctorCommand", () => {
 			) {
 				return {
 					status: 0,
-					stdout: "50174 /usr/local/bin/cline --synai-hub-daemon\n",
+					stdout: "50174 /usr/local/bin/synai --synai-hub-daemon\n",
 				};
 			}
 			return { status: 1, stdout: "" };
@@ -416,15 +416,26 @@ describe("runDoctorCommand", () => {
 		);
 
 		expect(code).toBe(0);
-		expect(killSpy).toHaveBeenCalledWith(60123, "SIGKILL");
-		expect(JSON.parse(output[0] || "")).toMatchObject({
-			before: {
-				staleSidecarPids: [60123],
-			},
-			killed: {
-				sidecarProcesses: 1,
-			},
-		});
+		if (process.platform !== "win32") {
+			expect(killSpy).toHaveBeenCalledWith(60123, "SIGKILL");
+			expect(JSON.parse(output[0] || "")).toMatchObject({
+				before: {
+					staleSidecarPids: [60123],
+				},
+				killed: {
+					sidecarProcesses: 1,
+				},
+			});
+		} else {
+			expect(JSON.parse(output[0] || "")).toMatchObject({
+				before: {
+					staleSidecarPids: [],
+				},
+				killed: {
+					sidecarProcesses: 0,
+				},
+			});
+		}
 		killSpy.mockRestore();
 	});
 });
@@ -444,7 +455,7 @@ describe("createDoctorCommand log subcommand", () => {
 			path.join(os.tmpdir(), `${commandName}-doctor-log-test-`),
 		);
 		tempDirs.push(dataDir);
-		mockResolveClineDataDir.mockReturnValue(dataDir);
+		mockResolveSynaiDataDir.mockReturnValue(dataDir);
 		mockEnsureFileExists.mockImplementation((filePath: string) => {
 			mkdirSync(path.dirname(filePath), { recursive: true });
 			appendFileSync(filePath, "");
@@ -489,7 +500,7 @@ describe("createDoctorCommand log subcommand", () => {
 			path.join(os.tmpdir(), `${commandName}-doctor-log-test-`),
 		);
 		tempDirs.push(dataDir);
-		mockResolveClineDataDir.mockReturnValue(dataDir);
+		mockResolveSynaiDataDir.mockReturnValue(dataDir);
 
 		const errors: string[] = [];
 		let exitCode = 0;
@@ -675,14 +686,14 @@ describe("doctor supervision reporting", () => {
 		expect(
 			formatSupervisedConnector({
 				channel: "telegram",
-				instanceId: "cline_bot",
+				instanceId: "synai_bot",
 				state: "running",
 				origin: "spawned",
 				pid: 7,
 				restarts: 0,
 			}),
 		).toBe(
-			"telegram | instance=cline_bot | state=running | origin=spawned | pid=7",
+			"telegram | instance=synai_bot | state=running | origin=spawned | pid=7",
 		);
 	});
 });

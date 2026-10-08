@@ -43,7 +43,11 @@ export function resolveCliLaunchSpec(
 	}
 
 	const resolvedEntry = normalizeEntryArg(argv[1], cwd);
-	if (resolvedEntry && existsSync(resolvedEntry)) {
+	if (
+		resolvedEntry &&
+		!resolvedEntry.includes("$bunfs") &&
+		(existsSync(resolvedEntry) || /\.(ts|tsx|mts|cts|js|mjs|cjs)$/.test(resolvedEntry))
+	) {
 		const conditionsArg = execArgv.find((arg) =>
 			arg.startsWith("--conditions="),
 		);

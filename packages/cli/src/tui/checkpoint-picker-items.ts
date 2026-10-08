@@ -52,7 +52,7 @@ function extractText(content: Message["content"]): string {
  * when it numbers checkpoints and later resolves them. Tool-result messages
  * carry role "user" but contribute 0, and a compaction summary spans the turns
  * it folded. Counting raw "user" messages overcounts, so the picker would hand
- * restore a run number the core cannot map — surfacing as
+ * restore a run number the core cannot map - surfacing as
  * "Could not find user message for run N" and aborting the restore.
  */
 export function buildCheckpointPickerItems(

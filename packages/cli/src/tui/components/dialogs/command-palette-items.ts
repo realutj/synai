@@ -98,7 +98,7 @@ const ACTION_ITEMS: Array<{
 		label: "Browse Skills",
 		shortcut: "Opt+W",
 		description: "Insert an installed skill or workflow command",
-		keywords: ["skills", "workflows", "marketplace"],
+		keywords: ["skills", "workflows"],
 	},
 	{
 		action: "fork",

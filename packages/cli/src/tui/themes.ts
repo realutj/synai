@@ -17,7 +17,7 @@ import {
 //     behavior, and still the default).
 //   - "dark" / "light" force the corresponding synai palette and paint a
 //     matching background, for terminals whose reported colors are missing or
-//     wrong (see cline/cline#12872).
+//     wrong (see synai/synai#12872).
 //   - Named themes (Tokyo Night, Gruvbox, ...) paint their canonical
 //     background and bring their own accent + syntax palettes.
 

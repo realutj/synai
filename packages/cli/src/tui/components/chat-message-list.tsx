@@ -1,5 +1,6 @@
-import "opentui-spinner/react";
-import type { AgentMode, ClineSubscriptionPlan } from "@synai/core";
+import { ensureSpinnerRegistered } from "../spinner-register";
+ensureSpinnerRegistered();
+import type { AgentMode, SynaiSubscriptionPlan } from "@synai/core";
 import type { ScrollBoxRenderable } from "@opentui/core";
 import {
 	forwardRef,
@@ -21,7 +22,7 @@ export interface TranscriptScrollHandle {
 interface ChatMessageListProps {
 	entries: ChatEntry[];
 	isStreaming?: boolean;
-	loadIndividualSubscriptionPlans?: () => Promise<ClineSubscriptionPlan[]>;
+	loadIndividualSubscriptionPlans?: () => Promise<SynaiSubscriptionPlan[]>;
 	uiMode?: AgentMode;
 }
 

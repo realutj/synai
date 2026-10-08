@@ -25,7 +25,7 @@ describe("resolveAwsRegion", () => {
 	it("reads selected profile region from AWS config", () => {
 		delete process.env.AWS_REGION;
 		delete process.env.AWS_DEFAULT_REGION;
-		const dir = mkdtempSync(join(tmpdir(), "cline-aws-config-"));
+		const dir = mkdtempSync(join(tmpdir(), "synai-aws-config-"));
 		try {
 			const configPath = join(dir, "config");
 			writeFileSync(

@@ -1,7 +1,7 @@
 import { relative, sep } from "node:path";
 import {
-	resolveClineDataDir,
-	resolveClineDir,
+	resolveSynaiDataDir,
+	resolveSynaiDir,
 	setHomeDir,
 } from "@synai/shared/storage";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -13,7 +13,7 @@ function tildePath(absolutePath: string, home: string): string {
 }
 
 describe("root option help text", () => {
-	const FAKE_HOME = "/home/cline-help-test";
+	const FAKE_HOME = "/home/synai-help-test";
 	const savedEnv: Record<string, string | undefined> = {};
 
 	beforeAll(() => {
@@ -43,8 +43,8 @@ describe("root option help text", () => {
 			.configureHelp({ helpWidth: 500 })
 			.helpInformation();
 
-		const configDefault = tildePath(resolveClineDir(), FAKE_HOME);
-		const dataDirDefault = tildePath(resolveClineDataDir(), FAKE_HOME);
+		const configDefault = tildePath(resolveSynaiDir(), FAKE_HOME);
+		const dataDirDefault = tildePath(resolveSynaiDataDir(), FAKE_HOME);
 
 		// Sanity-check the resolvers themselves so the assertions below can't
 		// silently drift along with a resolver regression.

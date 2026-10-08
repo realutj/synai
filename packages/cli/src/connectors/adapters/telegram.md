@@ -13,7 +13,7 @@ Create a bot with `@BotFather`:
 Start the connector:
 
 ```bash
-cline connect telegram -k "$TELEGRAM_BOT_TOKEN"
+synai connect telegram -k "$TELEGRAM_BOT_TOKEN"
 ```
 
 The connector discovers the bot username from the token. Use `--bot-username`
@@ -23,19 +23,19 @@ Useful variants:
 
 ```bash
 # Keep logs in the active terminal while debugging.
-cline connect telegram -i -k "$TELEGRAM_BOT_TOKEN"
+synai connect telegram -i -k "$TELEGRAM_BOT_TOKEN"
 
 # Read credentials from env vars.
 TELEGRAM_BOT_TOKEN=123456:ABCDEF... synai connect telegram
 
 # Override the workspace and model used for Telegram sessions.
-cline connect telegram -k "$TELEGRAM_BOT_TOKEN" --cwd /path/to/repo --provider synai --model openai/gpt-5.3-codex
+synai connect telegram -k "$TELEGRAM_BOT_TOKEN" --cwd /path/to/repo --provider synai --model openai/gpt-5.3-codex
 
 # Disable tools for untrusted Telegram surfaces.
-cline connect telegram -k "$TELEGRAM_BOT_TOKEN" --no-tools
+synai connect telegram -k "$TELEGRAM_BOT_TOKEN" --no-tools
 
 # Stop Telegram connector processes and sessions.
-cline connect --stop telegram
+synai connect --stop telegram
 ```
 
 After the connector starts, send `/help` or `/start` to the bot in Telegram.
@@ -71,7 +71,7 @@ Tools are enabled by default for Telegram sessions. That means anyone who can su
 Use `--no-tools` when the Telegram surface is not trusted:
 
 ```bash
-cline connect telegram -k "$TELEGRAM_BOT_TOKEN" --no-tools
+synai connect telegram -k "$TELEGRAM_BOT_TOKEN" --no-tools
 ```
 
 When the connector starts with `--no-tools`, chat commands such as `/tools on` and `/yolo on` cannot re-enable tools for that connector run.
@@ -81,7 +81,7 @@ For participant restrictions, run the interactive connector wizard with `synai c
 You can also pass the user ID directly:
 
 ```bash
-cline connect telegram -k "$TELEGRAM_BOT_TOKEN" --allowed-user-id 12345
+synai connect telegram -k "$TELEGRAM_BOT_TOKEN" --allowed-user-id 12345
 ```
 
 You can also pass a manual `--hook-command` that returns `{"action":"deny"}` for unauthorized `session.authorize` events. If neither access option is configured, messages are allowed.
@@ -110,7 +110,7 @@ Schedules created this way automatically target the current Telegram thread for 
 If you are creating the schedule outside Telegram, first send `/whereami` in Telegram to get the thread id, then pass the delivery metadata to the CLI:
 
 ```bash
-cline schedule create "Daily summary" \
+synai schedule create "Daily summary" \
   --cron "0 9 * * *" \
   --prompt "Summarize yesterday's activity in this workspace." \
   --workspace /path/to/repo \

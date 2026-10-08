@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 
-console.log('🔄 Synchronizing build assets across SynAI monorepo...');
+console.log('[*] Synchronizing build assets across SynAI monorepo...');
 
 function copyDirRecursive(src, dest) {
   if (!fs.existsSync(src)) return;
@@ -33,7 +33,7 @@ if (fs.existsSync(webDist)) {
   copyDirRecursive(webDist, cliWebDist);
   copyDirRecursive(webDist, cliDistWeb);
 } else {
-  console.warn('  ⚠️ packages/web/dist does not exist yet. Run npm run build:web first.');
+  console.warn('  [!] packages/web/dist does not exist yet. Run npm run build:web first.');
 }
 
 // 2. Sync core dist into packages/cli/node_modules/@synai-code/core/dist
@@ -52,4 +52,4 @@ if (fs.existsSync(coreDist)) {
   }
 }
 
-console.log('✅ Asset synchronization complete!');
+console.log('[OK] Asset synchronization complete!');

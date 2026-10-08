@@ -17,6 +17,38 @@
  * ASCII frames, including the robot animation, so Kitty bitmap graphics are not
  * used here.
  */
+import { ensureSpinnerRegistered } from "./spinner-register";
+import { BorderChars, BorderCharArrays } from "@opentui/core";
+
+export function configureTerminalBorders(): void {
+	if (process.platform === "win32" && !process.env.WT_SESSION && !process.env.TERM_PROGRAM) {
+		try {
+			if (BorderCharArrays?.rounded && BorderCharArrays?.single) {
+				BorderCharArrays.rounded.set(BorderCharArrays.single);
+			}
+			if (BorderChars?.rounded && BorderChars?.single) {
+				Object.assign(BorderChars.rounded, BorderChars.single);
+			}
+		} catch {}
+	}
+}
+
 export function disableOpenTuiGraphicsProbe(): void {
 	process.env.OPENTUI_GRAPHICS = "0";
+	process.env.OTUI_USE_CONSOLE = "false";
+	process.env.SHOW_CONSOLE = "false";
+	configureTerminalBorders();
+	try {
+		ensureSpinnerRegistered();
+	} catch {}
 }
+
+export function disableOpenTuiConsole(): void {
+	process.env.OTUI_USE_CONSOLE = "false";
+	process.env.SHOW_CONSOLE = "false";
+	configureTerminalBorders();
+}
+
+// Ensure console overlay is disabled and safe borders configured upon importing
+disableOpenTuiConsole();
+

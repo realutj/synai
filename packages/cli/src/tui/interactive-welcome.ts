@@ -5,7 +5,7 @@ import {
 } from "@synai/core";
 import { byLengthAsc, Fzf, type FzfResultItem } from "fzf";
 import type { Config } from "../utils/types";
-import { formatClineCredits, loadClineAccountSnapshot } from "./synai-account";
+import { formatSynaiCredits, loadSynaiAccountSnapshot } from "./synai-account";
 
 export interface InteractiveSlashCommand {
 	name: string;
@@ -167,19 +167,19 @@ export async function searchWorkspaceFilesForMention(input: {
 	return rankMentionPaths(index, input.query, limit);
 }
 
-export async function resolveClineWelcomeLine(input: {
+export async function resolveSynaiWelcomeLine(input: {
 	config: Config;
-	clineApiBaseUrl?: string;
-	clineProviderSettings?: ProviderSettings;
+	synaiApiBaseUrl?: string;
+	synaiProviderSettings?: ProviderSettings;
 }): Promise<string | undefined> {
-	if (input.config.providerId !== "cline") {
+	if (input.config.providerId !== "synai") {
 		return undefined;
 	}
 	try {
-		const snapshot = await loadClineAccountSnapshot(input);
+		const snapshot = await loadSynaiAccountSnapshot(input);
 		const parts = [
 			snapshot.user.email,
-			`Credits: ${formatClineCredits(snapshot.displayedBalance)}`,
+			`Credits: ${formatSynaiCredits(snapshot.displayedBalance)}`,
 		];
 		if (snapshot.activeOrganization?.name.trim()) {
 			parts.push(snapshot.activeOrganization.name);
@@ -189,6 +189,4 @@ export async function resolveClineWelcomeLine(input: {
 		return undefined;
 	}
 }
-
-export const resolveSynaiWelcomeLine = resolveClineWelcomeLine;
 

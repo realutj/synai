@@ -1,6 +1,4 @@
 import { useCallback, useRef, useState } from "react";
-import { useTheme } from "../hooks/use-theme";
-import { RobotAnimation } from "./robot-animation";
 
 export function useMouseTracker() {
 	const [cursor, setCursor] = useState({ x: 0, y: 0 });

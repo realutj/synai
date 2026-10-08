@@ -267,7 +267,7 @@ export function SearchableList(props: {
 					{showAbove && (
 						<box paddingX={1} justifyContent="center">
 							<text fg="gray">
-								{"\u25b2"} {aboveCount} more
+								{"^"} {aboveCount} more
 							</text>
 						</box>
 					)}
@@ -296,7 +296,7 @@ export function SearchableList(props: {
 									fg={isSel ? theme.textOnSelection : "gray"}
 									flexShrink={0}
 								>
-									{isSel ? "\u276f" : " "}
+									{isSel ? ">" : " "}
 								</text>
 								<text fg={isSel ? theme.textOnSelection : defaultFg}>
 									{item.label}
@@ -337,7 +337,7 @@ export function SearchableList(props: {
 					{showBelow && (
 						<box paddingX={1} justifyContent="center">
 							<text fg="gray">
-								{"\u25bc"} {belowCount} more
+								{"v"} {belowCount} more
 							</text>
 						</box>
 					)}

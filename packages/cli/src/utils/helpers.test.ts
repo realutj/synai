@@ -101,9 +101,9 @@ describe("parseArgs", () => {
 	});
 
 	it("enables sandbox automatically when --data-dir is set", () => {
-		const parsed = parseArgs(["--data-dir", "./.tmp-cline"]);
+		const parsed = parseArgs(["--data-dir", "./.tmp-synai"]);
 		expect(parsed.sandbox).toBe(true);
-		expect(parsed.dataDir).toBe("./.tmp-cline");
+		expect(parsed.dataDir).toBe("./.tmp-synai");
 	});
 
 	it("does not enable sandbox when --data-dir is omitted", () => {
@@ -376,7 +376,7 @@ describe("format helpers", () => {
 		expect(formatToolOutput(null)).toBe("");
 	});
 
-	// Regression tests for https://github.com/SynAI/cline/issues/13036:
+	// Regression tests for https://github.com/SynAI/synai/issues/13036:
 	// malformed tool inputs crossing the model/tool boundary must never
 	// throw from display-only formatters.
 	it("does not crash on run_commands with a null command", () => {
@@ -457,7 +457,7 @@ describe("hook payload validation and audit logging", () => {
 	it("validates hook payload structure", async () => {
 		expect(
 			await isCliHookPayload({
-				clineVersion: "",
+				synaiVersion: "",
 				hookName: "tool_call",
 				timestamp: new Date().toISOString(),
 				taskId: "conv_1",
@@ -487,7 +487,7 @@ describe("hook payload validation and audit logging", () => {
 		delete process.env.SYNAI_SESSION_DATA_DIR;
 
 		await appendHookAudit({
-			clineVersion: "",
+			synaiVersion: "",
 			hookName: "tool_call",
 			timestamp: new Date().toISOString(),
 			taskId: "conv_1",
@@ -521,7 +521,7 @@ describe("hook payload validation and audit logging", () => {
 		delete process.env.SYNAI_SESSION_DATA_DIR;
 
 		await appendHookAudit({
-			clineVersion: "",
+			synaiVersion: "",
 			hookName: "tool_result",
 			timestamp: new Date().toISOString(),
 			taskId: "conv_3",

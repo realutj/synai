@@ -136,6 +136,7 @@ export function ModelSelectorContent(
 		currentProviderName: string;
 		models: ModelOption[];
 		showCustomModelId?: boolean;
+		onRefresh?: () => Promise<void>;
 	},
 ) {
 	const {
@@ -146,8 +147,10 @@ export function ModelSelectorContent(
 		currentProviderName,
 		models,
 		showCustomModelId = true,
+		onRefresh,
 	} = props;
 	const [search, setSearch] = useState("");
+	const [isRefreshing, setIsRefreshing] = useState(false);
 	const [selected, setSelected] = useState(() => {
 		const idx = models.findIndex((m) => m.key === currentModel);
 		return idx >= 0 ? idx : 0;
@@ -181,6 +184,13 @@ export function ModelSelectorContent(
 			return;
 		}
 		if (isCreatingCustomModel) return;
+		if ((key.name === "r" && !search) || (key.ctrl && key.name === "r")) {
+			if (onRefresh && !isRefreshing) {
+				setIsRefreshing(true);
+				void onRefresh().finally(() => setIsRefreshing(false));
+			}
+			return;
+		}
 		if (key.name === "return" || key.name === "enter") {
 			if (onProvider) {
 				resolve(CHANGE_PROVIDER_ACTION);
@@ -270,7 +280,10 @@ export function ModelSelectorContent(
 
 	return (
 		<box flexDirection="column" gap={1}>
-			<text>Select Model</text>
+			<box flexDirection="row" justifyContent="space-between">
+				<text>Select Model</text>
+				{isRefreshing && <text fg="yellow">Refreshing live models...</text>}
+			</box>
 
 			<ProviderRow providerName={currentProviderName} focused={onProvider} />
 
@@ -302,8 +315,7 @@ export function ModelSelectorContent(
 			/>
 
 			<text fg="gray">
-				Type to search, ↑/↓ navigate, Enter to select, Tab to change provider,
-				Esc to close
+				Type to search, Up/Down navigate, Enter to select, Tab provider, r / Ctrl+R refresh, Esc close
 			</text>
 		</box>
 	);
@@ -376,7 +388,7 @@ export function ThinkingLevelContent(
 								fg={i === selected ? palette.textOnSelection : "gray"}
 								flexShrink={0}
 							>
-								{i === selected ? "\u276f" : " "}
+								{i === selected ? ">" : " "}
 							</text>
 							<text fg={i === selected ? palette.textOnSelection : undefined}>
 								{level.label}
@@ -401,7 +413,7 @@ export function ThinkingLevelContent(
 				))}
 			</box>
 
-			<text fg="gray">↑/↓ navigate, Enter to select, Esc to go back</text>
+			<text fg="gray">Up/Down navigate, Enter to select, Esc to go back</text>
 		</box>
 	);
 }
@@ -478,7 +490,7 @@ function ModelList(props: {
 			{showAbove && (
 				<box paddingX={1} justifyContent="center">
 					<text fg="gray">
-						{"\u25b2"} {aboveCount} more
+						{"^"} {aboveCount} more
 					</text>
 				</box>
 			)}
@@ -504,7 +516,7 @@ function ModelList(props: {
 			{showBelow && (
 				<box paddingX={1} justifyContent="center">
 					<text fg="gray">
-						{"\u25bc"} {belowCount} more
+						{"v"} {belowCount} more
 					</text>
 				</box>
 			)}
@@ -536,7 +548,7 @@ function CreateCustomModelRow(props: {
 			height={1}
 		>
 			<text fg={isSelected ? palette.textOnSelection : "gray"} flexShrink={0}>
-				{isSelected ? "\u276f" : " "}
+				{isSelected ? ">" : " "}
 			</text>
 			<text fg={isSelected ? palette.textOnSelection : undefined}>
 				Create custom model ID
@@ -574,7 +586,7 @@ function ModelRow(props: {
 			height={1}
 		>
 			<text fg={isSelected ? palette.textOnSelection : "gray"} flexShrink={0}>
-				{isSelected ? "\u276f" : " "}
+				{isSelected ? ">" : " "}
 			</text>
 			<text fg={isSelected ? palette.textOnSelection : undefined}>
 				{model.name}

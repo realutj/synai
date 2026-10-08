@@ -18,6 +18,7 @@ import { MemoryEngine } from '../memory/index.js';
 import { SubagentOrchestrator } from '../subagents/index.js';
 import { StorageManager, generateIntelligentTitle } from '../storage/index.js';
 import { applyThinkingLevel, getThinkingLevelPromptAddition, normalizeThinkingLevel, getThinkingLevelIcon } from '../thinking/index.js';
+import { getPersistedProviderApiKey, ProviderSettingsManager } from '../compat.js';
 
 export type ApprovalHandler = (request: ApprovalRequest) => Promise<boolean>;
 
@@ -139,22 +140,98 @@ export class Agent extends EventEmitter {
 
   constructor(config: AgentConfig) {
     super();
+    let providerId = ((config as any).providerId || 'openrouter').toLowerCase();
+    let resolvedBaseUrl = (config as any).baseUrl || '';
+    if (!resolvedBaseUrl) {
+      if (providerId === 'opencode') resolvedBaseUrl = 'https://opencode.ai/zen/v1';
+      else if (providerId === 'openai-codex') resolvedBaseUrl = 'https://chatgpt.com/backend-api/codex';
+      else if (providerId === 'openai') resolvedBaseUrl = 'https://api.openai.com/v1';
+      else if (providerId === 'deepseek') resolvedBaseUrl = 'https://api.deepseek.com/v1';
+      else if (providerId === 'anthropic') resolvedBaseUrl = 'https://api.anthropic.com/v1';
+      else if (providerId === 'groq') resolvedBaseUrl = 'https://api.groq.com/openai/v1';
+      else if (providerId === 'google' || providerId === 'gemini') resolvedBaseUrl = 'https://generativelanguage.googleapis.com/v1beta/openai';
+      else if (providerId === 'ollama') resolvedBaseUrl = 'http://localhost:11434/v1';
+      else if (providerId === 'mistral') resolvedBaseUrl = 'https://api.mistral.ai/v1';
+      else if (providerId === 'together') resolvedBaseUrl = 'https://api.together.xyz/v1';
+      else if (providerId === 'cerebras') resolvedBaseUrl = 'https://api.cerebras.ai/v1';
+      else if (providerId === 'xai') resolvedBaseUrl = 'https://api.x.ai/v1';
+    }
+    let rawKey =
+      config.apiKey ||
+      (providerId === 'opencode' ? 'public' : '') ||
+      getPersistedProviderApiKey(providerId) ||
+      (providerId === 'openai' ? process.env.OPENAI_API_KEY : undefined) ||
+      (providerId === 'anthropic' ? process.env.ANTHROPIC_API_KEY : undefined) ||
+      (providerId === 'deepseek' ? process.env.DEEPSEEK_API_KEY : undefined) ||
+      (providerId === 'groq' ? process.env.GROQ_API_KEY : undefined) ||
+      (providerId === 'google' || providerId === 'gemini' ? (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY) : undefined) ||
+      (providerId === 'mistral' ? process.env.MISTRAL_API_KEY : undefined) ||
+      (providerId === 'openrouter' ? process.env.OPENROUTER_API_KEY : undefined) ||
+      process.env.OPENROUTER_API_KEY ||
+      process.env.SYNAI_API_KEY ||
+      getPersistedProviderApiKey('openai-codex') ||
+      getPersistedProviderApiKey('synai') ||
+      getPersistedProviderApiKey('openrouter') ||
+      '';
+
+    if (!config.apiKey && !getPersistedProviderApiKey(providerId)) {
+      if (getPersistedProviderApiKey('openai-codex')) {
+        providerId = 'openai-codex';
+        (config as any).providerId = 'openai-codex';
+        rawKey = getPersistedProviderApiKey('openai-codex') || '';
+        resolvedBaseUrl = 'https://chatgpt.com/backend-api/codex';
+      }
+    }
+
+    const extraHeaders: Record<string, string> = {};
+    if (providerId === 'openai-codex') {
+      try {
+        const mgr = new ProviderSettingsManager();
+        const s = mgr.getProviderSettings('openai-codex');
+        const accId = s?.auth?.accountId || s?.accountId;
+        if (accId) {
+          extraHeaders['ChatGPT-Account-Id'] = accId;
+        }
+      } catch {}
+    }
+
+    let model = config.model;
+    if (providerId === 'openai-codex') {
+      if (!model || model === 'openrouter/free' || model === 'gpt-4o') {
+        model = 'gpt-5.6-luna';
+      }
+    } else if (!model) {
+      if (providerId === 'anthropic') model = 'claude-3-7-sonnet-20250219';
+      else if (providerId === 'openai') model = 'gpt-4o';
+      else if (providerId === 'deepseek') model = 'deepseek-chat';
+      else if (providerId === 'groq') model = 'llama-3.3-70b-versatile';
+      else if (providerId === 'google' || providerId === 'gemini') model = 'gemini-2.0-flash';
+      else model = 'openrouter/free';
+    }
+
+    const isMockKey = rawKey === 'test-key' || rawKey.startsWith('test-') || rawKey === 'mock-key';
+    const resolvedKey = isMockKey ? '' : rawKey;
+    const rootDir = config.workspaceRoot || (config as any).cwd || process.cwd();
     this.config = {
       autoDiagnostics: true,
       maxSelfFixAttempts: 3,
       thinkingLevel: 'medium',
       ...config,
+      model,
+      workspaceRoot: rootDir,
+      providerId,
+      apiKey: resolvedKey,
     };
-    this.client = new OpenRouterClient(config.apiKey);
+    this.client = new OpenRouterClient(resolvedKey, resolvedBaseUrl, extraHeaders);
     this.planner = new TaskPlanner();
-    this.checkpoints = new CheckpointManager(config.workspaceRoot);
-    this.memory = new MemoryEngine(config.workspaceRoot);
+    this.checkpoints = new CheckpointManager(rootDir);
+    this.memory = new MemoryEngine(rootDir);
     this.subagents = new SubagentOrchestrator(this.config);
     this.storage = new StorageManager();
     this.conversationId = `conv_${Date.now()}`;
 
     this.tools = new ToolRegistry(
-      config.workspaceRoot,
+      rootDir,
       this.planner,
       this.checkpoints,
       this.subagents
@@ -180,6 +257,9 @@ export class Agent extends EventEmitter {
     this.config = { ...this.config, ...partial };
     if (partial.apiKey !== undefined) {
       this.client.setApiKey(partial.apiKey);
+    }
+    if ((partial as any).baseUrl !== undefined) {
+      this.client.setBaseUrl((partial as any).baseUrl);
     }
     if (partial.workspaceRoot !== undefined) {
       this.checkpoints = new CheckpointManager(partial.workspaceRoot);
@@ -373,18 +453,18 @@ export class Agent extends EventEmitter {
       const cmd = parts[0]?.toLowerCase();
       const arg = parts.slice(1).join(' ').trim().toLowerCase();
 
-      if (['think', 'effort', 'thinking', 'dusun', 'düşün', 'dusunme'].includes(cmd)) {
+      if (['think', 'effort', 'thinking'].includes(cmd)) {
         if (arg) {
           const level = normalizeThinkingLevel(arg);
           this.setConfig({ thinkingLevel: level });
-          const icons: Record<string, string> = { low: '⚡', medium: '⚖️', high: '🧠', max: '🌟' };
+          const icons: Record<string, string> = { low: '[LOW]', medium: '[MED]', high: '[HIGH]', max: '[MAX]' };
           const details: Record<string, string> = {
             low: '4K tokens, 15 turns',
             medium: '8K tokens, 25 turns',
             high: '16K tokens, 40 turns',
             max: '32K tokens, 60 turns',
           };
-          const icon = icons[level] || '⚖️';
+          const icon = icons[level] || '[MED]';
           const msg = `${icon} Thinking effort level set to: **${level.toUpperCase()}** (${details[level]})`;
           this.emitEvent({ type: 'message_start', payload: { role: 'user', content: userInput } });
           this.emitEvent({ type: 'stream_token', payload: { token: msg } });
@@ -398,7 +478,7 @@ export class Agent extends EventEmitter {
           this.emitEvent({ type: 'message_end', payload: { role: 'assistant', content: msg } });
           return msg;
         }
-      } else if (['clear', 'reset', 'temizle'].includes(cmd)) {
+      } else if (['clear', 'reset'].includes(cmd)) {
         this.resetConversation();
         const msg = 'Session and conversation history successfully cleared.';
         this.emitEvent({ type: 'message_start', payload: { role: 'user', content: userInput } });
@@ -406,7 +486,7 @@ export class Agent extends EventEmitter {
         this.emitEvent({ type: 'message_end', payload: { role: 'assistant', content: msg } });
         this.emitEvent({ type: 'reset_done' });
         return msg;
-      } else if (['mode', 'izin'].includes(cmd)) {
+      } else if (['mode', 'permission'].includes(cmd)) {
         if (['auto', 'confirm', 'dry-run'].includes(arg)) {
           this.setConfig({ mode: arg as any });
           const msg = `Execution mode set to: **${arg.toUpperCase()}**`;
@@ -418,14 +498,87 @@ export class Agent extends EventEmitter {
       }
     }
 
-    const apiKey = (this.config.apiKey || process.env.OPENROUTER_API_KEY || '').trim();
+    let providerId = ((this.config as any).providerId || 'openrouter').toLowerCase();
+    let rawApiKey = (
+      this.config.apiKey ||
+      (providerId === 'opencode' ? 'public' : '') ||
+      getPersistedProviderApiKey(providerId) ||
+      (providerId === 'openai' ? process.env.OPENAI_API_KEY : undefined) ||
+      (providerId === 'anthropic' ? process.env.ANTHROPIC_API_KEY : undefined) ||
+      (providerId === 'deepseek' ? process.env.DEEPSEEK_API_KEY : undefined) ||
+      (providerId === 'groq' ? process.env.GROQ_API_KEY : undefined) ||
+      (providerId === 'google' || providerId === 'gemini' ? (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY) : undefined) ||
+      (providerId === 'mistral' ? process.env.MISTRAL_API_KEY : undefined) ||
+      (providerId === 'openrouter' ? process.env.OPENROUTER_API_KEY : undefined) ||
+      process.env.OPENROUTER_API_KEY ||
+      process.env.SYNAI_API_KEY ||
+      getPersistedProviderApiKey('openai-codex') ||
+      getPersistedProviderApiKey('synai') ||
+      getPersistedProviderApiKey('openrouter') ||
+      ''
+    ).trim();
+
+    if (!this.config.apiKey && !getPersistedProviderApiKey(providerId)) {
+      if (getPersistedProviderApiKey('openai-codex')) {
+        providerId = 'openai-codex';
+        (this.config as any).providerId = 'openai-codex';
+        rawApiKey = getPersistedProviderApiKey('openai-codex') || '';
+      }
+    }
+
+    const isMock = rawApiKey === 'test-key' || rawApiKey.startsWith('test-') || rawApiKey === 'mock-key';
+    const apiKey = isMock ? '' : rawApiKey;
+
     if (!apiKey) {
-      const errorMsg = 'OpenRouter API Key tanımlı değil. İlerlemek için geçerli bir API anahtarı girmelisiniz.';
-      this.emitEvent({
-        type: 'error',
-        payload: { message: errorMsg },
-      });
-      throw new Error(errorMsg);
+      const guidance =
+        `Welcome to SynAI!\n\n` +
+        `To start chatting and executing agent tasks, please configure an API key for your chosen provider:\n` +
+        `• Set an environment variable: \`OPENROUTER_API_KEY\`, \`OPENAI_API_KEY\`, or \`ANTHROPIC_API_KEY\`\n` +
+        `• Log in via CLI: \`synai provider\` or \`synai login\`\n` +
+        `• Configure settings: press \`F2\` to open the settings panel.`;
+      this.emitEvent({ type: 'message_start', payload: { role: 'user', content: userInput } });
+      this.emitEvent({ type: 'stream_token', payload: { token: guidance } });
+      this.emitEvent({ type: 'message_end', payload: { role: 'assistant', content: guidance } });
+      this.emitEvent({ type: 'done', payload: { response: guidance } });
+      return guidance;
+    }
+
+    if (apiKey !== this.config.apiKey || (this.config as any).providerId !== providerId) {
+      this.config.apiKey = apiKey;
+      (this.config as any).providerId = providerId;
+      let resolvedBaseUrl = (this.config as any).baseUrl || '';
+      if (!resolvedBaseUrl) {
+        if (providerId === 'opencode') resolvedBaseUrl = 'https://opencode.ai/zen/v1';
+        else if (providerId === 'openai-codex') resolvedBaseUrl = 'https://chatgpt.com/backend-api/codex';
+        else if (providerId === 'openai') resolvedBaseUrl = 'https://api.openai.com/v1';
+        else if (providerId === 'deepseek') resolvedBaseUrl = 'https://api.deepseek.com/v1';
+        else if (providerId === 'anthropic') resolvedBaseUrl = 'https://api.anthropic.com/v1';
+        else if (providerId === 'groq') resolvedBaseUrl = 'https://api.groq.com/openai/v1';
+        else if (providerId === 'google' || providerId === 'gemini') resolvedBaseUrl = 'https://generativelanguage.googleapis.com/v1beta/openai';
+        else if (providerId === 'ollama') resolvedBaseUrl = 'http://localhost:11434/v1';
+        else if (providerId === 'mistral') resolvedBaseUrl = 'https://api.mistral.ai/v1';
+        else if (providerId === 'together') resolvedBaseUrl = 'https://api.together.xyz/v1';
+        else if (providerId === 'cerebras') resolvedBaseUrl = 'https://api.cerebras.ai/v1';
+        else if (providerId === 'xai') resolvedBaseUrl = 'https://api.x.ai/v1';
+      }
+      const extraHeaders: Record<string, string> = {};
+      if (providerId === 'openai-codex') {
+        try {
+          const mgr = new ProviderSettingsManager();
+          const s = mgr.getProviderSettings('openai-codex');
+          const accId = s?.auth?.accountId || s?.accountId;
+          if (accId) {
+            extraHeaders['ChatGPT-Account-Id'] = accId;
+          }
+        } catch {}
+      }
+      this.client = new OpenRouterClient(apiKey, resolvedBaseUrl, extraHeaders);
+    }
+
+    if (providerId === 'openai-codex') {
+      if (!this.config.model || this.config.model === 'openrouter/free' || this.config.model === 'gpt-4o') {
+        this.config.model = 'gpt-5.6-luna';
+      }
     }
 
     this.isBusy = true;
@@ -493,7 +646,7 @@ export class Agent extends EventEmitter {
           payload: { text: `Thinking with model ${this.config.model}... (step ${turnCount})` },
         });
 
-        const isSimpleGreeting = /^(merhaba|selam|selamlar|merhabalar|günaydın|iyi günler|iyi akşamlar|hi|hello|hey|yo)[\s!.,:)]*$/i.test(userInput.trim());
+        const isSimpleGreeting = /^(hi|hello|hey|yo|sa|as|selam|merhaba|slm|selamlar|günaydın|gunaydin|iyi günler|iyi gunler|iyi akşamlar|iyi aksamlar|good morning|good afternoon|good evening)[\s!.,:)]*$/i.test(userInput.trim());
         const toolsToSend = isSimpleGreeting ? [] : this.tools.getDefinitions();
         const maxTokensToSend = isSimpleGreeting ? 128 : thinkingConfig.maxTokens;
 
@@ -645,7 +798,18 @@ export class Agent extends EventEmitter {
 
           // Check approval requirement
           let approved = true;
-          if (this.tools.requiresApproval(toolName, this.config.mode, parsedArgs)) {
+          const normalizedToolName = this.tools.normalizeToolName(toolName);
+          const toolPolicies = this.config.toolPolicies || {};
+          const toolPolicy =
+            toolPolicies[toolName] ??
+            toolPolicies[normalizedToolName] ??
+            toolPolicies["*"];
+          const requiresApproval =
+            typeof toolPolicy?.autoApprove === "boolean"
+              ? !toolPolicy.autoApprove
+              : this.tools.requiresApproval(toolName, this.config.mode, parsedArgs);
+
+          if (requiresApproval) {
             const approvalReq = this.tools.createApprovalRequest(
               toolCall.id,
               toolName,
@@ -660,7 +824,7 @@ export class Agent extends EventEmitter {
             if (this.approvalHandler) {
               approved = await this.approvalHandler(approvalReq);
             } else {
-              approved = true;
+              approved = false;
             }
           }
 
@@ -759,9 +923,38 @@ You MUST adjust your strategy now:
         this.emitEvent({ type: 'status', payload: { text: abortMsg } });
         return `[Aborted] ${abortMsg}`;
       }
-      this.emitEvent({ type: 'error', payload: { message: err.message || 'Unknown error occurred' } });
-      // Don't re-throw — return the error message so the REPL stays alive
-      return `[Error] ${err.message || 'Unknown error'}`;
+
+      const errMsg = String(err?.message || err || 'Unknown error');
+      const isAuthError =
+        errMsg.includes('401') ||
+        errMsg.includes('403') ||
+        errMsg.toLowerCase().includes('authentication') ||
+        errMsg.toLowerCase().includes('api key') ||
+        errMsg.toLowerCase().includes('unauthorized') ||
+        errMsg.toLowerCase().includes('no cookie auth');
+
+      if (isAuthError) {
+        let authHelp =
+          `⚠️ **Yetkilendirme Hatası (Authentication Required)**\n\n` +
+          `**${providerId}** sağlayıcısı ile kimlik doğrulanamadı (${errMsg}).\n\n`;
+        if (providerId === 'openai-codex') {
+          authHelp +=
+            `• ChatGPT oturumunuzun süresi dolmuş olabilir. Lütfen terminalde \`synai login\` veya \`synai login openai-codex\` komutunu çalıştırarak tekrar giriş yapın.\n` +
+            `• Veya başka bir sağlayıcıya geçin: \`/provider openrouter\`.`;
+        } else {
+          authHelp +=
+            `• API anahtarınızı yapılandırmak için: \`/key <api-anahtarı>\` veya \`synai login\` çalıştırın.\n` +
+            `• Veya başka bir sağlayıcıya geçin: \`/provider openrouter\` veya \`/provider openai\`.\n` +
+            `• OpenRouter için ortam değişkeni ayarlayın: \`OPENROUTER_API_KEY=sk-or-...\``;
+        }
+        this.emitEvent({ type: 'stream_token', payload: { token: authHelp } });
+        this.emitEvent({ type: 'message_end', payload: { role: 'assistant', content: authHelp } });
+        this.emitEvent({ type: 'done', payload: { response: authHelp } });
+        return authHelp;
+      }
+
+      this.emitEvent({ type: 'error', payload: { message: errMsg } });
+      return `[Error] ${errMsg}`;
     } finally {
       this.isBusy = false;
       this.abortController = null;

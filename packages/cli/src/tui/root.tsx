@@ -300,8 +300,8 @@ function App(props: TuiProps) {
 	const openAccount = useAccountDialog({
 		dialog,
 		termHeight,
-		loadAccount: props.loadClineAccount,
-		switchAccount: props.switchClineAccount,
+		loadAccount: props.loadSynaiAccount,
+		switchAccount: props.switchSynaiAccount,
 		onAccountChange: props.onAccountChange,
 		openModelSelector,
 		refocusTextarea: () => refocusTextareaRef.current(),
@@ -547,7 +547,7 @@ function App(props: TuiProps) {
 	useEffect(() => {
 		if (!hubBuildWatchEnabled) return;
 		return watchManagedHubBuildMismatch({
-			onMismatch: (mismatch) => setHubBuildMismatch(mismatch),
+			onMismatch: (mismatch: any) => setHubBuildMismatch(mismatch),
 		});
 	}, [hubBuildWatchEnabled]);
 
@@ -585,9 +585,9 @@ function App(props: TuiProps) {
 						refocusTextareaRef.current();
 						return;
 					}
-					showToast("Updating the SynAI Hub…", "info");
+					showToast("Updating the SynAI Hub...", "info");
 					try {
-						const result = await upgradeManagedHub({
+						const result: any = await upgradeManagedHub({
 							force: true,
 							reason: "synai TUI hub update",
 						});

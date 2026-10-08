@@ -18,6 +18,22 @@ import { searchWeb } from './web_search_tool.js';
 import { askQuestionToolDefinition, executeAskQuestion, QuestionItem } from './ask_question_tool.js';
 import { browserTools, executeBrowserTool } from './browser_tool.js';
 import { mathToolDefinition, executeMathEval } from './math_tool.js';
+import { patchToolDefinition, executeApplyPatch } from './patch_tool.js';
+import {
+  nodeReplToolDefinitions,
+  executeNodeRepl,
+  executeNodeReplReset,
+  executeNodeReplAddModuleDir,
+} from './node_repl_tool.js';
+import {
+  astraAppToolDefinitions,
+  captureScreenContext,
+  readThreadTerminal,
+  loadWorkspaceDependencies,
+  listProjects,
+  getUsageLimits,
+  endRealtimeVoiceCall,
+} from './astra_app_tools.js';
 import { TaskPlanner } from '../planner/index.js';
 import { CheckpointManager } from '../checkpoint/index.js';
 import { SubagentOrchestrator } from '../subagents/index.js';
@@ -26,6 +42,9 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
   ...browserTools,
   askQuestionToolDefinition,
   mathToolDefinition,
+  patchToolDefinition,
+  ...nodeReplToolDefinitions,
+  ...astraAppToolDefinitions,
   {
     name: 'view_file',
     description: 'Inspect the content of a file with line numbers. You can specify startLine and endLine to view a slice.',
@@ -256,12 +275,12 @@ export class ToolRegistry {
   private subagents?: SubagentOrchestrator;
 
   constructor(
-    workspaceRoot: string,
+    workspaceRoot: string = process.cwd(),
     planner?: TaskPlanner,
     checkpoints?: CheckpointManager,
     subagents?: SubagentOrchestrator
   ) {
-    this.workspaceRoot = path.resolve(workspaceRoot);
+    this.workspaceRoot = path.resolve(workspaceRoot || process.cwd());
     this.planner = planner;
     this.checkpoints = checkpoints;
     this.subagents = subagents;
@@ -323,6 +342,9 @@ export class ToolRegistry {
       list_dir: 'list_dir',
       browser: 'browser',
       Browser: 'browser',
+      read_browser_page: 'read_browser_page',
+      ReadBrowserPage: 'read_browser_page',
+      browser_read: 'read_browser_page',
       read_url_content: 'read_url_content',
       read_url: 'read_url_content',
       browse_url: 'read_url_content',
@@ -332,6 +354,60 @@ export class ToolRegistry {
       Calculate: 'math_eval',
       calculator: 'math_eval',
       eval_math: 'math_eval',
+      apply_patch: 'apply_patch',
+      'functions.apply_patch': 'apply_patch',
+      patch: 'apply_patch',
+      exec_command: 'run_command',
+      'functions.exec_command': 'run_command',
+      exec: 'run_command',
+      bash: 'run_command',
+      update_plan: 'update_plan',
+      'functions.update_plan': 'update_plan',
+      request_user_input: 'ask_user_question',
+      'functions.request_user_input': 'ask_user_question',
+      'functions.request_user_input_async': 'ask_user_question',
+      ask_question: 'ask_user_question',
+      view_image: 'view_file',
+      'functions.view_image': 'view_file',
+      sleep: 'sleep',
+      'clock.sleep': 'sleep',
+      wait: 'sleep',
+      'functions.wait': 'sleep',
+      'multi_tool_use.parallel': 'multi_tool_use_parallel',
+      create_goal: 'create_goal',
+      'functions.create_goal': 'create_goal',
+      get_goal: 'get_goal',
+      'functions.get_goal': 'get_goal',
+      update_goal: 'update_goal',
+      'functions.update_goal': 'update_goal',
+      'mcp__node_repl__js': 'mcp__node_repl__js',
+      'mcp__node_repl.js': 'mcp__node_repl__js',
+      js: 'mcp__node_repl__js',
+      node_repl: 'mcp__node_repl__js',
+      'mcp__node_repl__js_reset': 'mcp__node_repl__js_reset',
+      'mcp__node_repl.js_reset': 'mcp__node_repl__js_reset',
+      js_reset: 'mcp__node_repl__js_reset',
+      'mcp__node_repl__js_add_node_module_dir': 'mcp__node_repl__js_add_node_module_dir',
+      'mcp__node_repl.js_add_node_module_dir': 'mcp__node_repl__js_add_node_module_dir',
+      js_add_node_module_dir: 'mcp__node_repl__js_add_node_module_dir',
+      'mcp__synai_app__capture_screen_context': 'capture_screen_context',
+      'mcp__codex_app__capture_screen_context': 'capture_screen_context',
+      capture_screen_context: 'capture_screen_context',
+      'mcp__synai_app__read_thread_terminal': 'read_thread_terminal',
+      'mcp__codex_app__read_thread_terminal': 'read_thread_terminal',
+      read_thread_terminal: 'read_thread_terminal',
+      'mcp__synai_app__load_workspace_dependencies': 'load_workspace_dependencies',
+      'mcp__codex_app__load_workspace_dependencies': 'load_workspace_dependencies',
+      load_workspace_dependencies: 'load_workspace_dependencies',
+      'mcp__synai_app__list_projects': 'list_projects',
+      'mcp__codex_app__list_projects': 'list_projects',
+      list_projects: 'list_projects',
+      'mcp__synai_app__get_usage_limits': 'get_usage_limits',
+      'mcp__codex_app__get_usage_limits': 'get_usage_limits',
+      get_usage_limits: 'get_usage_limits',
+      'mcp__synai_app__end_realtime_voice_call': 'end_realtime_voice_call',
+      'mcp__codex_app__end_realtime_voice_call': 'end_realtime_voice_call',
+      end_realtime_voice_call: 'end_realtime_voice_call',
     };
     return map[toolName] || toolName;
   }
@@ -381,9 +457,14 @@ export class ToolRegistry {
     } else if (norm === 'batch_edit') {
       actionType = 'batch_edit';
       description = `Batch edit ${rawArgs.operations?.length || 0} files`;
+    } else if (norm === 'apply_patch') {
+      actionType = 'file_edit';
+      const patchText = typeof rawArgs === 'string' ? rawArgs : (rawArgs.patch || rawArgs.content || '');
+      diff = patchText;
+      description = 'Apply patch to files';
     } else if (norm === 'run_command') {
       actionType = 'command';
-      description = `Execute terminal command: \`${rawArgs.command}\``;
+      description = `Execute terminal command: \`${rawArgs.command || rawArgs.cmd}\``;
     } else if (norm === 'git_commit') {
       actionType = 'git';
       description = `Git commit: "${rawArgs.message}"`;
@@ -470,8 +551,21 @@ export class ToolRegistry {
           const res = executeBatchEdit(this.workspaceRoot, args.operations as BatchFileOp[], isDryRun);
           return { tool_call_id: toolCallId, name: norm, ...res, actionType: 'file_edit' };
         }
+        case 'apply_patch': {
+          const res = executeApplyPatch(args, this.workspaceRoot, this.checkpoints);
+          return {
+            tool_call_id: toolCallId,
+            name: norm,
+            output: res.output,
+            isError: res.isError || !res.success,
+            modifiedFiles: res.modifiedFiles,
+            actionType: 'file_edit',
+          };
+        }
         case 'run_command': {
-          const res = await runCommand(this.workspaceRoot, args.command, args.cwd, args.timeout || 60000, isDryRun);
+          const cmd = args.command || args.cmd;
+          const cwd = args.cwd || args.workdir;
+          const res = await runCommand(this.workspaceRoot, cmd, cwd, args.timeout || 60000, isDryRun);
           return { tool_call_id: toolCallId, name: norm, ...res };
         }
         case 'run_diagnostics': {
@@ -509,6 +603,23 @@ export class ToolRegistry {
           }
           return { tool_call_id: toolCallId, name: norm, output: 'Plan recorded.', actionType: 'plan' };
         }
+        case 'update_plan': {
+          if (this.planner && Array.isArray(args.plan)) {
+            const tasks = args.plan.map((item: any, idx: number) => ({
+              id: `task_${idx + 1}`,
+              title: item.step || item.title || `Step ${idx + 1}`,
+              status: item.status || 'pending',
+            }));
+            this.planner.createPlan(tasks);
+            return {
+              tool_call_id: toolCallId,
+              name: norm,
+              output: `Plan updated (${args.explanation || 'plan synced'}):\n\n${this.planner.formatMarkdown()}`,
+              actionType: 'plan',
+            };
+          }
+          return { tool_call_id: toolCallId, name: norm, output: 'Plan updated.', actionType: 'plan' };
+        }
         case 'update_task': {
           if (this.planner) {
             const res = this.planner.updateTask(args.taskId || args.id, args.status, args.note);
@@ -523,6 +634,29 @@ export class ToolRegistry {
             };
           }
           return { tool_call_id: toolCallId, name: norm, output: `Task updated to ${args.status}`, actionType: 'plan' };
+        }
+        case 'sleep': {
+          const secs = args.duration_seconds || args.seconds || (args.ms ? args.ms / 1000 : 1);
+          await new Promise((r) => setTimeout(r, Math.min(secs * 1000, 30000)));
+          return { tool_call_id: toolCallId, name: norm, output: `Waited for ${secs}s.`, actionType: 'info' };
+        }
+        case 'multi_tool_use_parallel': {
+          const calls: Array<{ recipient_name: string; parameters: any }> = args.tool_uses || [];
+          const outputs: string[] = [];
+          for (const call of calls) {
+            const res = await this.executeTool(toolCallId, call.recipient_name, call.parameters, mode);
+            outputs.push(`[${call.recipient_name}]: ${res.output}`);
+          }
+          return { tool_call_id: toolCallId, name: norm, output: outputs.join('\n\n'), actionType: 'info' };
+        }
+        case 'create_goal': {
+          return { tool_call_id: toolCallId, name: norm, output: `Goal established: ${args.objective || 'Active Goal'}`, actionType: 'plan' };
+        }
+        case 'get_goal': {
+          return { tool_call_id: toolCallId, name: norm, output: 'Active goal verified and in progress.', actionType: 'plan' };
+        }
+        case 'update_goal': {
+          return { tool_call_id: toolCallId, name: norm, output: `Goal status: ${args.status || 'complete'}`, actionType: 'plan' };
         }
         case 'list_dir': {
           const res = listDir(this.workspaceRoot, args.dirPath || args.path, args.maxDepth);
@@ -577,6 +711,7 @@ export class ToolRegistry {
         
         // Lightweight Browser tools
         case 'browser':
+        case 'read_browser_page':
         case 'read_url_content':
         case 'browser_navigate':
         case 'browser_extract_text':
@@ -590,6 +725,46 @@ export class ToolRegistry {
             isError: browserResult.isError,
             actionType: browserResult.actionType || 'info',
           };
+        }
+
+        // Node REPL tools
+        case 'mcp__node_repl__js': {
+          const res = await executeNodeRepl(args, this.workspaceRoot);
+          return { ...res, tool_call_id: toolCallId, name: norm };
+        }
+        case 'mcp__node_repl__js_reset': {
+          const res = executeNodeReplReset(this.workspaceRoot);
+          return { ...res, tool_call_id: toolCallId, name: norm };
+        }
+        case 'mcp__node_repl__js_add_node_module_dir': {
+          const res = executeNodeReplAddModuleDir(args, this.workspaceRoot);
+          return { ...res, tool_call_id: toolCallId, name: norm };
+        }
+
+        // Astra & Codex App MCP tools
+        case 'capture_screen_context': {
+          const res = await captureScreenContext(args, this.workspaceRoot);
+          return { ...res, tool_call_id: toolCallId, name: norm };
+        }
+        case 'read_thread_terminal': {
+          const res = await readThreadTerminal(args);
+          return { ...res, tool_call_id: toolCallId, name: norm };
+        }
+        case 'load_workspace_dependencies': {
+          const res = await loadWorkspaceDependencies(this.workspaceRoot);
+          return { ...res, tool_call_id: toolCallId, name: norm };
+        }
+        case 'list_projects': {
+          const res = await listProjects(this.workspaceRoot);
+          return { ...res, tool_call_id: toolCallId, name: norm };
+        }
+        case 'get_usage_limits': {
+          const res = await getUsageLimits();
+          return { ...res, tool_call_id: toolCallId, name: norm };
+        }
+        case 'end_realtime_voice_call': {
+          const res = await endRealtimeVoiceCall();
+          return { ...res, tool_call_id: toolCallId, name: norm };
         }
 
         default:

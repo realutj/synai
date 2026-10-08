@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useDialogPalette, useThemeController } from "../../hooks/use-theme";
 import { getThemeSwatchColors, THEMES } from "../../themes";
 
-const SWATCH_BLOCK = "\u25a0";
+const SWATCH_BLOCK = "[#]";
 
 export function ThemePickerContent(props: ChoiceContext<string>) {
 	const { resolve, dismiss, dialogId } = props;
@@ -108,7 +108,7 @@ export function ThemePickerContent(props: ChoiceContext<string>) {
 								width={labelWidth}
 								flexShrink={0}
 							>
-								{isSelected ? "\u276f " : "  "}
+								{isSelected ? "> " : "  "}
 								{theme.label}
 							</text>
 							<text flexShrink={0}>
@@ -133,7 +133,7 @@ export function ThemePickerContent(props: ChoiceContext<string>) {
 			</box>
 
 			<text fg="gray">
-				<em>{"\u2191/\u2193 preview, Enter to apply, Esc to cancel"}</em>
+				<em>{"Up/Down preview, Enter to apply, Esc to cancel"}</em>
 			</text>
 		</box>
 	);

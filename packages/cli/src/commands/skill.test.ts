@@ -59,12 +59,12 @@ describe("buildSkillsArgs", () => {
 		).toEqual(["-y", "skills@latest", "--agent=cursor", "remove", "my-skill"]);
 	});
 
-	it("does not scope non-install subcommands to cline", () => {
+	it("does not scope non-install subcommands to synai", () => {
 		expect(buildSkillsArgs(["use", "owner/repo"])).not.toContain("--agent");
 		expect(buildSkillsArgs(["list"])).not.toContain("--agent");
 	});
 
-	it("scopes remove-style subcommands to cline", () => {
+	it("scopes remove-style subcommands to synai", () => {
 		expect(buildSkillsArgs(["remove"])).toEqual([
 			"-y",
 			"skills@latest",

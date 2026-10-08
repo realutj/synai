@@ -110,7 +110,7 @@ export function CheckpointPickerContent(
 			<box flexDirection="column" marginTop={1}>
 				{aboveCount > 0 && (
 					<text fg="gray">
-						{"▲ "}
+						{"^ "}
 						{aboveCount} more
 					</text>
 				)}
@@ -134,7 +134,7 @@ export function CheckpointPickerContent(
 								fg={isSel ? palette.textOnSelection : "gray"}
 								flexShrink={0}
 							>
-								{isSel ? "❯" : " "}
+								{isSel ? ">" : " "}
 							</text>
 							<text fg={isSel ? palette.textOnSelection : undefined}>
 								{item.text}
@@ -152,14 +152,14 @@ export function CheckpointPickerContent(
 
 				{belowCount > 0 && (
 					<text fg="gray">
-						{"▼ "}
+						{"v "}
 						{belowCount} more
 					</text>
 				)}
 			</box>
 
 			<text fg="gray" marginTop={1}>
-				<em>{"↑/↓ navigate, Enter to select, Esc to cancel"}</em>
+				<em>{"Up/Down navigate, Enter to select, Esc to cancel"}</em>
 			</text>
 		</box>
 	);

@@ -12,10 +12,10 @@ import { logCliError } from "../logging/errors";
 import { exportHistorySession } from "../session/history-export";
 import { deleteSession } from "../session/session";
 import {
-	loadClineAccountSnapshot,
+	loadSynaiAccountSnapshot,
 	loadIndividualSubscriptionPlans,
 	onProviderChange,
-	switchClineAccount,
+	switchSynaiAccount,
 } from "../tui/synai-account";
 import type {
 	InteractiveConfigItem,
@@ -24,14 +24,14 @@ import type {
 import {
 	type InteractiveSlashCommand,
 	listInteractiveSlashCommands,
-	resolveClineWelcomeLine,
+	resolveSynaiWelcomeLine,
 } from "../tui/interactive-welcome";
 import { disableOpenTuiGraphicsProbe } from "../tui/opentui-env";
 import type { QueuedPromptItem, TuiStartupTarget } from "../tui/types";
 import { type ChatCommandState, chatCommandHost } from "../utils/chat-commands";
 import { applyCliCompactionMode } from "../utils/compaction-mode";
 import {
-	shouldZeroClineFreeModelCost,
+	shouldZeroSynaiFreeModelCost,
 	zeroCliAgentEventCost,
 	zeroCliUsageCost,
 } from "../utils/free-model-cost";
@@ -91,7 +91,7 @@ export function resolveReasoningForModelChange(
 ): ProviderSettings["reasoning"] {
 	if (config.thinking === false) return { enabled: false };
 	if (config.reasoningEffort) {
-		return { enabled: true, effort: config.reasoningEffort };
+		return { enabled: true, effort: config.reasoningEffort as any };
 	}
 	if (config.thinking === true) return { enabled: true };
 	return existing.reasoning;
@@ -114,12 +114,12 @@ export async function applyInteractiveModelChange(input: {
 	await sessionRuntime.ensureReady();
 	await onProviderChange({
 		config,
-		providerId: config.providerId,
+		providerId: config.providerId || "openrouter",
 	});
 	const existing = providerSettingsManager.getProviderSettings(
-		config.providerId,
+		config.providerId || "openrouter",
 	) ?? {
-		provider: config.providerId,
+		provider: config.providerId || "openrouter",
 	};
 	const reasoning = resolveReasoningForModelChange(config, existing);
 	providerSettingsManager.saveProviderSettings({
@@ -182,6 +182,8 @@ export async function runInteractive(
 		synaiProviderSettings?: ProviderSettings;
 		startupTarget?: TuiStartupTarget;
 		initialPrompt?: string;
+		initialNotice?: string;
+		onInitialNoticeShown?: () => void;
 	},
 ): Promise<void> {
 	assertInteractivePreflight(config);
@@ -321,7 +323,7 @@ export async function runInteractive(
 			const from = config.mode;
 			await sessionRuntime.applyMode(mode);
 			if (isInteractiveMode(from)) {
-				modeSwitchNotice.record(from, mode);
+				modeSwitchNotice?.record?.(from, mode);
 			}
 		})().finally(() => {
 			if (modeChangePromise === next) {
@@ -481,7 +483,116 @@ export async function runInteractive(
 	process.on("SIGTERM", handleSigterm);
 
 	disableOpenTuiGraphicsProbe();
-	const { renderOpenTui } = await import("../tui/index");
+	let renderOpenTui: (props: any) => Promise<{ destroy: () => void; waitUntilExit: () => Promise<void> }>;
+	const hasBunRuntime = typeof (globalThis as Record<string, unknown>).Bun !== "undefined";
+	if (hasBunRuntime) {
+		try {
+			const tuiUrl = new URL("./tui.js", import.meta.url).href;
+			const tuiMod = await import(tuiUrl);
+			renderOpenTui = tuiMod.renderOpenTui;
+		} catch {
+			renderOpenTui = renderNodeReadlineFallback;
+		}
+	} else {
+		renderOpenTui = renderNodeReadlineFallback;
+	}
+
+	async function renderNodeReadlineFallback(
+		props: any,
+	): Promise<{ destroy: () => void; waitUntilExit: () => Promise<void> }> {
+		const { createInterface } = await import("node:readline/promises");
+		const { handleEvent } = await import("../utils/events");
+		const { c } = await import("../utils/output");
+
+		const rl = createInterface({
+			input: process.stdin,
+			output: process.stdout,
+			terminal: true,
+		});
+
+		const unsubscribeEvents = props.subscribeToEvents({
+			onAgentEvent: (ev: any) => handleEvent(ev, props.config),
+			onTeamEvent: () => {},
+			onPendingPrompts: () => {},
+			onPendingPromptSubmitted: () => {},
+		});
+
+		writeln(
+			`\n${c.bold}${c.cyan}SynAI Interactive CLI${c.reset} ${c.dim}[provider=${props.config.providerId} | model=${props.config.modelId} | mode=${props.config.mode}]${c.reset}`,
+		);
+		writeln(
+			`${c.dim}Commands: /help, /clear, /think <low|medium|high|max>, /exit (or Ctrl+C)${c.reset}\n`,
+		);
+
+		let closed = false;
+		let resolveExit: (() => void) | undefined;
+		const exitPromise = new Promise<void>((resolve) => {
+			resolveExit = resolve;
+		});
+
+		const destroy = () => {
+			if (closed) return;
+			closed = true;
+			unsubscribeEvents();
+			try {
+				rl.close();
+			} catch {}
+			resolveExit?.();
+		};
+
+		rl.on("close", () => {
+			destroy();
+		});
+
+		void (async () => {
+			if (props.initialPrompt?.trim()) {
+				try {
+					await props.onSubmit(
+						props.initialPrompt.trim(),
+						props.config.mode === "plan" ? "plan" : "act",
+						undefined,
+						undefined,
+						(out: string) => writeln(out),
+					);
+					writeln("");
+				} catch (err: any) {
+					writeErr(err instanceof Error ? err.message : String(err));
+				}
+			}
+			while (!closed) {
+				let line: string;
+				try {
+					line = await rl.question(`${c.bold}${c.cyan}SynAI > ${c.reset}`);
+				} catch {
+					break;
+				}
+				const trimmed = line.trim();
+				if (!trimmed) continue;
+				if (trimmed === "/exit" || trimmed === "/quit" || trimmed === "exit" || trimmed === "quit") {
+					destroy();
+					break;
+				}
+				try {
+					await props.onSubmit(
+						trimmed,
+						props.config.mode === "plan" ? "plan" : "act",
+						undefined,
+						undefined,
+						(out: string) => writeln(out),
+					);
+					writeln("");
+				} catch (err: any) {
+					writeErr(err instanceof Error ? err.message : String(err));
+				}
+			}
+			destroy();
+		})();
+
+		return {
+			destroy,
+			waitUntilExit: () => exitPromise,
+		};
+	}
 
 	// eslint-disable-next-line prefer-const
 	let tuiApp: Awaited<ReturnType<typeof renderOpenTui>> | undefined;
@@ -534,14 +645,14 @@ export async function runInteractive(
 		loadIndividualSubscriptionPlans: async () =>
 			await loadIndividualSubscriptionPlans({
 				config,
-				clineApiBaseUrl: options?.clineApiBaseUrl,
-				clineProviderSettings: options?.clineProviderSettings,
+				synaiApiBaseUrl: options?.synaiApiBaseUrl,
+				synaiProviderSettings: options?.synaiProviderSettings,
 			}),
-		switchClineAccount: async (organizationId) =>
-			await switchClineAccount({
+		switchSynaiAccount: async (organizationId: any) =>
+			await switchSynaiAccount({
 				config,
 				organizationId,
-				clineApiBaseUrl: options?.clineApiBaseUrl,
+				synaiApiBaseUrl: options?.synaiApiBaseUrl,
 			}),
 		loadConfigData: configDataLoader.loadConfigData,
 		onToggleConfigItem,
@@ -551,7 +662,7 @@ export async function runInteractive(
 			onTeamEvent: onTeam,
 			onPendingPrompts,
 			onPendingPromptSubmitted,
-		}) => {
+		}: any) => {
 			uiEvents.on("agent", onAgent);
 			uiEvents.on("team", onTeam);
 			uiEvents.on("pending-prompts", onPendingPrompts);
@@ -563,7 +674,7 @@ export async function runInteractive(
 				uiEvents.off("pending-prompt-submitted", onPendingPromptSubmitted);
 			};
 		},
-		onSubmit: async (input, mode, delivery, attachments, onCommandOutput) => {
+		onSubmit: async (input: any, mode: any, delivery?: any, attachments?: any, onCommandOutput?: any) => {
 			let commandOutput: string | undefined;
 			let zeroTurnCost = false;
 			try {
@@ -612,7 +723,7 @@ export async function runInteractive(
 				}
 				input = chatCommandResult.input;
 				commandOutput = chatCommandResult.commandOutput;
-				zeroTurnCost = await shouldZeroClineFreeModelCost(config);
+				zeroTurnCost = await shouldZeroSynaiFreeModelCost(config);
 				zeroCurrentTurnCost = zeroTurnCost;
 				const {
 					prompt: userInput,
@@ -628,7 +739,7 @@ export async function runInteractive(
 				// Mark a preceding user-initiated mode switch on this message so
 				// the model sees exactly when the rules changed, instead of only
 				// inferring it from the user_input mode attribute flipping.
-				const switchNotice = modeSwitchNotice.consume();
+				const switchNotice = modeSwitchNotice?.consume?.();
 				const noticedUserInput = switchNotice
 					? `${formatModeSwitchNotice(switchNotice.from, switchNotice.to)}\n${userInput}`
 					: userInput;
@@ -649,7 +760,7 @@ export async function runInteractive(
 					// The switch_to_act_mode path announces itself through the
 					// continuation prompt; only UI toggles need a notice.
 					if (applied.source === "ui" && isInteractiveMode(from)) {
-						modeSwitchNotice.record(from, applied.mode);
+						modeSwitchNotice?.record?.(from, applied.mode);
 					}
 					return applied;
 				};
@@ -678,7 +789,7 @@ export async function runInteractive(
 						commandOutput,
 					};
 				}
-				if (result.finishReason !== "completed") {
+				if (result.finishReason !== "completed" && result.finishReason !== "stop") {
 					if (result.finishReason === "aborted" || isAbortInProgress()) {
 						const usage = zeroCliUsageCost(
 							await sessionRuntime.getAccumulatedUsage(result.usage),
@@ -692,10 +803,17 @@ export async function runInteractive(
 							commandOutput,
 						};
 					}
-					const errorText = result.text.trim();
-					throw new Error(
-						errorText || `Turn finished with ${result.finishReason}`,
+					const usage = zeroCliUsageCost(
+						await sessionRuntime.getAccumulatedUsage(result.usage),
+						zeroTurnCost,
 					);
+					return {
+						usage,
+						currentContextSize: getCurrentContextSize(result.messages),
+						iterations: result.iterations,
+						finishReason: result.finishReason,
+						commandOutput,
+					};
 				}
 				const usage = zeroCliUsageCost(
 					await sessionRuntime.getAccumulatedUsage(result.usage),
@@ -722,7 +840,12 @@ export async function runInteractive(
 					sessionId: sessionRuntime.getActiveSessionId() || undefined,
 					delivery,
 				});
-				throw error;
+				return {
+					usage: { inputTokens: 0, outputTokens: 0 },
+					iterations: 0,
+					finishReason: "error",
+					commandOutput: error instanceof Error ? error.message : String(error),
+				};
 			} finally {
 				zeroCurrentTurnCost = false;
 				if (!delivery) {
@@ -732,7 +855,7 @@ export async function runInteractive(
 				}
 			}
 		},
-		onUpdatePendingPrompt: async (update) => {
+		onUpdatePendingPrompt: async (update: any) => {
 			await sessionRuntime.ensureReady();
 			const result = await sessionRuntime.updatePendingPrompt(update);
 			return {
@@ -753,7 +876,7 @@ export async function runInteractive(
 			updateCliAfterExit = true;
 			tuiApp?.destroy();
 		},
-		onRunningChange: (running) => {
+		onRunningChange: (running: any) => {
 			isRunning = running;
 			if (!running) {
 				sessionRuntime.resetAbortRequest();
@@ -761,18 +884,18 @@ export async function runInteractive(
 			}
 		},
 		onTurnErrorReported: () => {},
-		onAutoApproveChange: (enabled) => {
+		onAutoApproveChange: (enabled: any) => {
 			setInteractiveAutoApprove(enabled);
 			setToolAutoApproveGlobally(enabled);
 			void refreshInteractiveSessionPolicies();
 		},
-		onCompactionModeChange: async (mode) => {
+		onCompactionModeChange: async (mode: any) => {
 			await sessionRuntime.ensureReady();
 			applyCliCompactionMode(config, mode);
 			setCompactionModeGlobally(mode);
 			await sessionRuntime.restartWithCurrentMessages();
 		},
-		onModeChange: async (mode) => {
+		onModeChange: async (mode: any) => {
 			if (!isInteractiveMode(mode)) return;
 			// Persist the user's choice immediately, even when the switch is
 			// deferred until the current turn aborts, so it survives restarts.
@@ -800,9 +923,9 @@ export async function runInteractive(
 		},
 		onAccountChange: async () => {
 			await sessionRuntime.ensureReady();
-			await loadClineAccountSnapshot({
+			await loadSynaiAccountSnapshot({
 				config,
-				clineApiBaseUrl: options?.clineApiBaseUrl,
+				synaiApiBaseUrl: options?.synaiApiBaseUrl,
 			}).catch((error) => {
 				logCliError(
 					config.logger,
@@ -817,13 +940,13 @@ export async function runInteractive(
 		// when the TUI was launched through `synai history`.
 		onResumeSession: async (sessionId: string) =>
 			await resumeInteractiveSession(sessionRuntime, sessionId),
-		onExportHistorySession: async (sessionId, format) =>
+		onExportHistorySession: async (sessionId: any, format: any) =>
 			await exportHistorySession({
 				sessionId,
 				format,
 				outputDirectory: config.cwd,
 			}),
-		onDeleteHistorySession: async (sessionId) => {
+		onDeleteHistorySession: async (sessionId: any) => {
 			assertHistorySessionIsDeletable(
 				sessionId,
 				sessionRuntime.getActiveSessionId(),
@@ -842,17 +965,17 @@ export async function runInteractive(
 			await sessionRuntime.ensureReady();
 			return await sessionRuntime.getCheckpointData();
 		},
-		onRestoreCheckpoint: async (runCount, restoreWorkspace) => {
+		onRestoreCheckpoint: async (runCount: any, restoreWorkspace?: any) => {
 			await sessionRuntime.ensureReady();
 			return await sessionRuntime.restoreCheckpoint(runCount, restoreWorkspace);
 		},
-		setToolApprover: (fn) => {
+		setToolApprover: (fn: any) => {
 			tuiToolApprover.current = fn;
 		},
-		setAskQuestion: (fn) => {
+		setAskQuestion: (fn: any) => {
 			tuiAskQuestion.current = fn;
 		},
-		setModeChangeNotifier: (fn) => {
+		setModeChangeNotifier: (fn: any) => {
 			tuiModeChanged.current = fn;
 		},
 	});
@@ -886,10 +1009,10 @@ export async function runInteractive(
 			prepareTerminalForPostTuiOutput();
 		}
 		writeln(
-			"The shared SynAI Daemon was updated by another SynAI installation. Updating this CLI…",
+			"The shared SynAI Daemon was updated by another SynAI installation. Updating this CLI...",
 		);
 		const { checkForUpdates } = await import("../commands/update");
-		const exitCode = await checkForUpdates({ includeKanban: false });
+		const exitCode = await checkForUpdates({ includeBoard: false });
 		writeln(
 			exitCode === 0
 				? "Start synai again to reconnect to the updated Daemon."

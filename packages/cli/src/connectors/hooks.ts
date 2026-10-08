@@ -30,7 +30,7 @@ export async function dispatchConnectorHook(
 			command: [shell, "-lc", trimmed],
 			cwd: process.cwd(),
 			env: process.env,
-			onSpawn: ({ command, pid, detached }) => {
+			onSpawn: ({ command, pid, detached }: any) => {
 				logger.core.log("Process spawned", {
 					component: "connector-hooks",
 					command: command.join(" "),
@@ -91,7 +91,7 @@ export async function authorizeConnectorEvent(
 				command: [shell, "-lc", trimmed],
 				cwd: process.cwd(),
 				env: process.env,
-				onSpawn: ({ command, pid, detached }) => {
+				onSpawn: ({ command, pid, detached }: any) => {
 					logger.core.log("Process spawned", {
 						component: "connector-hooks",
 						command: command.join(" "),

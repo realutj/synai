@@ -11,9 +11,9 @@ vi.mock("@synai/core", () => ({
 	captureExtensionActivated: hoisted.captureExtensionActivated,
 	identifyAccount: hoisted.identifyAccount,
 	// CLI telemetry singleton path normally pulls in
-	// `createConfiguredTelemetryHandle` and `createClineTelemetryServiceConfig`;
+	// `createConfiguredTelemetryHandle` and `createSynaiTelemetryServiceConfig`;
 	// stub them so the test never spins up a real OpenTelemetry provider.
-	createClineTelemetryServiceConfig: vi.fn(() => ({})),
+	createSynaiTelemetryServiceConfig: vi.fn(() => ({})),
 	createConfiguredTelemetryHandle: vi.fn(() => ({
 		telemetry: undefined,
 		provider: undefined,

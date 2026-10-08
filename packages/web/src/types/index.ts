@@ -1,4 +1,4 @@
-export type ApprovalMode = 'auto' | 'confirm' | 'dry-run';
+export type ApprovalMode = "auto" | "confirm" | "dry-run";
 
 export interface ModelPricing {
   prompt: string;
@@ -18,7 +18,7 @@ export interface ToolCall {
   id: string;
   name: string;
   args: Record<string, any>;
-  status: 'pending_approval' | 'executing' | 'completed' | 'rejected' | 'error';
+  status: "pending_approval" | "executing" | "completed" | "rejected" | "error";
   output?: string;
   diff?: string;
   isError?: boolean;
@@ -26,7 +26,7 @@ export interface ToolCall {
 
 export interface ChatMessage {
   id: string;
-  role: 'user' | 'assistant' | 'system';
+  role: "user" | "assistant" | "system";
   content: string;
   reasoning?: string;
   toolCalls?: ToolCall[];
@@ -40,10 +40,24 @@ export interface ApprovalRequest {
   args: Record<string, any>;
   description: string;
   diff?: string;
-  actionType: 'file_write' | 'file_edit' | 'command' | 'delete' | 'batch_edit' | 'git';
+  actionType:
+    | "file_write"
+    | "file_edit"
+    | "command"
+    | "delete"
+    | "batch_edit"
+    | "git";
 }
 
-export type ThinkingLevel = 'low' | 'medium' | 'high' | 'max' | 'fast' | 'balanced' | 'deep' | 'genius';
+export type ThinkingLevel =
+  | "low"
+  | "medium"
+  | "high"
+  | "max"
+  | "fast"
+  | "balanced"
+  | "deep"
+  | "genius";
 
 export interface AgentConfig {
   apiKey?: string;
@@ -53,6 +67,7 @@ export interface AgentConfig {
   systemPrompt?: string;
   port?: number;
   thinkingLevel?: ThinkingLevel;
+  temperature?: number;
 }
 
 export interface WorkspaceFile {
@@ -67,7 +82,7 @@ export interface WorkspaceFile {
 export interface TaskItem {
   id: string;
   title: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'failed';
+  status: "pending" | "in_progress" | "completed" | "failed";
   description?: string;
   subtasks?: string[];
 }

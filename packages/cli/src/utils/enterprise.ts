@@ -1,6 +1,6 @@
 import {
 	buildRemoteConfigSessionBlobUploadMetadata,
-	ClineAccountService,
+	SynaiAccountService,
 	type SynAICoreStartInput,
 	createRemoteConfigSessionMessagesArtifactUploader,
 	ProviderSettingsManager,
@@ -8,11 +8,11 @@ import {
 	REMOTE_CONFIG_SESSION_BLOB_UPLOAD_METADATA_KEY,
 	readRemoteConfigSessionBlobUploadMetadata,
 	registerRemoteConfigSessionBlobUpload,
-	resolveLocalClineAuthToken,
+	resolveLocalSynaiAuthToken,
 	type SessionMessagesArtifactUploader,
 } from "@synai/core";
 import {
-	getClineEnvironmentConfig,
+	getSynaiEnvironmentConfig,
 	type RemoteConfigBundle,
 	RemoteConfigSchema,
 } from "@synai/shared";
@@ -38,15 +38,15 @@ async function loadCliRemoteConfigBundleUncached(): Promise<
 	RemoteConfigBundle | undefined
 > {
 	const manager = new ProviderSettingsManager();
-	const settings = manager.getProviderSettings("cline");
-	const authToken = resolveLocalClineAuthToken(settings)?.trim();
+	const settings = manager.getProviderSettings("synai");
+	const authToken = resolveLocalSynaiAuthToken(settings)?.trim();
 	if (!authToken) {
 		return undefined;
 	}
 
-	const service = new ClineAccountService({
+	const service = new SynaiAccountService({
 		apiBaseUrl:
-			settings?.baseUrl?.trim() || getClineEnvironmentConfig().apiBaseUrl,
+			settings?.baseUrl?.trim() || getSynaiEnvironmentConfig().apiBaseUrl,
 		getAuthToken: async () => authToken,
 	});
 	const response = await service.fetchRemoteConfig().catch(() => null);
@@ -66,7 +66,7 @@ async function loadCliRemoteConfigBundleUncached(): Promise<
 	}
 
 	return {
-		source: "cline-account",
+		source: "synai-account",
 		version: response.organizationId?.trim() || "remote-config",
 		remoteConfig: remoteConfigResult.data,
 	};
@@ -76,7 +76,7 @@ export function createCliMessagesArtifactUploader() {
 	const uploader = createRemoteConfigSessionMessagesArtifactUploader();
 	const telemetry = getCliTelemetryService();
 	return {
-		async uploadMessagesFile(input) {
+		async uploadMessagesFile(input: any) {
 			const metadata = readRemoteConfigSessionBlobUploadMetadata(input.row);
 			const startedAt = Date.now();
 			try {
@@ -155,7 +155,7 @@ export async function prepareCliEnterpriseIntegration(
 		workspacePath,
 		pluginName: "enterprise",
 		controlPlane: {
-			name: "cline-account",
+			name: "synai-account",
 			async fetchBundle() {
 				return bundle;
 			},

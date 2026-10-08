@@ -1,220 +1,186 @@
-// Terminal typing animation
-const commandText = 'synai "merhaba dünya uygulaması yap"';
-let charIndex = 0;
-
-function typeCommand() {
-  const commandElement = document.getElementById("typedCommand");
-  if (charIndex < commandText.length) {
-    commandElement.textContent = commandText.substring(0, charIndex + 1);
-    charIndex++;
-    setTimeout(typeCommand, 80);
-  } else {
-    // Show responses after typing completes
-    setTimeout(() => {
-      document.getElementById("response1").classList.remove("hidden");
-      setTimeout(() => {
-        document.getElementById("response2").classList.remove("hidden");
-        setTimeout(() => {
-          document.getElementById("output").classList.remove("hidden");
-        }, 800);
-      }, 1200);
-    }, 500);
-  }
-}
-
-// Start typing animation when page loads
-window.addEventListener("load", () => {
-  setTimeout(typeCommand, 1000);
-});
-
-// Copy to clipboard functionality
-document.querySelectorAll(".copy-btn").forEach((button) => {
-  button.addEventListener("click", async () => {
-    const textToCopy = button.getAttribute("data-copy");
-    try {
-      await navigator.clipboard.writeText(textToCopy);
-
-      // Visual feedback
-      const originalHTML = button.innerHTML;
-      button.innerHTML = `
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-            `;
-      button.style.borderColor = "var(--success)";
-
-      setTimeout(() => {
-        button.innerHTML = originalHTML;
-        button.style.borderColor = "";
-      }, 2000);
-    } catch (err) {
-      console.error("Failed to copy:", err);
-    }
-  });
-});
-
-// Mobile menu toggle
-const mobileMenuBtn = document.getElementById("mobileMenuBtn");
-const navLinks = document.querySelector(".nav-links");
-
-mobileMenuBtn?.addEventListener("click", () => {
-  navLinks.classList.toggle("active");
-  mobileMenuBtn.classList.toggle("active");
-});
-
-// Smooth scroll for anchor links
-document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
-  anchor.addEventListener("click", function (e) {
-    const href = this.getAttribute("href");
-    if (href !== "#" && href !== "") {
-      e.preventDefault();
-      const target = document.querySelector(href);
-      if (target) {
-        target.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-
-        // Close mobile menu if open
-        navLinks?.classList.remove("active");
-        mobileMenuBtn?.classList.remove("active");
-      }
-    }
-  });
-});
-
-// Create floating particles
-function createParticles() {
-  const particlesContainer = document.getElementById("particles");
-  if (!particlesContainer) return;
-
-  const particleCount = 30;
-
-  for (let i = 0; i < particleCount; i++) {
-    const particle = document.createElement("div");
-    particle.className = "particle";
-
-    // Random position
-    particle.style.left = Math.random() * 100 + "%";
-    particle.style.top = Math.random() * 100 + "%";
-
-    // Random animation delay
-    particle.style.animationDelay = Math.random() * 20 + "s";
-
-    // Random size
-    const size = Math.random() * 4 + 2;
-    particle.style.width = size + "px";
-    particle.style.height = size + "px";
-
-    particlesContainer.appendChild(particle);
-  }
-}
-
-// Initialize particles
-createParticles();
-
-// Intersection Observer for fade-in animations
-const observerOptions = {
-  threshold: 0.1,
-  rootMargin: "0px 0px -50px 0px",
+const workflowExamples = {
+	map: {
+		command: "synai /map",
+		title: "Understand the project first.",
+		copy: "SynAI maps entry points, modules, and test paths without changing files.",
+		steps: [
+			["Entry points and project commands", "find"],
+			["Data flow between modules", "trace"],
+			["Test structure and verification steps", "summarize"],
+		],
+	},
+	review: {
+		command: "synai /review",
+		title: "Don't skim the diff.",
+		copy: "Review changes and surrounding code. Report findings by severity without modifying files.",
+		steps: [
+			["Review the current changes", "diff"],
+			["Check call sites and error paths", "trace"],
+			["Report findings with file and line references", "report"],
+		],
+	},
+	browser: {
+		command: "synai browser example.com --inspect",
+		title: "Inspect the page with your code.",
+		copy: "Open a page in Chrome or Edge and review its headings, forms, and interactive elements.",
+		steps: [
+			["Review page text and controls", "read"],
+			["Find interactions in the user flow", "inspect"],
+			["Add a screenshot to project context", "attach"],
+		],
+	},
 };
 
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach((entry) => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add("fade-in");
-      observer.unobserve(entry.target);
-    }
-  });
-}, observerOptions);
-
-// Observe feature cards
-document.querySelectorAll(".feature-card, .install-card").forEach((card) => {
-  observer.observe(card);
-});
-
-// Navbar scroll effect
-let lastScroll = 0;
-const navbar = document.querySelector(".navbar");
-
-window.addEventListener("scroll", () => {
-  const currentScroll = window.pageYOffset;
-
-  if (currentScroll > 100) {
-    navbar.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.3)";
-  } else {
-    navbar.style.boxShadow = "";
-  }
-
-  lastScroll = currentScroll;
-});
-
-// Add loading animation to external links
-document.querySelectorAll('a[target="_blank"]').forEach((link) => {
-  link.addEventListener("click", function (e) {
-    this.style.opacity = "0.6";
-    setTimeout(() => {
-      this.style.opacity = "";
-    }, 300);
-  });
-});
-
-// Easter egg: Konami code
-let konamiCode = [];
-const konamiSequence = [
-  "ArrowUp",
-  "ArrowUp",
-  "ArrowDown",
-  "ArrowDown",
-  "ArrowLeft",
-  "ArrowRight",
-  "ArrowLeft",
-  "ArrowRight",
-  "b",
-  "a",
-];
-
-document.addEventListener("keydown", (e) => {
-  konamiCode.push(e.key);
-  konamiCode = konamiCode.slice(-10);
-
-  if (konamiCode.join(",") === konamiSequence.join(",")) {
-    const confetti = document.createElement("div");
-    confetti.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 48px;
-            z-index: 9999;
-            animation: fadeIn 0.5s ease-out;
-        `;
-    confetti.textContent = "🎉 SynAI Rocks! 🚀";
-    document.body.appendChild(confetti);
-
-    setTimeout(() => {
-      confetti.remove();
-    }, 3000);
-  }
-});
-
-// Performance: Lazy load images
-if ("loading" in HTMLImageElement.prototype) {
-  document.querySelectorAll("img").forEach((img) => {
-    img.loading = "lazy";
-  });
+function updateTabSelection(tabs, selected) {
+	for (const tab of tabs) {
+		const isSelected = tab === selected;
+		tab.setAttribute("aria-selected", String(isSelected));
+		tab.tabIndex = isSelected ? 0 : -1;
+	}
 }
 
-// Console message
-console.log(
-  "%c🚀 SynAI",
-  "font-size: 32px; font-weight: bold; background: linear-gradient(135deg, #38bdf8 0%, #a855f7 100%); -webkit-background-clip: text; color: transparent;",
-);
-console.log(
-  "%cAçık kaynak AI kodlama asistanı",
-  "font-size: 14px; color: #94a3b8;",
-);
-console.log(
-  "%chttps://github.com/synai/synai",
-  "font-size: 14px; color: #38bdf8;",
-);
+function makeWorkflowRow([description, action], index) {
+	const row = document.createElement("div");
+	const number = document.createElement("span");
+	number.className = "output-index";
+	number.textContent = String(index + 1).padStart(2, "0");
+	const text = document.createElement("span");
+	text.textContent = description;
+	const verb = document.createElement("b");
+	verb.textContent = action;
+	row.append(number, text, verb);
+	return row;
+}
+
+const workflowTabs = [...document.querySelectorAll("[data-workflow]")];
+const workflowPanel = document.querySelector("[data-workflow-panel]");
+
+function selectWorkflow(name, focus = false) {
+	const example = workflowExamples[name];
+	const tab = workflowTabs.find((candidate) => candidate.dataset.workflow === name);
+	if (!example || !tab || !workflowPanel) return;
+	updateTabSelection(workflowTabs, tab);
+	if (focus) tab.focus();
+	workflowPanel.dataset.workflowPanel = name;
+	workflowPanel.querySelector("[data-workflow-command]").textContent = example.command;
+	workflowPanel.querySelector("[data-workflow-title]").textContent = example.title;
+	workflowPanel.querySelector("[data-workflow-copy]").textContent = example.copy;
+	workflowPanel.querySelector("[data-workflow-output]").replaceChildren(
+		...example.steps.map(makeWorkflowRow),
+	);
+}
+
+workflowTabs.forEach((tab, index) => {
+	tab.addEventListener("click", () => selectWorkflow(tab.dataset.workflow));
+	tab.addEventListener("keydown", (event) => {
+		let nextIndex;
+		if (event.key === "ArrowRight") nextIndex = (index + 1) % workflowTabs.length;
+		if (event.key === "ArrowLeft") nextIndex = (index - 1 + workflowTabs.length) % workflowTabs.length;
+		if (event.key === "Home") nextIndex = 0;
+		if (event.key === "End") nextIndex = workflowTabs.length - 1;
+		if (nextIndex === undefined) return;
+		event.preventDefault();
+		selectWorkflow(workflowTabs[nextIndex].dataset.workflow, true);
+	});
+});
+
+const installTabs = [...document.querySelectorAll(".install-tab")];
+
+function selectInstall(tab, focus = false) {
+	const selectedPanel = document.getElementById(tab.getAttribute("aria-controls"));
+	if (!selectedPanel) return;
+	updateTabSelection(installTabs, tab);
+	for (const candidate of installTabs) {
+		const panel = document.getElementById(candidate.getAttribute("aria-controls"));
+		if (panel) panel.hidden = panel !== selectedPanel;
+	}
+	if (focus) tab.focus();
+}
+
+installTabs.forEach((tab, index) => {
+	tab.addEventListener("click", () => selectInstall(tab));
+	tab.addEventListener("keydown", (event) => {
+		let nextIndex;
+		if (event.key === "ArrowRight") nextIndex = (index + 1) % installTabs.length;
+		if (event.key === "ArrowLeft") nextIndex = (index - 1 + installTabs.length) % installTabs.length;
+		if (event.key === "Home") nextIndex = 0;
+		if (event.key === "End") nextIndex = installTabs.length - 1;
+		if (nextIndex === undefined) return;
+		event.preventDefault();
+		selectInstall(installTabs[nextIndex], true);
+	});
+});
+
+async function copyText(text) {
+	if (navigator.clipboard?.writeText && window.isSecureContext) {
+		await navigator.clipboard.writeText(text);
+		return;
+	}
+	const input = document.createElement("textarea");
+	input.value = text;
+	input.setAttribute("readonly", "");
+	input.style.position = "fixed";
+	input.style.opacity = "0";
+	document.body.append(input);
+	input.select();
+	const copied = document.execCommand("copy");
+	input.remove();
+	if (!copied) throw new Error("Clipboard access is unavailable");
+}
+
+document.querySelectorAll("[data-copy]").forEach((button) => {
+	button.addEventListener("click", async () => {
+		const originalText = button.textContent;
+		const originalLabel = button.getAttribute("aria-label");
+		try {
+			await copyText(button.dataset.copy ?? "");
+			button.textContent = "COPIED";
+			button.setAttribute("aria-label", "Command copied to clipboard");
+			button.dataset.copyState = "success";
+		} catch {
+			button.textContent = "COPY FAILED";
+			button.setAttribute("aria-label", "Could not copy command");
+			button.dataset.copyState = "error";
+		}
+		window.setTimeout(() => {
+			button.textContent = originalText;
+			button.removeAttribute("data-copy-state");
+			if (originalLabel) button.setAttribute("aria-label", originalLabel);
+		}, 1800);
+	});
+});
+
+const menuToggle = document.querySelector(".menu-toggle");
+const navLinks = document.querySelector("#nav-links");
+
+function setMenuOpen(open) {
+	menuToggle?.setAttribute("aria-expanded", String(open));
+	menuToggle?.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+	navLinks?.classList.toggle("is-open", open);
+}
+
+menuToggle?.addEventListener("click", () => {
+	setMenuOpen(menuToggle.getAttribute("aria-expanded") !== "true");
+});
+navLinks?.querySelectorAll("a").forEach((link) => link.addEventListener("click", () => setMenuOpen(false)));
+document.addEventListener("keydown", (event) => {
+	if (event.key === "Escape") setMenuOpen(false);
+});
+
+const year = document.querySelector("[data-year]");
+if (year) year.textContent = String(new Date().getFullYear());
+
+for (const link of document.querySelectorAll('a[href^="#"]')) {
+	link.addEventListener("click", (event) => {
+		const hash = link.getAttribute("href");
+		if (!hash || hash === "#") return;
+		const target = document.querySelector(hash);
+		if (!target) return;
+		event.preventDefault();
+		target.scrollIntoView({
+			behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+			block: "start",
+		});
+		setMenuOpen(false);
+	});
+}

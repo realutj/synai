@@ -113,7 +113,7 @@ describe("slash command registry", () => {
 		expect(resolveSlashCommand(registry, "quit")).toMatchObject({
 			source: "tui",
 			execution: "local",
-			description: "Exit Cline",
+			description: "Exit Synai",
 			visible: true,
 		});
 		expect(

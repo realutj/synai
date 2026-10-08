@@ -131,7 +131,7 @@ async function runPluginMcpOAuthFollowup(
 			);
 		}
 		options.io?.writeln(
-			'Run "synai servers" and choose "Authorize OAuth" to authorize them.',
+			'Run "synai mcp" and choose "Authorize OAuth" to authorize them.',
 		);
 		return;
 	}
@@ -147,7 +147,7 @@ async function runPluginMcpOAuthFollowup(
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
 			options.io?.writeErr(
-				`Warning: failed to authorize MCP server ${candidate.name}: ${message}. Run "synai servers" and choose "Authorize OAuth" to retry.`,
+				`Warning: failed to authorize MCP server ${candidate.name}: ${message}. Run "synai mcp" and choose "Authorize OAuth" to retry.`,
 			);
 		}
 	}

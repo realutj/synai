@@ -190,7 +190,7 @@ export function createConnectorRuntimeTurnStream(input: {
 					sessionIds: [input.sessionId],
 				},
 				{
-					onEvent: (event) => {
+					onEvent: (event: any) => {
 						if (event.eventType === "runtime.chat.media") {
 							const media = event.payload.media;
 							if (isGeneratedMedia(media)) {
@@ -274,7 +274,7 @@ export function createConnectorRuntimeTurnStream(input: {
 							push({ type: "chunk", value: resolved.delta });
 						}
 					},
-					onError: (error) => {
+					onError: (error: any) => {
 						input.logger.core.log(
 							"Connector runtime event stream failed mid-turn",
 							{

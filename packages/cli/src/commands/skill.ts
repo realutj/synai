@@ -15,7 +15,7 @@ const SKILLS_PACKAGE = "skills@latest";
 // `synai skill` command we default these to synai unless the user picked their
 // own agent. `use` is intentionally excluded: without --agent it prints the
 // generated prompt to stdout, whereas adding --agent would launch that agent
-// interactively instead — not what someone scoping to synai would expect.
+// interactively instead - not what someone scoping to synai would expect.
 const SYNAI_SCOPED_SUBCOMMANDS = new Set([
 	"add",
 	"install",
@@ -71,7 +71,7 @@ function normalizeSkillsSubcommandAliases(args: string[]): void {
 }
 
 /**
- * Build the argument list passed to `npx`, injecting `--agent cline` for
+ * Build the argument list passed to `npx`, injecting `--agent synai` for
  * install-style subcommands unless the user already targeted an agent.
  */
 export function buildSkillsArgs(userArgs: readonly string[]): string[] {

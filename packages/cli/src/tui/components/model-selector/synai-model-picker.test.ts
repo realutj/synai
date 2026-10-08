@@ -7,7 +7,7 @@ import {
 
 const model = (id: string) => ({ id, name: id, description: "", tags: [] });
 
-describe("cline model picker entries", () => {
+describe("synai model picker entries", () => {
 	it("builds Recommended/Free sections for the synai provider", () => {
 		const entries = buildFeaturedModelEntries("synai", {
 			recommended: [model("anthropic/claude-sonnet-5")],

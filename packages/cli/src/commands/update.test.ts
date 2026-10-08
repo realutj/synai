@@ -43,7 +43,7 @@ function createFile(path: string): string {
 }
 
 function createTempFile(pathSuffix: string): string {
-	const root = mkdtempSync(join(tmpdir(), "cline-update-test-"));
+	const root = mkdtempSync(join(tmpdir(), "synai-update-test-"));
 	tempDirs.push(root);
 	return createFile(join(root, pathSuffix));
 }
@@ -93,9 +93,9 @@ describe("getInstallationInfo", () => {
 	});
 
 	it("detects npm installs from the wrapper path passed to the compiled binary", () => {
-		const wrapperPath = createTempFile("lib/node_modules/SynAI/bin/cline");
+		const wrapperPath = createTempFile("lib/node_modules/SynAI/bin/synai");
 		process.env.SYNAI_WRAPPER_PATH = wrapperPath;
-		process.argv = ["bun", "/$bunfs/root/cline", "update", "--verbose"];
+		process.argv = ["bun", "/$bunfs/root/synai", "update", "--verbose"];
 
 		expect(getInstallationInfo("1.2.3")).toEqual({
 			packageManager: PackageManager.NPM,
@@ -105,9 +105,9 @@ describe("getInstallationInfo", () => {
 	});
 
 	it("uses the nightly tag when the current CLI version is nightly", () => {
-		const wrapperPath = createTempFile("lib/node_modules/SynAI/bin/cline");
+		const wrapperPath = createTempFile("lib/node_modules/SynAI/bin/synai");
 		process.env.SYNAI_WRAPPER_PATH = wrapperPath;
-		process.argv = ["bun", "/$bunfs/root/cline", "update", "--verbose"];
+		process.argv = ["bun", "/$bunfs/root/synai", "update", "--verbose"];
 
 		expect(getInstallationInfo("1.2.3-nightly.456")).toEqual({
 			packageManager: PackageManager.NPM,
@@ -117,24 +117,24 @@ describe("getInstallationInfo", () => {
 	});
 
 	it("detects bun global installs from the resolved install path", () => {
-		// bun symlinks ~/.bun/bin/cline -> ~/.bun/install/global/node_modules/...,
+		// bun symlinks ~/.bun/bin/synai -> ~/.bun/install/global/node_modules/...,
 		// and realpathSync resolves through the symlink before detection runs.
 		const wrapperPath = createTempFile(
-			".bun/install/global/node_modules/SynAI/bin/cline",
+			".bun/install/global/node_modules/SynAI/bin/synai",
 		);
 		process.env.SYNAI_WRAPPER_PATH = wrapperPath;
-		process.argv = ["bun", "/$bunfs/root/cline", "update", "--verbose"];
+		process.argv = ["bun", "/$bunfs/root/synai", "update", "--verbose"];
 
 		expect(getInstallationInfo("1.2.3")).toEqual({
 			packageManager: PackageManager.BUN,
 			packageName: "synai",
-			updateCommand: "bun add -g cline@latest",
+			updateCommand: "bun add -g synai@latest",
 		});
 	});
 
 	it("falls back to unknown when only Bun's virtual compiled path is available", () => {
 		delete process.env.SYNAI_WRAPPER_PATH;
-		process.argv = ["bun", "/$bunfs/root/cline", "update", "--verbose"];
+		process.argv = ["bun", "/$bunfs/root/synai", "update", "--verbose"];
 
 		expect(getInstallationInfo("1.2.3")).toEqual({
 			packageManager: PackageManager.UNKNOWN,
@@ -239,14 +239,14 @@ describe("hub restart owner selection", () => {
 
 	it("uses the shared hub owner outside production builds", () => {
 		process.env.SYNAI_BUILD_ENV = "development";
-		process.env.SYNAI_DATA_DIR = "/tmp/cline-update-test-data";
+		process.env.SYNAI_DATA_DIR = "/tmp/synai-update-test-data";
 		delete process.env.SYNAI_HUB_DISCOVERY_PATH;
 
 		const owner = resolveCliHubOwnerContext();
 
 		expect(owner.discoveryPath).toContain("/locks/hub/owners/");
 		expect(owner.discoveryPath).not.toBe(
-			"/tmp/cline-update-test-data/locks/hub/production.json",
+			"/tmp/synai-update-test-data/locks/hub/production.json",
 		);
 	});
 });
@@ -275,7 +275,7 @@ describe("deferred auto update", () => {
 	});
 
 	it("starts the detached install when no hub is discoverable", async () => {
-		const root = mkdtempSync(join(tmpdir(), "cline-update-test-"));
+		const root = mkdtempSync(join(tmpdir(), "synai-update-test-"));
 		tempDirs.push(root);
 		process.env.SYNAI_BUILD_ENV = "production";
 		process.env.SYNAI_HUB_DISCOVERY_PATH = join(root, "production.json");
@@ -299,7 +299,7 @@ describe("deferred auto update", () => {
 	});
 
 	it("defers while another cli client is attached to the hub", async () => {
-		const root = mkdtempSync(join(tmpdir(), "cline-update-test-"));
+		const root = mkdtempSync(join(tmpdir(), "synai-update-test-"));
 		tempDirs.push(root);
 		const discoveryPath = join(root, "production.json");
 		process.env.SYNAI_BUILD_ENV = "production";
@@ -356,25 +356,25 @@ describe("withMinimumReleaseAgeBypass", () => {
 			).command,
 		).toBe("npm update -g synai --tag latest --min-release-age=0");
 		expect(
-			withMinimumReleaseAgeBypass("bun add -g cline@latest", PackageManager.BUN)
+			withMinimumReleaseAgeBypass("bun add -g synai@latest", PackageManager.BUN)
 				.command,
-		).toBe("bun add -g cline@latest --minimum-release-age=0");
+		).toBe("bun add -g synai@latest --minimum-release-age=0");
 		expect(
 			withMinimumReleaseAgeBypass(
-				"yarn global add cline@latest",
+				"yarn global add synai@latest",
 				PackageManager.YARN,
 			).command,
-		).toBe("yarn global add cline@latest");
+		).toBe("yarn global add synai@latest");
 		expect(
 			withMinimumReleaseAgeBypass(
-				"yarn global add cline@latest",
+				"yarn global add synai@latest",
 				PackageManager.YARN,
 			).env?.YARN_NPM_MINIMAL_AGE_GATE,
 		).toBe("0");
 
 		expect(
 			withMinimumReleaseAgeBypass(
-				"pnpm add -g cline@latest",
+				"pnpm add -g synai@latest",
 				PackageManager.PNPM,
 			).env?.pnpm_config_minimum_release_age,
 		).toBe("0");

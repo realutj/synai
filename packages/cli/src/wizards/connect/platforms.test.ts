@@ -5,8 +5,8 @@ describe("connect wizard platform security fields", () => {
 	it("does not ask Telegram users to re-enter the bot username", () => {
 		const telegram = PLATFORMS.find((platform) => platform.id === "telegram");
 
-		expect(telegram?.fields.map((field) => field.label)).toEqual(["Bot token"]);
-		expect(telegram?.fields.map((field) => field.flag)).toEqual(["-k"]);
+		expect(telegram?.fields.map((field: any) => field.label)).toEqual(["Bot token"]);
+		expect(telegram?.fields.map((field: any) => field.flag)).toEqual(["-k"]);
 	});
 
 	it("rejects unsafe Telegram and Slack access restriction identifiers", () => {
@@ -14,13 +14,13 @@ describe("connect wizard platform security fields", () => {
 		const slack = PLATFORMS.find((platform) => platform.id === "slack");
 
 		const telegramUser = telegram?.security?.fields.find(
-			(field) => field.key === "userId",
+			(field: any) => field.key === "userId",
 		);
 		const slackTeam = slack?.security?.fields.find(
-			(field) => field.key === "teamId",
+			(field: any) => field.key === "teamId",
 		);
 		const slackUser = slack?.security?.fields.find(
-			(field) => field.key === "userId",
+			(field: any) => field.key === "userId",
 		);
 
 		expect(telegramUser?.validate?.("123456")).toBeUndefined();
@@ -61,7 +61,7 @@ describe("connect wizard platform security fields", () => {
 		const webhookValues = { "--base-url": "https://example.test" };
 		const socketValues = { "--base-url": "" };
 
-		expect(fields.map((field) => field.flag)).toEqual([
+		expect(fields.map((field: any) => field.flag)).toEqual([
 			"--bot-token",
 			"--base-url",
 			"--signing-secret",
@@ -69,13 +69,13 @@ describe("connect wizard platform security fields", () => {
 		]);
 		expect(
 			fields
-				.filter((field) => shouldIncludeField(field, webhookValues))
-				.map((field) => field.flag),
+				.filter((field: any) => shouldIncludeField(field, webhookValues))
+				.map((field: any) => field.flag),
 		).toEqual(["--bot-token", "--base-url", "--signing-secret"]);
 		expect(
 			fields
-				.filter((field) => shouldIncludeField(field, socketValues))
-				.map((field) => field.flag),
+				.filter((field: any) => shouldIncludeField(field, socketValues))
+				.map((field: any) => field.flag),
 		).toEqual(["--bot-token", "--base-url", "--app-token"]);
 	});
 });

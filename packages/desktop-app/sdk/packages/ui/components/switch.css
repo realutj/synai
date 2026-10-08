@@ -1,0 +1,221 @@
+.synai-ui-switch {
+	--synai-ui-switch-leading-ease: cubic-bezier(0.2, 1.4, 0.3, 1);
+	--synai-ui-switch-trailing-ease: cubic-bezier(0.24, 1.4, 0.4, 1);
+	--synai-ui-switch-off-background: var(--neutral-8);
+	--synai-ui-switch-off-hover-background: color-mix(
+		in srgb,
+		var(--neutral-9) 50%,
+		var(--neutral-8) 50%
+	);
+	--synai-ui-switch-off-active-background: var(--neutral-9);
+	--synai-ui-switch-off-border: var(--neutral-a4);
+	--synai-ui-switch-disabled-thumb-background: var(--surface-1);
+	/* Preserve the geometry at SynAI's default 15px root while allowing UI scaling. */
+	--synai-ui-switch-width: 2.2rem;
+	--synai-ui-switch-height: 1.2rem;
+	--synai-ui-switch-padding: 0.16rem;
+	/* Fit inside the padding and both 1px track borders on each axis. */
+	--synai-ui-switch-thumb-size: calc(
+		var(--synai-ui-switch-height) -
+		var(--synai-ui-switch-padding) *
+		2 -
+		2px
+	);
+	/* Subtract both fixed 1px track borders to keep either end aligned. */
+	--synai-ui-switch-travel: calc(
+		var(--synai-ui-switch-width) -
+		var(--synai-ui-switch-thumb-size) -
+		2 *
+		var(--synai-ui-switch-padding) -
+		2px
+	);
+}
+
+/* Let host utilities override wrapper layout without changing track geometry. */
+@layer components {
+	.synai-ui-switch {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		/* Reserve the hit area in layout so neighboring controls cannot overlap it. */
+		min-width: 24px;
+		min-height: 24px;
+		width: var(--synai-ui-switch-width);
+		height: var(--synai-ui-switch-height);
+		vertical-align: middle;
+	}
+}
+
+.synai-ui-switch[hidden]:not([hidden="until-found"]) {
+	display: none;
+}
+
+.dark .synai-ui-switch,
+.synai-ui-switch.dark {
+	/* Lift the off track slightly without changing the shared neutral palette. */
+	--synai-ui-switch-off-background: var(--neutral-7);
+	--synai-ui-switch-off-hover-background: var(--neutral-6);
+	--synai-ui-switch-off-active-background: var(--neutral-7);
+	/* Keep the off-state boundary distinct from dark page and card surfaces. */
+	--synai-ui-switch-off-border: var(--neutral-8);
+	--synai-ui-switch-disabled-thumb-background: var(--neutral-9);
+}
+
+/* Keep the native control focusable and clickable over the full wrapper hit area. */
+.synai-ui-switch__input {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	opacity: 0;
+	cursor: pointer;
+}
+
+.synai-ui-switch__track {
+	position: relative;
+	display: block;
+	flex-shrink: 0;
+	box-sizing: border-box;
+	width: var(--synai-ui-switch-width);
+	height: var(--synai-ui-switch-height);
+	border: 1px solid var(--synai-ui-switch-off-border);
+	border-radius: calc(4rem / 15);
+	background: var(--synai-ui-switch-off-background);
+	pointer-events: none;
+	box-shadow:
+		0 0 0.1rem 0 var(--neutral-a2) inset,
+		0 0.03rem 0.1rem 0 var(--neutral-a2) inset;
+}
+
+.synai-ui-switch__thumb {
+	position: absolute;
+	inset-inline-start: var(--synai-ui-switch-padding);
+	inset-inline-end: calc(
+		var(--synai-ui-switch-padding) +
+		var(--synai-ui-switch-travel)
+	);
+	inset-block-start: var(--synai-ui-switch-padding);
+	height: var(--synai-ui-switch-thumb-size);
+	border-radius: calc(2.2rem / 15);
+	/* Host accent palettes may tint --primary-foreground; the thumb stays neutral. */
+	background: #fff;
+	box-shadow:
+		0 0 0 1px var(--neutral-a3),
+		0 0.03rem 0.3rem 0 var(--neutral-a2),
+		0 0.05rem 0.5rem 0 var(--neutral-a4);
+	/* The leading edge stretches the thumb; both edges overshoot slightly, then settle. */
+	transition:
+		inset-inline-start 120ms var(--synai-ui-switch-leading-ease),
+		inset-inline-end 120ms var(--synai-ui-switch-trailing-ease);
+}
+
+.synai-ui-switch__input:checked
+	+ .synai-ui-switch__track
+	.synai-ui-switch__thumb {
+	inset-inline-start: calc(
+		var(--synai-ui-switch-padding) +
+		var(--synai-ui-switch-travel)
+	);
+	inset-inline-end: var(--synai-ui-switch-padding);
+	transition-timing-function:
+		var(--synai-ui-switch-trailing-ease), var(--synai-ui-switch-leading-ease);
+}
+
+.synai-ui-switch__input:disabled {
+	cursor: not-allowed;
+}
+
+@media (forced-colors: none) {
+	.synai-ui-switch__input:checked + .synai-ui-switch__track {
+		border-color: var(--neutral-a5);
+		background: color-mix(in srgb, var(--primary) 80%, var(--accent-8) 20%);
+	}
+
+	.synai-ui-switch__input:enabled:hover + .synai-ui-switch__track {
+		background: var(--synai-ui-switch-off-hover-background);
+	}
+
+	.synai-ui-switch__input:enabled:checked:hover + .synai-ui-switch__track {
+		background: var(--primary-emphasis);
+	}
+
+	.synai-ui-switch__input:enabled:active + .synai-ui-switch__track {
+		background: var(--synai-ui-switch-off-active-background);
+	}
+
+	.synai-ui-switch__input:enabled:checked:active + .synai-ui-switch__track {
+		background: var(--primary);
+		opacity: 0.92;
+	}
+
+	.synai-ui-switch__input:focus-visible + .synai-ui-switch__track {
+		outline: 2px solid var(--ring);
+		outline-offset: 2px;
+	}
+
+	.synai-ui-switch__input:disabled + .synai-ui-switch__track {
+		border-color: transparent;
+		background: var(--surface-hover-darker);
+		box-shadow: none;
+	}
+
+	.synai-ui-switch__input:disabled
+		+ .synai-ui-switch__track
+		.synai-ui-switch__thumb {
+		background: var(--synai-ui-switch-disabled-thumb-background);
+		box-shadow: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.synai-ui-switch__thumb {
+		transition: none;
+	}
+}
+
+@media (forced-colors: active) {
+	.synai-ui-switch__track {
+		forced-color-adjust: none;
+		border-color: ButtonText;
+		background: Canvas;
+		box-shadow: none;
+	}
+
+	.synai-ui-switch__input + .synai-ui-switch__track .synai-ui-switch__thumb {
+		background: ButtonText;
+		box-shadow: none;
+	}
+
+	.synai-ui-switch__input:checked + .synai-ui-switch__track {
+		background: Highlight;
+	}
+
+	.synai-ui-switch__input:checked
+		+ .synai-ui-switch__track
+		.synai-ui-switch__thumb {
+		background: HighlightText;
+	}
+
+	.synai-ui-switch__input:focus-visible + .synai-ui-switch__track {
+		outline: 2px solid Highlight;
+		outline-offset: 2px;
+	}
+
+	.synai-ui-switch__input:disabled + .synai-ui-switch__track {
+		border-color: GrayText;
+		background: Canvas;
+	}
+
+	.synai-ui-switch__input:disabled
+		+ .synai-ui-switch__track
+		.synai-ui-switch__thumb {
+		background: GrayText;
+	}
+}

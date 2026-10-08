@@ -1,51 +1,51 @@
 import {
-	type ClineSubscriptionPlan,
-	extractClineFreeModelLimitResetTime,
-	extractClinePassLimitMessage,
-	getClineOrgIndividualInferenceSubscriptionMessage,
-	isClineFreeModelLimitError,
-	isClineFreeModelLimitMessage,
-	isClineModelNotFoundMessage,
-	isClineNotSubscribedError,
-	isClineNotSubscribedMessage,
-	isClineOrgIndividualInferenceSubscriptionError,
-	isClineOrgIndividualInferenceSubscriptionMessage,
-	isClinePassLimitError,
-	isClinePassLimitMessage,
+	type SynaiSubscriptionPlan,
+	extractSynaiFreeModelLimitResetTime,
+	extractSynaiPassLimitMessage,
+	getSynaiOrgIndividualInferenceSubscriptionMessage,
+	isSynaiFreeModelLimitError,
+	isSynaiFreeModelLimitMessage,
+	isSynaiModelNotFoundMessage,
+	isSynaiNotSubscribedError,
+	isSynaiNotSubscribedMessage,
+	isSynaiOrgIndividualInferenceSubscriptionError,
+	isSynaiOrgIndividualInferenceSubscriptionMessage,
+	isSynaiPassLimitError,
+	isSynaiPassLimitMessage,
 } from "@synai/core";
 
-import { getClineEnvironmentConfig } from "@synai/shared";
+import { getSynaiEnvironmentConfig } from "@synai/shared";
 
-export { getClineOrgIndividualInferenceSubscriptionMessage };
+export { getSynaiOrgIndividualInferenceSubscriptionMessage };
 
 export function getCliSubscriptionUrl(): string {
+	const baseUrl = getSynaiEnvironmentConfig()?.appBaseUrl || "https://synai.org";
 	return new URL(
 		`/dashboard/subscription?personal=true`,
-		getClineEnvironmentConfig().appBaseUrl,
+		baseUrl,
 	).toString();
 }
 
 export function getCliNotSubscribedMessage(): string {
-	return `Subscription or API key required to use this model. Please configure an API key in settings or select another model: ${getCliSubscriptionUrl()}`;
+	return `No access to SynAIPass subscription models yet. Subscribe to SynAIPass, the low cost open weights model coding plan: ${getCliSubscriptionUrl()}`;
 }
 
-export function getCliClinePassLimitMessage(message: string): string {
-	const detail = getClinePassLimitDetailMessage(message) ?? message.trim();
+export function getCliSynaiPassLimitMessage(message: string): string {
+	const detail = getSynaiPassLimitDetailMessage(message) ?? message.trim();
 	const lines = [
-		"Usage limit reached",
+		"SynAIPass limit reached",
 		detail,
-		"Switch to usage-based billing or select another provider.",
-		"Interactive CLI: open the model selector with /model and choose a provider.",
-		"Headless CLI: rerun with --provider <name>.",
+		"Switch to synai usage-based billing and retry with the synai provider.",
+		"Interactive CLI: open the model selector with /model, choose SynAI, then retry.",
+		"Headless CLI: rerun with --provider synai.",
 	];
 	return lines.filter((line) => line.trim().length > 0).join("\n");
 }
 
-const SYNAI_FREE_MODEL_PREFIX = "free/";
-const SYNAI_FREE_PROMOTION_ENDED_HEADER = "Model promotion ended";
-const SYNAI_FREE_MODEL_LIMIT_HEADER = "Daily free usage limit reached";
+const SYNAI_FREE_PROMOTION_ENDED_HEADER = "Free model promotion ended";
+const SYNAI_FREE_MODEL_LIMIT_HEADER = "Daily free model limit reached";
 
-export function getCliClineFreePromotionEndedMessage(): string {
+export function getCliSynaiFreePromotionEndedMessage(): string {
 	return [
 		SYNAI_FREE_PROMOTION_ENDED_HEADER,
 		"The promotion for this model has ended and it is no longer available.",
@@ -54,8 +54,8 @@ export function getCliClineFreePromotionEndedMessage(): string {
 	].join("\n");
 }
 
-export function getCliClineFreeModelLimitMessage(message: string): string {
-	const resetTime = extractClineFreeModelLimitResetTime(message);
+export function getCliSynaiFreeModelLimitMessage(message: string): string {
+	const resetTime = extractSynaiFreeModelLimitResetTime(message);
 	return [
 		SYNAI_FREE_MODEL_LIMIT_HEADER,
 		"You've reached today's free usage limit for this model.",
@@ -67,86 +67,86 @@ export function getCliClineFreeModelLimitMessage(message: string): string {
 }
 
 export function getIndividualPlanFeatures(
-	plans: ClineSubscriptionPlan[],
+	plans: SynaiSubscriptionPlan[],
 ): string[] {
 	const planWithFeatures = plans.find((plan) => plan.interval === "Monthly");
 
 	return planWithFeatures?.features?.included ?? [];
 }
 
-function isFormattedClinePassSubscriptionMessage(message: string): boolean {
+function isFormattedSynaiPassSubscriptionMessage(message: string): boolean {
 	const normalized = message.trim().toLowerCase();
 	return (
-		(normalized.includes("no access to clinepass subscription models yet") &&
-			normalized.includes("subscribe to clinepass")) ||
+		(normalized.includes("no access to synaipass subscription models yet") &&
+			(normalized.includes("subscribe to synaipass") || normalized.includes("subscribe to synai pass"))) ||
 		(normalized.includes("no access to synai pass models yet") &&
-			normalized.includes("subscribe to synai pass"))
+			(normalized.includes("subscribe to synaipass") || normalized.includes("subscribe to synai pass")))
 	);
 }
 
-export function isClinePassSubscriptionError(error: unknown): boolean {
-	if (isClineNotSubscribedError(error)) {
+export function isSynaiPassSubscriptionError(error: unknown): boolean {
+	if (isSynaiNotSubscribedError(error)) {
 		return true;
 	}
 	if (error instanceof Error) {
 		return (
-			error.name === "ClineNotSubscribedError" ||
-			isClineNotSubscribedMessage(error.message) ||
-			isFormattedClinePassSubscriptionMessage(error.message)
+			error.name === "SynaiNotSubscribedError" ||
+			isSynaiNotSubscribedMessage(error.message) ||
+			isFormattedSynaiPassSubscriptionMessage(error.message)
 		);
 	}
 	return (
 		typeof error === "string" &&
-		(isClineNotSubscribedMessage(error) ||
-			isFormattedClinePassSubscriptionMessage(error))
+		(isSynaiNotSubscribedMessage(error) ||
+			isFormattedSynaiPassSubscriptionMessage(error))
 	);
 }
 
-export function isClineOrgIndividualInferenceSubscriptionErrorMessage(
+export function isSynaiOrgIndividualInferenceSubscriptionErrorMessage(
 	error: unknown,
 ): boolean {
-	if (isClineOrgIndividualInferenceSubscriptionError(error)) {
+	if (isSynaiOrgIndividualInferenceSubscriptionError(error)) {
 		return true;
 	}
 	if (error instanceof Error) {
 		return (
-			error.name === "ClineOrgIndividualInferenceSubscriptionError" ||
-			isClineOrgIndividualInferenceSubscriptionMessage(error.message) ||
-			error.message === getClineOrgIndividualInferenceSubscriptionMessage()
+			error.name === "SynaiOrgIndividualInferenceSubscriptionError" ||
+			isSynaiOrgIndividualInferenceSubscriptionMessage(error.message) ||
+			error.message === getSynaiOrgIndividualInferenceSubscriptionMessage()
 		);
 	}
 	return (
 		typeof error === "string" &&
-		(isClineOrgIndividualInferenceSubscriptionMessage(error) ||
-			error === getClineOrgIndividualInferenceSubscriptionMessage())
+		(isSynaiOrgIndividualInferenceSubscriptionMessage(error) ||
+			error === getSynaiOrgIndividualInferenceSubscriptionMessage())
 	);
 }
 
-export function getClinePassLimitDetailMessage(
+export function getSynaiPassLimitDetailMessage(
 	error: unknown,
 ): string | undefined {
-	return extractClinePassLimitMessage(
+	return extractSynaiPassLimitMessage(
 		error instanceof Error ? error.message : String(error),
 	);
 }
 
-export function isClinePassLimitErrorMessage(error: unknown): boolean {
-	if (isClinePassLimitError(error)) {
+export function isSynaiPassLimitErrorMessage(error: unknown): boolean {
+	if (isSynaiPassLimitError(error)) {
 		return true;
 	}
 	if (error instanceof Error) {
 		return (
-			error.name === "ClinePassLimitError" ||
-			isClinePassLimitMessage(error.message)
+			error.name === "SynaiPassLimitError" ||
+			isSynaiPassLimitMessage(error.message)
 		);
 	}
-	return typeof error === "string" && isClinePassLimitMessage(error);
+	return typeof error === "string" && isSynaiPassLimitMessage(error);
 }
 
 // Detects that a deleted free model was requested: the backend answers "model
-// not found" once a free promotion ends and the cline-free/ model is removed.
+// not found" once a free promotion ends and the synai-free/ model is removed.
 // The modelId gate keeps regular model-not-found errors on their generic path.
-export function isClineFreePromotionEndedErrorMessage(
+export function isSynaiFreePromotionEndedErrorMessage(
 	error: unknown,
 	modelId?: string,
 ): boolean {
@@ -163,20 +163,23 @@ export function isClineFreePromotionEndedErrorMessage(
 	) {
 		return true;
 	}
-	if (!modelId?.startsWith(SYNAI_FREE_MODEL_PREFIX)) {
+	if (
+		!modelId?.startsWith("free/") &&
+		!modelId?.startsWith("synai-free/")
+	) {
 		return false;
 	}
-	return isClineModelNotFoundMessage(message);
+	return isSynaiModelNotFoundMessage(message);
 }
 
-export function isClineFreeModelLimitErrorMessage(error: unknown): boolean {
-	if (isClineFreeModelLimitError(error)) {
+export function isSynaiFreeModelLimitErrorMessage(error: unknown): boolean {
+	if (isSynaiFreeModelLimitError(error)) {
 		return true;
 	}
 	if (error instanceof Error) {
 		return (
-			error.name === "ClineFreeModelLimitError" ||
-			isClineFreeModelLimitMessage(error.message)
+			error.name === "SynaiFreeModelLimitError" ||
+			isSynaiFreeModelLimitMessage(error.message)
 		);
 	}
 	return (
@@ -184,7 +187,7 @@ export function isClineFreeModelLimitErrorMessage(error: unknown): boolean {
 		(error
 			.toLowerCase()
 			.includes(SYNAI_FREE_MODEL_LIMIT_HEADER.toLowerCase()) ||
-			isClineFreeModelLimitMessage(error))
+			isSynaiFreeModelLimitMessage(error))
 	);
 }
 
@@ -192,27 +195,30 @@ export function formatCliErrorMessage(
 	error: unknown,
 	options?: { modelId?: string },
 ): string {
-	if (isClinePassSubscriptionError(error)) {
+	if (isSynaiPassSubscriptionError(error)) {
 		return getCliNotSubscribedMessage();
 	}
-	if (isClineOrgIndividualInferenceSubscriptionErrorMessage(error)) {
-		return getClineOrgIndividualInferenceSubscriptionMessage();
+	if (isSynaiOrgIndividualInferenceSubscriptionErrorMessage(error)) {
+		return getSynaiOrgIndividualInferenceSubscriptionMessage();
 	}
-	if (isClinePassLimitErrorMessage(error)) {
-		return getCliClinePassLimitMessage(
+	if (isSynaiPassLimitErrorMessage(error)) {
+		return getCliSynaiPassLimitMessage(
 			error instanceof Error ? error.message : String(error),
 		);
 	}
-	if (isClineFreeModelLimitErrorMessage(error)) {
-		return getCliClineFreeModelLimitMessage(
+	if (isSynaiFreeModelLimitErrorMessage(error)) {
+		return getCliSynaiFreeModelLimitMessage(
 			error instanceof Error ? error.message : String(error),
 		);
 	}
-	if (isClineFreePromotionEndedErrorMessage(error, options?.modelId)) {
-		return getCliClineFreePromotionEndedMessage();
+	if (isSynaiFreePromotionEndedErrorMessage(error, options?.modelId)) {
+		return getCliSynaiFreePromotionEndedMessage();
 	}
 	if (error instanceof Error) {
 		return error.message;
+	}
+	if (typeof error === "object" && error !== null && "message" in error) {
+		return String((error as any).message);
 	}
 	return String(error);
 }

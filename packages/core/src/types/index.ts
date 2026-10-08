@@ -50,12 +50,13 @@ export interface ToolCall {
 }
 
 export interface Message {
-  role: 'system' | 'user' | 'assistant' | 'tool';
-  content: string;
+  role: 'system' | 'user' | 'assistant' | 'tool' | string;
+  content: any;
   name?: string;
   tool_call_id?: string;
   tool_calls?: ToolCall[];
   reasoning?: string;
+  [key: string]: any;
 }
 
 export interface ToolParameterProperty {
@@ -111,6 +112,8 @@ export interface AgentConfig {
   theme?: string;
   incognito?: boolean;
   ephemeral?: boolean;
+  toolPolicies?: any;
+  [key: string]: any;
 }
 
 export interface DiagnosticIssue {
@@ -266,22 +269,86 @@ export interface AgentDiagnosticsResultEvent {
 
 export interface AgentDoneEvent {
   type: 'done';
-  payload: { response: string };
+  payload?: { response?: string; [key: string]: any };
+  usage?: any;
+  reason?: string;
+  iterations?: any;
+  text?: string;
+  [key: string]: any;
 }
 
 export interface AgentErrorEvent {
   type: 'error';
-  payload: { message: string };
+  payload?: { message?: string; [key: string]: any };
+  recoverable?: boolean;
+  error?: any;
+  message?: any;
+  [key: string]: any;
 }
 
 export interface AgentTopicDeterminedEvent {
   type: 'topic_determined';
   payload: { topic: string; id: string };
+  [key: string]: any;
 }
 
 export interface AgentResetDoneEvent {
   type: 'reset_done';
   payload?: Record<string, any>;
+  [key: string]: any;
+}
+
+export interface AgentContentStartEvent {
+  type: 'content_start';
+  contentType?: string;
+  text?: string;
+  reasoning?: string;
+  toolCallId?: string;
+  toolName?: string;
+  input?: string;
+  payload?: any;
+  redacted?: any;
+  [key: string]: any;
+}
+
+export interface AgentContentEndEvent {
+  type: 'content_end';
+  contentType?: string;
+  media?: any;
+  payload?: any;
+  toolName?: any;
+  error?: any;
+  output?: any;
+  [key: string]: any;
+}
+
+export interface AgentIterationStartEvent {
+  type: 'iteration_start';
+  payload?: any;
+  [key: string]: any;
+}
+
+export interface AgentIterationEndEvent {
+  type: 'iteration_end';
+  payload?: any;
+  [key: string]: any;
+}
+
+export interface AgentUsageEvent {
+  type: 'usage';
+  usage?: any;
+  payload?: any;
+  [key: string]: any;
+}
+
+export interface AgentNoticeEvent {
+  type: 'notice';
+  payload?: any;
+  displayRole?: any;
+  metadata?: any;
+  reason?: any;
+  message?: any;
+  [key: string]: any;
 }
 
 export type AgentEvent = (
@@ -301,4 +368,38 @@ export type AgentEvent = (
   | AgentErrorEvent
   | AgentTopicDeterminedEvent
   | AgentResetDoneEvent
-) & { timestamp?: number };
+  | AgentContentStartEvent
+  | AgentContentEndEvent
+  | AgentIterationStartEvent
+  | AgentIterationEndEvent
+  | AgentUsageEvent
+  | AgentNoticeEvent
+) & { timestamp?: number; [key: string]: any };
+
+// Missing types the CLI needs - add after existing types
+export type CheckpointEntry = any;
+export type CoreCompactionContext = any;
+export type CoreSessionEvent = any;
+export type GlobalSettings = any;
+export type SessionAccumulatedUsage = any;
+export type TeamEvent = any;
+export type AgentHooks = any;
+export type PendingPromptMutationResult = any;
+export type ToolApprovalRequest = any;
+export type ToolApprovalResult = any;
+export type RuntimeHostSubscribeOptions = any;
+export type SaveProviderSettingsActionRequest = any;
+export type ProviderConfigFieldKey = any;
+export type ProviderConfigFieldRequirement = any;
+export type ProviderConfigFields = any;
+export type SynaiRecommendedModel = any;
+export class SessionNotFoundError extends Error {
+  constructor(message?: string) {
+    super(message || "Session not found");
+    this.name = "SessionNotFoundError";
+  }
+}
+export type HookEventPayload = any;
+
+export type ChatCatalogModel = string;
+

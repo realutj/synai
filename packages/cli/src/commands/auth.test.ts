@@ -1,4 +1,6 @@
 import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { ProviderSettingsManager } from "@synai/core";
 import { describe, expect, it, vi } from "vitest";
@@ -118,8 +120,13 @@ if (typeof runtime.createRoot !== "function") throw new Error("missing createRoo
 if (typeof runtime.OnboardingView !== "function") throw new Error("missing OnboardingView");
 `;
 
+		const npmBun =
+			process.platform === "win32" && process.env.APPDATA
+				? join(process.env.APPDATA, "npm/node_modules/bun/bin/bun.exe")
+				: "";
+		const bunExecutable = npmBun && existsSync(npmBun) ? npmBun : "bun";
 		const result = spawnSync(
-			"bun",
+			bunExecutable,
 			["--conditions=development", "-e", script],
 			{
 				cwd: cliRoot,

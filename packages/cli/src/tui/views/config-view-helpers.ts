@@ -142,7 +142,7 @@ export function getConfigPluginSections(
 		...(synaiPlugins.length > 0
 			? [
 					{
-						label: `SynAI Plugins (${synaiPlugins.length})`,
+						label: `Synai Plugins (${synaiPlugins.length})`,
 						items: synaiPlugins,
 					},
 				]
@@ -265,7 +265,7 @@ export function getConfigFooterText({
 	canToggle?: boolean;
 	canDelete?: boolean;
 } = {}): string {
-	const actions = ["←/→ switch tabs", "↑/↓ navigate", "Tab/Enter select"];
+	const actions = ["Left/-> switch tabs", "Up/Down navigate", "Tab/Enter select"];
 	if (canToggle) {
 		actions.push("Space toggle");
 	}

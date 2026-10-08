@@ -12,7 +12,7 @@
 
 import { type SpawnSyncOptions, spawnSync } from "node:child_process";
 import { SYNAI_BIN } from "./constants.js";
-import { clineEnv } from "./env.js";
+import { synaiEnv } from "./env.js";
 
 export interface RunResult {
 	stdout: string;
@@ -40,7 +40,7 @@ export interface RunOptions {
  * Suitable for deterministic, fast-exiting commands like:
  *   synai --help, synai --version, synai auth -p ... -k ..., etc.
  */
-export function runCline(args: string[], opts: RunOptions = {}): RunResult {
+export function runSynai(args: string[], opts: RunOptions = {}): RunResult {
 	const {
 		config = "default",
 		env: extraEnv = {},
@@ -53,7 +53,7 @@ export function runCline(args: string[], opts: RunOptions = {}): RunResult {
 		encoding: "utf8",
 		timeout,
 		cwd,
-		env: { ...clineEnv(config), ...extraEnv },
+		env: { ...synaiEnv(config), ...extraEnv },
 		input: stdin,
 	};
 
@@ -71,7 +71,7 @@ export function runCline(args: string[], opts: RunOptions = {}): RunResult {
 }
 
 /**
- * Assert that a runCline result exited with the expected code.
+ * Assert that a runSynai result exited with the expected code.
  * Throws a descriptive error if the code doesn't match.
  */
 export function assertExitCode(

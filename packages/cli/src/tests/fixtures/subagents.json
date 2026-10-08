@@ -1,6 +1,6 @@
 [
 	{
-		"scope": "https://data.cline.bot",
+		"scope": "https://data.Synai.bot",
 		"method": "POST",
 		"path": "/flags/?v=2&config=true",
 		"status": 200,
@@ -71,8 +71,8 @@
 						"payload": "86400000"
 					}
 				},
-				"cline-recommended-models-upstream": {
-					"key": "cline-recommended-models-upstream",
+				"Synai-recommended-models-upstream": {
+					"key": "Synai-recommended-models-upstream",
 					"enabled": true,
 					"variant": null,
 					"reason": {
@@ -157,14 +157,14 @@
 		"contentType": "application/json"
 	},
 	{
-		"scope": "https://api.cline.bot",
+		"scope": "https://api.Synai.bot",
 		"method": "GET",
 		"path": "/api/v1/organizations/org-REDACTED/remote-config",
 		"body": "",
 		"status": 200,
 		"response": {
 			"data": {
-				"value": "{\"version\":\"v1\",\"telemetryEnabled\":true,\"yoloModeAllowed\":true,\"mcpMarketplaceEnabled\":true,\"providerSettings\":{},\"openTelemetryEnabled\":false,\"openTelemetryOtlpInsecure\":false,\"enterpriseTelemetry\":{\"promptUploading\":{\"enabled\":true,\"type\":\"s3_access_keys\",\"s3AccessSettings\":{\"bucket\":\"cline-tasks\",\"accessKeyId\":\"REDACTED\",\"secretAccessKey\":\"REDACTED\",\"region\":\"us-west-2\"}}}}",
+				"value": "{\"version\":\"v1\",\"telemetryEnabled\":true,\"yoloModeAllowed\":true,\"mcpMarketplaceEnabled\":true,\"providerSettings\":{},\"openTelemetryEnabled\":false,\"openTelemetryOtlpInsecure\":false,\"enterpriseTelemetry\":{\"promptUploading\":{\"enabled\":true,\"type\":\"s3_access_keys\",\"s3AccessSettings\":{\"bucket\":\"Synai-tasks\",\"accessKeyId\":\"REDACTED\",\"secretAccessKey\":\"REDACTED\",\"region\":\"us-west-2\"}}}}",
 				"enabled": true
 			},
 			"success": true
@@ -175,20 +175,20 @@
 	{
 		"scope": "https://s3.us-west-2.amazonaws.com",
 		"method": "PUT",
-		"path": "/cline-tasks/tasks/usr-test/taskid/api_conversation_history.json",
+		"path": "/Synai-tasks/tasks/usr-test/taskid/api_conversation_history.json",
 		"status": 200,
 		"response": "",
 		"responseIsBinary": false
 	},
 	{
-		"scope": "https://api.cline.bot",
+		"scope": "https://api.Synai.bot",
 		"method": "GET",
 		"path": "/api/v1/organizations/org-REDACTED/remote-config",
 		"body": "",
 		"status": 200,
 		"response": {
 			"data": {
-				"value": "{\"version\":\"v1\",\"telemetryEnabled\":true,\"yoloModeAllowed\":true,\"mcpMarketplaceEnabled\":true,\"providerSettings\":{},\"openTelemetryEnabled\":false,\"openTelemetryOtlpInsecure\":false,\"enterpriseTelemetry\":{\"promptUploading\":{\"enabled\":true,\"type\":\"s3_access_keys\",\"s3AccessSettings\":{\"bucket\":\"cline-tasks\",\"accessKeyId\":\"REDACTED\",\"secretAccessKey\":\"REDACTED\",\"region\":\"us-west-2\"}}}}",
+				"value": "{\"version\":\"v1\",\"telemetryEnabled\":true,\"yoloModeAllowed\":true,\"mcpMarketplaceEnabled\":true,\"providerSettings\":{},\"openTelemetryEnabled\":false,\"openTelemetryOtlpInsecure\":false,\"enterpriseTelemetry\":{\"promptUploading\":{\"enabled\":true,\"type\":\"s3_access_keys\",\"s3AccessSettings\":{\"bucket\":\"Synai-tasks\",\"accessKeyId\":\"REDACTED\",\"secretAccessKey\":\"REDACTED\",\"region\":\"us-west-2\"}}}}",
 				"enabled": true
 			},
 			"success": true
@@ -199,13 +199,13 @@
 	{
 		"scope": "https://s3.us-west-2.amazonaws.com",
 		"method": "PUT",
-		"path": "/cline-tasks/tasks/usr-test/taskid/api_conversation_history.json",
+		"path": "/Synai-tasks/tasks/usr-test/taskid/api_conversation_history.json",
 		"status": 200,
 		"response": "",
 		"responseIsBinary": false
 	},
 	{
-		"scope": "https://api.cline.bot",
+		"scope": "https://api.Synai.bot",
 		"method": "POST",
 		"path": "/api/v1/chat/completions",
 		"status": 200,
@@ -216,13 +216,13 @@
 	{
 		"scope": "https://s3.us-west-2.amazonaws.com",
 		"method": "PUT",
-		"path": "/cline-tasks/tasks/usr-test/taskid/api_conversation_history.json",
+		"path": "/Synai-tasks/tasks/usr-test/taskid/api_conversation_history.json",
 		"status": 200,
 		"response": "",
 		"responseIsBinary": false
 	},
 	{
-		"scope": "https://api.cline.bot",
+		"scope": "https://api.Synai.bot",
 		"method": "POST",
 		"path": "/api/v1/chat/completions",
 		"status": 200,
@@ -231,7 +231,7 @@
 		"contentType": "text/event-stream"
 	},
 	{
-		"scope": "https://api.cline.bot",
+		"scope": "https://api.Synai.bot",
 		"method": "POST",
 		"path": "/api/v1/chat/completions",
 		"status": 200,
@@ -240,7 +240,7 @@
 		"contentType": "text/event-stream"
 	},
 	{
-		"scope": "https://api.cline.bot",
+		"scope": "https://api.Synai.bot",
 		"method": "POST",
 		"path": "/api/v1/chat/completions",
 		"status": 200,
@@ -249,7 +249,7 @@
 		"contentType": "text/event-stream"
 	},
 	{
-		"scope": "https://api.cline.bot",
+		"scope": "https://api.Synai.bot",
 		"method": "POST",
 		"path": "/api/v1/chat/completions",
 		"status": 200,
@@ -258,7 +258,7 @@
 		"contentType": "text/event-stream"
 	},
 	{
-		"scope": "https://api.cline.bot",
+		"scope": "https://api.Synai.bot",
 		"method": "POST",
 		"path": "/api/v1/chat/completions",
 		"status": 200,
@@ -267,7 +267,7 @@
 		"contentType": "text/event-stream"
 	},
 	{
-		"scope": "https://api.cline.bot",
+		"scope": "https://api.Synai.bot",
 		"method": "POST",
 		"path": "/api/v1/chat/completions",
 		"status": 200,
@@ -278,13 +278,13 @@
 	{
 		"scope": "https://s3.us-west-2.amazonaws.com",
 		"method": "PUT",
-		"path": "/cline-tasks/tasks/usr-test/taskid/api_conversation_history.json",
+		"path": "/Synai-tasks/tasks/usr-test/taskid/api_conversation_history.json",
 		"status": 200,
 		"response": "",
 		"responseIsBinary": false
 	},
 	{
-		"scope": "https://api.cline.bot",
+		"scope": "https://api.Synai.bot",
 		"method": "POST",
 		"path": "/api/v1/chat/completions",
 		"status": 200,
@@ -295,13 +295,13 @@
 	{
 		"scope": "https://s3.us-west-2.amazonaws.com",
 		"method": "PUT",
-		"path": "/cline-tasks/tasks/usr-test/taskid/api_conversation_history.json",
+		"path": "/Synai-tasks/tasks/usr-test/taskid/api_conversation_history.json",
 		"status": 200,
 		"response": "",
 		"responseIsBinary": false
 	},
 	{
-		"scope": "https://data.cline.bot",
+		"scope": "https://data.Synai.bot",
 		"method": "POST",
 		"path": "/batch/",
 		"body": "",
@@ -311,7 +311,7 @@
 		"contentType": "application/json"
 	},
 	{
-		"scope": "https://data.cline.bot",
+		"scope": "https://data.Synai.bot",
 		"method": "POST",
 		"path": "/batch/",
 		"body": "",
@@ -321,7 +321,7 @@
 		"contentType": "application/json"
 	},
 	{
-		"scope": "https://data.cline.bot",
+		"scope": "https://data.Synai.bot",
 		"method": "POST",
 		"path": "/batch/",
 		"body": "",

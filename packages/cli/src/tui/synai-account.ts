@@ -1,22 +1,22 @@
 import {
-	type ClineAccountBalance,
-	type ClineAccountOrganization,
-	type ClineAccountOrganizationBalance,
-	ClineAccountService,
-	type ClineAccountUser,
-	type ClineSubscriptionPlan,
+	type SynaiAccountBalance,
+	type SynaiAccountOrganization,
+	type SynaiAccountOrganizationBalance,
+	SynaiAccountService,
+	type SynaiAccountUser,
+	type SynaiSubscriptionPlan,
 	formatProviderOAuthApiKey,
 	getPersistedProviderApiKey,
 	getProviderOAuthCredentialsFromSettings,
-	getValidClineCredentials,
+	getValidSynaiCredentials,
 	type ProviderSettings,
 	ProviderSettingsManager,
-	persistClineAccountTelemetryIdentity,
-	resolveClineAccountTelemetryIdentity,
+	persistSynaiAccountTelemetryIdentity,
+	resolveSynaiAccountTelemetryIdentity,
 	saveLocalProviderOAuthCredentials,
 	type UserCurrentPlan,
 } from "@synai/core";
-import { getClineEnvironmentConfig } from "@synai/shared";
+import { getSynaiEnvironmentConfig } from "@synai/shared";
 import { formatCreditBalance, normalizeCreditBalance } from "../utils/output";
 import { identifyTelemetryAccount } from "../utils/telemetry";
 import type { Config } from "../utils/types";
@@ -24,26 +24,26 @@ import type { Config } from "../utils/types";
 export const SYNAI_CREDITS_DASHBOARD_URL =
 	"https://synai.dev/dashboard/account?tab=credits";
 
-type ClineAccountConfig = Pick<Config, "apiKey" | "logger" | "providerId">;
+type SynaiAccountConfig = Pick<Config, "apiKey" | "logger" | "providerId">;
 
-const SYNAI_PASS_PROVIDER_ID = "cline-pass";
+const SYNAI_PASS_PROVIDER_ID = "synai-pass";
 
-export interface ClineAccountSnapshot {
-	user: ClineAccountUser;
-	balance: ClineAccountBalance;
-	organizationBalance: ClineAccountOrganizationBalance | null;
-	organizations: ClineAccountOrganization[];
-	activeOrganization: ClineAccountOrganization | null;
+export interface SynaiAccountSnapshot {
+	user: SynaiAccountUser;
+	balance: SynaiAccountBalance;
+	organizationBalance: SynaiAccountOrganizationBalance | null;
+	organizations: SynaiAccountOrganization[];
+	activeOrganization: SynaiAccountOrganization | null;
 	displayedBalance: number;
 }
 
-export function formatClineCredits(value: number): string {
+export function formatSynaiCredits(value: number): string {
 	return formatCreditBalance(normalizeCreditBalance(value));
 }
 
 // FIXME: These message checks are temporary until structured error types are
 // passed through to the CLI instead of plain error strings.
-export function isClineAccountAuthErrorMessage(message: string): boolean {
+export function isSynaiAccountAuthErrorMessage(message: string): boolean {
 	const normalized = message.trim().toLowerCase();
 	return (
 		normalized.includes("account auth token found") ||
@@ -51,7 +51,7 @@ export function isClineAccountAuthErrorMessage(message: string): boolean {
 	);
 }
 
-export function isClineAccountCreditsErrorMessage(message: string): boolean {
+export function isSynaiAccountCreditsErrorMessage(message: string): boolean {
 	const normalized = message.trim().toLowerCase();
 	// The synai API's 402 response carries `code: "insufficient_credits"` and
 	// the message "Not enough credits available". Depending on how much of the
@@ -62,62 +62,62 @@ export function isClineAccountCreditsErrorMessage(message: string): boolean {
 		normalized.includes("insufficient_credits") ||
 		normalized.includes("not enough credits") ||
 		(normalized.includes("insufficient balance") &&
-			normalized.includes("cline credits balance"))
+			normalized.includes("synai credits balance"))
 	);
 }
 
 function resolveAccountApiBaseUrl(input: {
-	clineApiBaseUrl?: string;
-	clineProviderSettings?: ProviderSettings;
+	synaiApiBaseUrl?: string;
+	synaiProviderSettings?: ProviderSettings;
 }): string {
-	const settingsBaseUrl = input.clineProviderSettings?.baseUrl?.trim();
+	const settingsBaseUrl = input.synaiProviderSettings?.baseUrl?.trim();
 	if (settingsBaseUrl) {
 		return settingsBaseUrl;
 	}
-	const configuredBaseUrl = input.clineApiBaseUrl?.trim();
+	const configuredBaseUrl = input.synaiApiBaseUrl?.trim();
 	if (configuredBaseUrl) {
 		return configuredBaseUrl;
 	}
-	return getClineEnvironmentConfig().apiBaseUrl;
+	return getSynaiEnvironmentConfig().apiBaseUrl;
 }
 
-function resolveClineAccountAuthToken(input: {
-	config: ClineAccountConfig;
-	clineProviderSettings?: ProviderSettings;
+function resolveSynaiAccountAuthToken(input: {
+	config: SynaiAccountConfig;
+	synaiProviderSettings?: ProviderSettings;
 }): string | undefined {
 	const configApiKey =
-		input.config.providerId === "cline" ? input.config.apiKey.trim() : "";
+		input.config.providerId === "synai" ? input.config.apiKey.trim() : "";
 	return (
-		getPersistedProviderApiKey("cline", input.clineProviderSettings) ||
+		getPersistedProviderApiKey("synai", input.synaiProviderSettings) ||
 		configApiKey ||
 		undefined
 	);
 }
 
-async function resolveValidClineAccountAuthToken(input: {
-	config: ClineAccountConfig;
-	clineProviderSettings?: ProviderSettings;
+async function resolveValidSynaiAccountAuthToken(input: {
+	config: SynaiAccountConfig;
+	synaiProviderSettings?: ProviderSettings;
 	manager: ProviderSettingsManager;
 	apiBaseUrl: string;
 }): Promise<string | undefined> {
-	const settings = input.clineProviderSettings;
+	const settings = input.synaiProviderSettings;
 	const credentials = settings
-		? getProviderOAuthCredentialsFromSettings("cline", settings)
+		? getProviderOAuthCredentialsFromSettings("synai", settings)
 		: null;
 	if (settings && credentials) {
-		const nextCredentials = await getValidClineCredentials(credentials, {
+		const nextCredentials = await getValidSynaiCredentials(credentials, {
 			apiBaseUrl: input.apiBaseUrl,
 		});
 		if (!nextCredentials) {
 			throw new Error(
-				"SynAI account requires re-authentication. Run synai auth synai.",
+				"Synai account requires re-authentication. Run synai login synai.",
 			);
 		}
-		const nextAccessToken = formatProviderOAuthApiKey("cline", nextCredentials);
+		const nextAccessToken = formatProviderOAuthApiKey("synai", nextCredentials);
 		if (nextCredentials !== credentials) {
 			saveLocalProviderOAuthCredentials(
 				input.manager,
-				"cline",
+				"synai",
 				settings,
 				nextCredentials,
 				{ setLastUsed: false },
@@ -125,47 +125,47 @@ async function resolveValidClineAccountAuthToken(input: {
 		}
 		return nextAccessToken;
 	}
-	return resolveClineAccountAuthToken({
+	return resolveSynaiAccountAuthToken({
 		config: input.config,
-		clineProviderSettings: settings,
+		synaiProviderSettings: settings,
 	});
 }
 
-export async function createClineAccountService(input: {
-	config: ClineAccountConfig;
-	clineApiBaseUrl?: string;
-	clineProviderSettings?: ProviderSettings;
+export async function createSynaiAccountService(input: {
+	config: SynaiAccountConfig;
+	synaiApiBaseUrl?: string;
+	synaiProviderSettings?: ProviderSettings;
 	providerSettingsManager?: ProviderSettingsManager;
-}): Promise<ClineAccountService | undefined> {
+}): Promise<SynaiAccountService | undefined> {
 	const manager =
 		input.providerSettingsManager ?? new ProviderSettingsManager();
 	const settings =
-		manager.getProviderSettings("cline") ?? input.clineProviderSettings;
+		manager.getProviderSettings("synai") ?? input.synaiProviderSettings;
 	const apiBaseUrl = resolveAccountApiBaseUrl({
-		clineApiBaseUrl: input.clineApiBaseUrl,
-		clineProviderSettings: settings,
+		synaiApiBaseUrl: input.synaiApiBaseUrl,
+		synaiProviderSettings: settings,
 	});
-	const authToken = await resolveValidClineAccountAuthToken({
+	const authToken = await resolveValidSynaiAccountAuthToken({
 		config: input.config,
-		clineProviderSettings: settings,
+		synaiProviderSettings: settings,
 		manager,
 		apiBaseUrl,
 	});
 	if (!authToken) {
 		return undefined;
 	}
-	return new ClineAccountService({
+	return new SynaiAccountService({
 		apiBaseUrl,
 		getAuthToken: async () => authToken,
 	});
 }
 
-export async function loadClineAccountSnapshot(input: {
-	config: ClineAccountConfig;
-	clineApiBaseUrl?: string;
-	clineProviderSettings?: ProviderSettings;
-}): Promise<ClineAccountSnapshot> {
-	const service = await createClineAccountService(input);
+export async function loadSynaiAccountSnapshot(input: {
+	config: SynaiAccountConfig;
+	synaiApiBaseUrl?: string;
+	synaiProviderSettings?: ProviderSettings;
+}): Promise<SynaiAccountSnapshot> {
+	const service = await createSynaiAccountService(input);
 	if (!service) {
 		throw new Error("No SynAI account auth token found");
 	}
@@ -173,7 +173,7 @@ export async function loadClineAccountSnapshot(input: {
 	const user = await service.fetchMe();
 	const organizations = user.organizations ?? [];
 	const activeOrganization =
-		organizations.find((organization) => organization.active) ?? null;
+		organizations.find((organization: any) => organization.active) ?? null;
 	const [balance, organizationBalance] = await Promise.all([
 		service.fetchBalance(user.id),
 		activeOrganization
@@ -183,9 +183,9 @@ export async function loadClineAccountSnapshot(input: {
 	const displayedBalance = activeOrganization
 		? (organizationBalance?.balance ?? balance.balance)
 		: balance.balance;
-	const accountContext = resolveClineAccountTelemetryIdentity(user);
+	const accountContext = resolveSynaiAccountTelemetryIdentity(user);
 	identifyTelemetryAccount(accountContext, input.config.logger);
-	persistClineAccountTelemetryIdentity(
+	persistSynaiAccountTelemetryIdentity(
 		new ProviderSettingsManager(),
 		accountContext,
 	);
@@ -200,13 +200,13 @@ export async function loadClineAccountSnapshot(input: {
 	};
 }
 
-export async function switchClineAccount(input: {
-	config: ClineAccountConfig;
+export async function switchSynaiAccount(input: {
+	config: SynaiAccountConfig;
 	organizationId?: string | null;
-	clineApiBaseUrl?: string;
-	clineProviderSettings?: ProviderSettings;
+	synaiApiBaseUrl?: string;
+	synaiProviderSettings?: ProviderSettings;
 }): Promise<void> {
-	const service = await createClineAccountService(input);
+	const service = await createSynaiAccountService(input);
 	if (!service) {
 		throw new Error("No SynAI account auth token found");
 	}
@@ -214,11 +214,11 @@ export async function switchClineAccount(input: {
 }
 
 export async function loadIndividualSubscriptionPlans(input: {
-	config: ClineAccountConfig;
-	clineApiBaseUrl?: string;
-	clineProviderSettings?: ProviderSettings;
-}): Promise<ClineSubscriptionPlan[]> {
-	const service = await createClineAccountService(input);
+	config: SynaiAccountConfig;
+	synaiApiBaseUrl?: string;
+	synaiProviderSettings?: ProviderSettings;
+}): Promise<SynaiSubscriptionPlan[]> {
+	const service = await createSynaiAccountService(input);
 	if (!service) {
 		throw new Error("No SynAI account auth token found");
 	}
@@ -226,11 +226,11 @@ export async function loadIndividualSubscriptionPlans(input: {
 }
 
 export async function loadCurrentUserPlan(input: {
-	config: ClineAccountConfig;
-	clineApiBaseUrl?: string;
-	clineProviderSettings?: ProviderSettings;
+	config: SynaiAccountConfig;
+	synaiApiBaseUrl?: string;
+	synaiProviderSettings?: ProviderSettings;
 }): Promise<UserCurrentPlan | undefined> {
-	const service = await createClineAccountService(input);
+	const service = await createSynaiAccountService(input);
 	if (!service) {
 		throw new Error("No SynAI account auth token found");
 	}
@@ -239,11 +239,11 @@ export async function loadCurrentUserPlan(input: {
 
 export async function loadCurrentUserPlanFromProviderSettings(input: {
 	providerSettingsManager: ProviderSettingsManager;
-	clineApiBaseUrl?: string;
+	synaiApiBaseUrl?: string;
 }): Promise<UserCurrentPlan | undefined> {
-	const service = await createClineAccountService({
-		config: { apiKey: "", logger: undefined, providerId: "cline" },
-		clineApiBaseUrl: input.clineApiBaseUrl,
+	const service = await createSynaiAccountService({
+		config: { apiKey: "", logger: undefined, providerId: "synai" },
+		synaiApiBaseUrl: input.synaiApiBaseUrl,
 		providerSettingsManager: input.providerSettingsManager,
 	});
 	if (!service) {
@@ -254,11 +254,11 @@ export async function loadCurrentUserPlanFromProviderSettings(input: {
 
 export async function loadIndividualSubscriptionPlansFromProviderSettings(input: {
 	providerSettingsManager: ProviderSettingsManager;
-	clineApiBaseUrl?: string;
-}): Promise<ClineSubscriptionPlan[]> {
-	const service = await createClineAccountService({
-		config: { apiKey: "", logger: undefined, providerId: "cline" },
-		clineApiBaseUrl: input.clineApiBaseUrl,
+	synaiApiBaseUrl?: string;
+}): Promise<SynaiSubscriptionPlan[]> {
+	const service = await createSynaiAccountService({
+		config: { apiKey: "", logger: undefined, providerId: "synai" },
+		synaiApiBaseUrl: input.synaiApiBaseUrl,
 		providerSettingsManager: input.providerSettingsManager,
 	});
 	if (!service) {
@@ -267,25 +267,25 @@ export async function loadIndividualSubscriptionPlansFromProviderSettings(input:
 	return service.fetchAvailableSubscriptionPlans({ type: "individual" });
 }
 
-async function onChangeToClinePass(config: ClineAccountConfig) {
+async function onChangeToSynaiPass(config: SynaiAccountConfig) {
 	try {
-		await switchClineAccount({
+		await switchSynaiAccount({
 			config: config,
 			organizationId: null,
 		});
 	} catch (error) {
-		config.logger?.debug("Failed to switch ClinePass to personal account", {
+		config.logger?.debug("Failed to switch SynaiPass to personal account", {
 			error,
 		});
 	}
 }
 
 export async function onProviderChange(input: {
-	config: ClineAccountConfig;
+	config: SynaiAccountConfig;
 	providerId: string;
 }): Promise<void> {
 	if (input.providerId === SYNAI_PASS_PROVIDER_ID) {
-		return onChangeToClinePass(input.config);
+		return onChangeToSynaiPass(input.config);
 	}
 
 	return;

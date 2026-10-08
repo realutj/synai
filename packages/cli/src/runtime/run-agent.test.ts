@@ -48,8 +48,8 @@ const CLI_SYNAI_PASS_LIMIT_MESSAGE = [
 	"SynAIPass limit reached",
 	SYNAI_PASS_LIMIT_DETAIL_MESSAGE,
 	"Switch to synai usage-based billing and retry with the synai provider.",
-	"Interactive CLI: open the model selector with /model, choose Cline, then retry.",
-	"Headless CLI: rerun with --provider cline.",
+	"Interactive CLI: open the model selector with /model, choose SynAI, then retry.",
+	"Headless CLI: rerun with --provider synai.",
 ].join("\n");
 const SYNAI_ORG_INDIVIDUAL_INFERENCE_SUBSCRIPTION_MESSAGE =
 	"Organization accounts cannot use SynAIPass subscriptions. Go to /account -> change account to switch to your personal account for SynAIPass";
@@ -58,19 +58,19 @@ vi.mock(
 	"@synai/core",
 	async (importActual: () => Promise<typeof import("@synai/core")>) => ({
 		...(await importActual()),
-		getClineOrgIndividualInferenceSubscriptionMessage: () =>
+		getSynaiOrgIndividualInferenceSubscriptionMessage: () =>
 			SYNAI_ORG_INDIVIDUAL_INFERENCE_SUBSCRIPTION_MESSAGE,
 		getSynAIPassSubscriptionUrl: () => SYNAI_PASS_SUBSCRIPTION_URL,
-		isClineNotSubscribedError: (error: unknown) =>
-			error instanceof Error && error.name === "ClineNotSubscribedError",
-		isClineNotSubscribedMessage: (text: string) =>
+		isSynaiNotSubscribedError: (error: unknown) =>
+			error instanceof Error && error.name === "SynaiNotSubscribedError",
+		isSynaiNotSubscribedMessage: (text: string) =>
 			text
 				.toLowerCase()
 				.includes("the user is not subscribed to required model plan"),
-		isClineOrgIndividualInferenceSubscriptionError: (error: unknown) =>
+		isSynaiOrgIndividualInferenceSubscriptionError: (error: unknown) =>
 			error instanceof Error &&
-			error.name === "ClineOrgIndividualInferenceSubscriptionError",
-		isClineOrgIndividualInferenceSubscriptionMessage: (text: string) =>
+			error.name === "SynaiOrgIndividualInferenceSubscriptionError",
+		isSynaiOrgIndividualInferenceSubscriptionMessage: (text: string) =>
 			text
 				.toLowerCase()
 				.includes(
@@ -124,7 +124,7 @@ vi.mock("./format", () => ({
 }));
 
 vi.mock("./interactive-welcome", () => ({
-	resolveClineWelcomeLine: vi.fn(async () => undefined),
+	resolveSynaiWelcomeLine: vi.fn(async () => undefined),
 }));
 
 vi.mock("./prompt", () => ({
@@ -575,7 +575,7 @@ describe("runAgent", () => {
 
 	it("renders SynAIPass subscription errors with friendly copy when startup throws", async () => {
 		const error = new Error(SDK_SYNAI_PASS_SUBSCRIPTION_MESSAGE);
-		error.name = "ClineNotSubscribedError";
+					error.name = "SynaiNotSubscribedError";
 		sessionManagerMocks.start.mockRejectedValue(error);
 
 		const { runAgent } = await import("./run-agent");
@@ -1239,7 +1239,7 @@ describe("runAgent", () => {
 
 		await expect(
 			runAgent("test prompt", {
-				baseUrl: "https://cline.test/api/v1",
+				baseUrl: "https://synai.test/api/v1",
 				cwd: process.cwd(),
 				enableAgentTeams: false,
 				enableSpawnAgent: false,

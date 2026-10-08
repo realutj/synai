@@ -1,32 +1,28 @@
 // @jsxImportSource @opentui/react
 
 import {
-	type ClineRecommendedModelsData,
-	fetchClineRecommendedModels,
+	type SynaiRecommendedModelsData,
+	fetchSynaiRecommendedModels,
 } from "@synai/core";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
-import "opentui-spinner/react";
+import { ensureSpinnerRegistered } from "../../spinner-register";
+ensureSpinnerRegistered();
 import { useDialogPalette } from "../../hooks/use-theme";
 import type { DialogPalette } from "../../themes";
 import {
 	SYNAI_MODEL_PICKER_TIER_LABELS,
-	type ClineModelPickerEntry,
+	type SynaiModelPickerEntry,
 	freeTierDescriptionFor,
 } from "./synai-model-entries";
 
 export {
 	buildFeaturedModelEntries,
 	SYNAI_MODEL_PICKER_TIER_LABELS,
-	SYNAI_MODEL_PICKER_TIER_LABELS as SYNAI_MODEL_PICKER_TIER_LABELS,
-	type ClineModelPickerBrowse,
-	type ClineModelPickerBrowse as SynaiModelPickerBrowse,
-	type ClineModelPickerEntry,
-	type ClineModelPickerEntry as SynaiModelPickerEntry,
-	type ClineModelPickerItem,
-	type ClineModelPickerItem as SynaiModelPickerItem,
-	type ClineModelPickerTier,
-	type ClineModelPickerTier as SynaiModelPickerTier,
+	type SynaiModelPickerBrowse,
+	type SynaiModelPickerEntry,
+	type SynaiModelPickerItem,
+	type SynaiModelPickerTier,
 	freeTierDescriptionFor,
 } from "./synai-model-entries";
 
@@ -36,13 +32,13 @@ function tagColor(tag: string, palette: DialogPalette): string {
 	return palette.act;
 }
 
-export function useClineRecommendedModels() {
-	const [data, setData] = useState<ClineRecommendedModelsData | null>(null);
+export function useSynaiRecommendedModels() {
+	const [data, setData] = useState<SynaiRecommendedModelsData | null>(null);
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
 		let cancelled = false;
-		fetchClineRecommendedModels()
+		fetchSynaiRecommendedModels()
 			.then((result) => {
 				if (!cancelled) setData(result);
 			})
@@ -57,10 +53,8 @@ export function useClineRecommendedModels() {
 	return { data, loading };
 }
 
-export const useSynaiRecommendedModels = useClineRecommendedModels;
-
-export function ClineModelPicker(props: {
-	entries: ClineModelPickerEntry[];
+export function SynaiModelPicker(props: {
+	entries: SynaiModelPickerEntry[];
 	selected: number;
 	loading?: boolean;
 	currentModelId?: string;
@@ -110,7 +104,7 @@ export function ClineModelPicker(props: {
 			}
 
 			const tags = entry.model.tags;
-			// Names arrive display-ready from fetchClineRecommendedModels
+			// Names arrive display-ready from fetchSynaiRecommendedModels
 			const name = entry.model.name || entry.model.id;
 			const isCurrent = currentModelId === entry.model.id;
 			rows.push(
@@ -122,10 +116,10 @@ export function ClineModelPicker(props: {
 					backgroundColor={isSel ? palette.selection : undefined}
 				>
 					<text fg={isSel ? palette.textOnSelection : "gray"} flexShrink={0}>
-						{isSel ? "\u276f" : " "}
+						{isSel ? ">" : " "}
 					</text>
 					<text fg={isSel ? palette.textOnSelection : undefined}>{name}</text>
-					{tags.map((t) => (
+					{tags.map((t: string) => (
 						<text
 							key={t}
 							fg={isSel ? palette.textOnSelection : tagColor(t, palette)}
@@ -152,7 +146,7 @@ export function ClineModelPicker(props: {
 					marginTop={1}
 				>
 					<text fg={isSel ? palette.textOnSelection : "gray"} flexShrink={0}>
-						{isSel ? "\u276f" : " "}
+						{isSel ? ">" : " "}
 					</text>
 					<text fg={isSel ? palette.textOnSelection : "gray"}>
 						Browse all models...
@@ -165,4 +159,3 @@ export function ClineModelPicker(props: {
 	return <box flexDirection="column">{rows}</box>;
 }
 
-export const SynaiModelPicker = ClineModelPicker;

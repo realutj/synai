@@ -6,7 +6,7 @@ import { useDialogPalette } from "../../hooks/use-theme";
 import type { DialogPalette } from "../../themes";
 import {
 	SYNAI_MODEL_PICKER_TIER_LABELS,
-	type ClineModelPickerEntry,
+	type SynaiModelPickerEntry,
 	freeTierDescriptionFor,
 } from "./synai-model-picker";
 import { CHANGE_PROVIDER_ACTION } from "./model-selector";
@@ -14,9 +14,9 @@ import { ProviderRow } from "./provider-row";
 
 export const BROWSE_ALL_ACTION = "__browse_all__";
 
-type ClineModelEntriesState =
+type SynaiModelEntriesState =
 	| { status: "loading"; message: string }
-	| { status: "loaded"; entries: ClineModelPickerEntry[] }
+	| { status: "loaded"; entries: SynaiModelPickerEntry[] }
 	| { status: "error"; message: string };
 
 function tagColor(tag: string, palette: DialogPalette): string {
@@ -25,11 +25,11 @@ function tagColor(tag: string, palette: DialogPalette): string {
 	return palette.act;
 }
 
-export function ClineModelSelectorContent(
+export function SynaiModelSelectorContent(
 	props: ChoiceContext<string> & {
 		currentModel: string;
 		currentProviderName: string;
-		entries: ClineModelPickerEntry[];
+		entries: SynaiModelPickerEntry[];
 	},
 ) {
 	const {
@@ -76,7 +76,7 @@ export function ClineModelSelectorContent(
 				rows.push({
 					key: entry.model.id,
 					kind: "model",
-					// Names arrive display-ready from fetchClineRecommendedModels
+					// Names arrive display-ready from fetchSynaiRecommendedModels
 					label: entry.model.name || entry.model.id,
 					tags: entry.model.tags,
 					isCurrent: currentModel === entry.model.id,
@@ -178,7 +178,7 @@ export function ClineModelSelectorContent(
 								fg={isSel ? palette.textOnSelection : "gray"}
 								flexShrink={0}
 							>
-								{isSel ? "\u276f" : " "}
+								{isSel ? ">" : " "}
 							</text>
 							<text
 								fg={
@@ -210,22 +210,22 @@ export function ClineModelSelectorContent(
 			</box>
 
 			<text fg="gray">
-				↑/↓ navigate, Enter to select, Tab to change provider, Esc to go back
+				Up/Down navigate, Enter to select, Tab to change provider, Esc to go back
 			</text>
 		</box>
 	);
 }
 
-export function ClineModelSelectorDialogContent(
+export function SynaiModelSelectorDialogContent(
 	props: ChoiceContext<string> & {
 		currentModel: string;
 		currentProviderName: string;
-		loadEntries: () => Promise<ClineModelPickerEntry[]>;
+		loadEntries: () => Promise<SynaiModelPickerEntry[]>;
 	},
 ) {
 	const { dismiss, dialogId, loadEntries } = props;
 	const palette = useDialogPalette();
-	const [state, setState] = useState<ClineModelEntriesState>({
+	const [state, setState] = useState<SynaiModelEntriesState>({
 		status: "loading",
 		message: "Loading SynAI models...",
 	});
@@ -268,7 +268,7 @@ export function ClineModelSelectorDialogContent(
 	}, dialogId);
 
 	if (state.status === "loaded") {
-		return <ClineModelSelectorContent {...props} entries={state.entries} />;
+		return <SynaiModelSelectorContent {...props} entries={state.entries} />;
 	}
 
 	if (state.status === "error") {
@@ -292,6 +292,4 @@ export function ClineModelSelectorDialogContent(
 	);
 }
 
-export const SynaiModelSelectorContent = ClineModelSelectorContent;
-export const SynaiModelSelectorDialogContent = ClineModelSelectorDialogContent;
 

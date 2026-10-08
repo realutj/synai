@@ -99,9 +99,9 @@ describe("config view helpers", () => {
 	});
 
 	it("separates synai and Agent Plugins into labeled sections", () => {
-		const clinePlugin = createItem({
+		const synaiPlugin = createItem({
 			kind: "plugin",
-			name: "cline-plugin",
+			name: "synai-plugin",
 			source: "workspace-plugin",
 		});
 		const agentPlugin = createItem({
@@ -111,8 +111,8 @@ describe("config view helpers", () => {
 			agentPlugin: true,
 		});
 
-		expect(getConfigPluginSections([clinePlugin, agentPlugin])).toEqual([
-			{ label: "Cline Plugins (1)", items: [clinePlugin] },
+		expect(getConfigPluginSections([synaiPlugin, agentPlugin])).toEqual([
+			{ label: "Synai Plugins (1)", items: [synaiPlugin] },
 			{ label: "Agent Plugins (1)", items: [agentPlugin] },
 		]);
 	});

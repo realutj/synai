@@ -1,6 +1,6 @@
 [
 	{
-		"scope": "https://api.cline.bot",
+		"scope": "https://api.Synai.bot",
 		"method": "GET",
 		"path": "/api/v1/users/me",
 		"body": "",
@@ -11,19 +11,19 @@
 				"email": "REDACTED",
 				"displayName": "REDACTED",
 				"termsAcceptedAt": "2025-12-01T22:41:32.619173Z",
-				"clineBenchConsent": true,
+				"SynaiBenchConsent": true,
 				"organizations": [
 					{
 						"memberId": "REDACTED",
 						"organizationId": "REDACTED",
-						"name": "Cline Bot Inc",
+						"name": "Synai Bot Inc",
 						"roles": ["admin"],
 						"active": true
 					},
 					{
 						"memberId": "REDACTED",
 						"organizationId": "REDACTED",
-						"name": "Cline Internal Testing Org",
+						"name": "Synai Internal Testing Org",
 						"roles": ["member"],
 						"active": false
 					}
@@ -37,7 +37,7 @@
 		"contentType": "application/json"
 	},
 	{
-		"scope": "https://api.cline.bot",
+		"scope": "https://api.Synai.bot",
 		"method": "GET",
 		"path": "/api/v1/organizations/org-REDACTED/balance",
 		"body": "",
@@ -53,7 +53,7 @@
 		"contentType": "application/json"
 	},
 	{
-		"scope": "https://api.cline.bot",
+		"scope": "https://api.Synai.bot",
 		"method": "POST",
 		"path": "/api/v1/chat/completions",
 		"status": 200,

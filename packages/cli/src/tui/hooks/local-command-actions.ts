@@ -39,6 +39,14 @@ export function runLocalSlashCommandAction(
 	if (normalized === "mcp") {
 		return input.openMcpManager().then(() => true);
 	}
+	if (normalized === "persona" || normalized === "personalize") {
+		input.openConfig();
+		return true;
+	}
+	if (normalized === "browser") {
+		input.openConfig();
+		return true;
+	}
 	if (normalized === "account") {
 		input.openAccount();
 		return true;

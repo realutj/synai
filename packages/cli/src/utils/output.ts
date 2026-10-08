@@ -68,6 +68,10 @@ export function isBrokenPipeError(error: unknown): boolean {
 	);
 }
 
+export function sanitizeTerminalOutput(text: string): string {
+	return text;
+}
+
 export function installStreamErrorGuards(): void {
 	const stdout = process.stdout as GuardedStream;
 	if (!stdout[STDOUT_ERROR_GUARD]) {

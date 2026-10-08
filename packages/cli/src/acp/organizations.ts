@@ -1,28 +1,28 @@
 import type { SessionConfigOption } from "@agentclientprotocol/sdk";
 import {
-	type ClineAccountOrganization,
-	ClineAccountService,
+	type SynaiAccountOrganization,
+	SynaiAccountService,
 	getPersistedProviderApiKey,
 	type ProviderSettingsManager,
 	RuntimeOAuthTokenManager,
 } from "@synai/core";
-import { getClineEnvironmentConfig } from "@synai/shared";
+import { getSynaiEnvironmentConfig } from "@synai/shared";
 
 export const PERSONAL_ACCOUNT_VALUE = "personal";
 
 export const ORGANIZATION_CONFIG_ID = "organization";
 
-export function usesClineAccount(providerId: string): boolean {
-	return providerId === "cline" || providerId === "cline-pass";
+export function usesSynaiAccount(providerId: string): boolean {
+	return providerId === "synai" || providerId === "synai-pass";
 }
 
 export interface AcpOrganizationState {
-	organizations: ClineAccountOrganization[];
+	organizations: SynaiAccountOrganization[];
 	/** Active organization id, or null when the personal account is active. */
 	activeOrganizationId: string | null;
 }
 
-interface ClineAccountInput {
+interface SynaiAccountInput {
 	apiKey: string;
 	providerSettingsManager: ProviderSettingsManager;
 }
@@ -33,19 +33,19 @@ interface ClineAccountInput {
 // refreshes would invalidate each other.
 let oauthTokenManager: RuntimeOAuthTokenManager | undefined;
 
-function createAccountService(input: ClineAccountInput): ClineAccountService {
+function createAccountService(input: SynaiAccountInput): SynaiAccountService {
 	const { providerSettingsManager } = input;
-	const settings = providerSettingsManager.getProviderSettings("cline");
-	return new ClineAccountService({
+	const settings = providerSettingsManager.getProviderSettings("synai");
+	return new SynaiAccountService({
 		apiBaseUrl:
-			settings?.baseUrl?.trim() || getClineEnvironmentConfig().apiBaseUrl,
+			settings?.baseUrl?.trim() || getSynaiEnvironmentConfig().apiBaseUrl,
 		getAuthToken: async () => {
 			try {
 				oauthTokenManager ??= new RuntimeOAuthTokenManager({
 					providerSettingsManager,
 				});
 				const resolution = await oauthTokenManager.resolveProviderApiKey({
-					providerId: "cline",
+					providerId: "synai",
 				});
 				if (resolution?.apiKey) {
 					return resolution.apiKey;
@@ -56,8 +56,8 @@ function createAccountService(input: ClineAccountInput): ClineAccountService {
 			}
 			return (
 				getPersistedProviderApiKey(
-					"cline",
-					providerSettingsManager.getProviderSettings("cline"),
+					"synai",
+					providerSettingsManager.getProviderSettings("synai"),
 				) ||
 				input.apiKey ||
 				undefined
@@ -66,8 +66,8 @@ function createAccountService(input: ClineAccountInput): ClineAccountService {
 	});
 }
 
-export async function fetchClineOrganizations(
-	input: ClineAccountInput,
+export async function fetchSynaiOrganizations(
+	input: SynaiAccountInput,
 ): Promise<AcpOrganizationState | undefined> {
 	try {
 		const service = createAccountService(input);
@@ -93,7 +93,7 @@ export function buildOrganizationConfigOption(
 		id: ORGANIZATION_CONFIG_ID,
 		name: "Account",
 		description:
-			"The SynAI account usage is billed to — your personal account or an organization",
+			"The SynAI account usage is billed to - your personal account or an organization",
 		category: "account",
 		currentValue: state.activeOrganizationId ?? PERSONAL_ACCOUNT_VALUE,
 		options: [
@@ -106,8 +106,8 @@ export function buildOrganizationConfigOption(
 	};
 }
 
-export async function switchClineOrganization(
-	input: ClineAccountInput & { organizationId: string | null },
+export async function switchSynaiOrganization(
+	input: SynaiAccountInput & { organizationId: string | null },
 ): Promise<void> {
 	const service = createAccountService(input);
 	await service.switchAccount(input.organizationId);
@@ -119,12 +119,12 @@ export async function switchClineOrganization(
 // already succeeded server-side.
 async function persistActiveOrganization(
 	manager: ProviderSettingsManager,
-	service: ClineAccountService,
+	service: SynaiAccountService,
 ): Promise<void> {
 	try {
 		const organizations = await service.fetchUserOrganizations();
 		const active = organizations.find((org) => org.active) ?? null;
-		const persisted = manager.getProviderSettings("cline");
+		const persisted = manager.getProviderSettings("synai");
 		if (!persisted) {
 			return;
 		}

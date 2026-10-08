@@ -79,7 +79,7 @@ export async function runZen(
 			userImages,
 			userFiles,
 		} = await buildUserInputMessage(prompt, userInstructionService, {
-			// Zen runs in yolo mode, whose preset has no skills tool — skill
+			// Zen runs in yolo mode, whose preset has no skills tool - skill
 			// commands must keep expanding textually.
 			mode: "yolo",
 		});

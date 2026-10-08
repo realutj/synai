@@ -10,16 +10,11 @@ const __dirname = dirname(__filename);
 /**
  * Play system sound using Windows API
  */
-function playWindowsSound(soundType: 'notification' | 'success' | 'question' = 'notification') {
+function playWindowsSound(_soundType: 'notification' | 'success' | 'question' = 'notification') {
   if (!currentPreferences.soundEnabled || !currentPreferences.enabled) return;
   if (process.platform !== 'win32') return;
 
-  const sounds: Record<string, string> = {
-    notification: 'SystemNotification',
-    success: 'SystemAsterisk',
-    question: 'SystemQuestion',
-  };
-
+  
   const command = `powershell -c "[console]::beep(800, 200); [console]::beep(1000, 150)"`;
   
   try {
@@ -34,23 +29,20 @@ function playWindowsSound(soundType: 'notification' | 'success' | 'question' = '
 /**
  * Play success sound - more melodic
  */
-function playSuccessSound() {
-  // Beep sound explicitly disabled per user request
-  return;
-}
+
 
 /**
  * Show desktop notification for approval request
  */
-export function showApprovalNotification(toolName: string, args: any): void {
+export function showApprovalNotification(toolName: string, _args: any): void {
   if (!shouldShowNotification('showApprovalRequests')) return;
 
-  const title = '🤖 SynAI - Approval Required';
-  const message = `"${toolName}" requires confirmation.\n\nReturn to terminal to approve or reject.`;
+  const title = 'SynAI - Approval Required';
+  const _message = `"${toolName}" requires confirmation.\n\nReturn to terminal to approve or reject.`;
 
   notifier.notify({
     title,
-    message,
+    _message,
     icon: getIconPath(),
     wait: false,
     timeout: 10,
@@ -64,7 +56,7 @@ export function showApprovalNotification(toolName: string, args: any): void {
 /**
  * Show desktop notification when task is completed
  */
-export function showCompletionNotification(message: string = 'Task completed!'): void {
+export function showCompletionNotification(_message: string = 'Task completed!'): void {
   // Completion notification & beep sound disabled per user request
   return;
 }
@@ -73,12 +65,12 @@ export function showCompletionNotification(message: string = 'Task completed!'):
  * Show error notification
  */
 export function showErrorNotification(error: string): void {
-  const title = '⚠️ SynAI - Error';
-  const message = error.length > 100 ? error.substring(0, 100) + '...' : error;
+  const title = '[!] SynAI - Error';
+  const _message = error.length > 100 ? error.substring(0, 100) + '...' : error;
 
   notifier.notify({
     title,
-    message,
+    _message,
     icon: getIconPath(),
     wait: false,
     timeout: 8,
@@ -89,10 +81,10 @@ export function showErrorNotification(error: string): void {
 /**
  * Show info notification
  */
-export function showInfoNotification(title: string, message: string): void {
+export function showInfoNotification(title: string, _message: string): void {
   notifier.notify({
-    title: `ℹ️ SynAI - ${title}`,
-    message,
+    title: `[i] SynAI - ${title}`,
+    _message,
     icon: getIconPath(),
     wait: false,
     timeout: 5,
@@ -135,7 +127,7 @@ export function testNotifications(): void {
   
   setTimeout(() => {
     console.log('2. Success notification...');
-    showCompletionNotification('Test task completed successfully! 🎉');
+    showCompletionNotification('Test task completed successfully!');
   }, 2000);
   
   setTimeout(() => {

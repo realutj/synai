@@ -1,0 +1,19 @@
+.synai-ui-session-status {
+	--synai-ui-session-status-color: var(--neutral-a4);
+}
+
+.synai-ui-session-status__dot {
+	background: var(--synai-ui-session-status-color);
+}
+
+.synai-ui-session-status--neutral .synai-ui-session-status__dot {
+	visibility: hidden;
+}
+
+.synai-ui-session-status--running {
+	--synai-ui-session-status-color: var(--primary);
+}
+
+.synai-ui-session-status--error {
+	--synai-ui-session-status-color: var(--error-text);
+}

@@ -12,7 +12,7 @@ import { join } from "node:path";
 import {
 	discoverPluginModulePaths,
 	resolvePluginConfigSearchPaths,
-	setClineDir,
+	setSynaiDir,
 	setHomeDir,
 } from "@synai/shared/storage";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -34,8 +34,8 @@ describe("plugin install command", () => {
 	let home = "";
 	let workspace = "";
 	let originalHome: string | undefined;
-	let originalClineDir: string | undefined;
-	let originalClineDataDir: string | undefined;
+	let originalSynaiDir: string | undefined;
+	let originalSynaiDataDir: string | undefined;
 	let originalMcpSettingsPath: string | undefined;
 
 	beforeEach(() => {
@@ -43,14 +43,14 @@ describe("plugin install command", () => {
 		home = join(root, "home");
 		workspace = join(root, "workspace");
 		originalHome = process.env.HOME;
-		originalClineDir = process.env.SYNAI_DIR;
-		originalClineDataDir = process.env.SYNAI_DATA_DIR;
+		originalSynaiDir = process.env.SYNAI_DIR;
+		originalSynaiDataDir = process.env.SYNAI_DATA_DIR;
 		originalMcpSettingsPath = process.env.SYNAI_MCP_SETTINGS_PATH;
 		process.env.HOME = home;
 		process.env.SYNAI_DIR = join(home, ".synai");
 		process.env.SYNAI_DATA_DIR = join(home, ".synai", "data");
 		setHomeDir(home);
-		setClineDir(process.env.SYNAI_DIR);
+		setSynaiDir(process.env.SYNAI_DIR);
 	});
 
 	function runGitCommand(cwd: string, args: string[]): void {
@@ -70,7 +70,7 @@ describe("plugin install command", () => {
 		}
 		runGitCommand(repo, ["init"]);
 		runGitCommand(repo, ["config", "user.email", "test@example.com"]);
-		runGitCommand(repo, ["config", "user.name", "Cline Test"]);
+		runGitCommand(repo, ["config", "user.name", "Synai Test"]);
 		runGitCommand(repo, ["add", "."]);
 		runGitCommand(repo, ["commit", "-m", "seed plugins"]);
 		return repo;
@@ -78,21 +78,21 @@ describe("plugin install command", () => {
 
 	afterEach(() => {
 		vi.useRealTimers();
-		vi.unstubAllGlobals();
+		vi.unstubAllGlobals?.();
 		if (originalHome === undefined) {
 			delete process.env.HOME;
 		} else {
 			process.env.HOME = originalHome;
 		}
-		if (originalClineDir === undefined) {
+		if (originalSynaiDir === undefined) {
 			delete process.env.SYNAI_DIR;
 		} else {
-			process.env.SYNAI_DIR = originalClineDir;
+			process.env.SYNAI_DIR = originalSynaiDir;
 		}
-		if (originalClineDataDir === undefined) {
+		if (originalSynaiDataDir === undefined) {
 			delete process.env.SYNAI_DATA_DIR;
 		} else {
-			process.env.SYNAI_DATA_DIR = originalClineDataDir;
+			process.env.SYNAI_DATA_DIR = originalSynaiDataDir;
 		}
 		if (originalMcpSettingsPath === undefined) {
 			delete process.env.SYNAI_MCP_SETTINGS_PATH;
@@ -147,11 +147,11 @@ describe("plugin install command", () => {
 	it("parses GitHub plugin file URLs as remote sources", () => {
 		expect(
 			parsePluginSource(
-				"https://github.com/SynAI/cline/blob/main/sdk/examples/plugins/weather-metrics.ts",
+				"https://github.com/SynAI/synai/blob/main/sdk/examples/plugins/weather-metrics.ts",
 			),
 		).toEqual({
 			type: "remote",
-			url: "https://raw.githubusercontent.com/SynAI/cline/main/sdk/examples/plugins/weather-metrics.ts",
+			url: "https://raw.githubusercontent.com/SynAI/synai/main/sdk/examples/plugins/weather-metrics.ts",
 			filename: "weather-metrics.ts",
 		});
 	});
@@ -159,11 +159,11 @@ describe("plugin install command", () => {
 	it("parses raw plugin file URLs as remote sources", () => {
 		expect(
 			parsePluginSource(
-				"https://raw.githubusercontent.com/SynAI/cline/main/sdk/examples/plugins/weather-metrics.ts",
+				"https://raw.githubusercontent.com/SynAI/synai/main/sdk/examples/plugins/weather-metrics.ts",
 			),
 		).toEqual({
 			type: "remote",
-			url: "https://raw.githubusercontent.com/SynAI/cline/main/sdk/examples/plugins/weather-metrics.ts",
+			url: "https://raw.githubusercontent.com/SynAI/synai/main/sdk/examples/plugins/weather-metrics.ts",
 			filename: "weather-metrics.ts",
 		});
 	});
@@ -267,7 +267,7 @@ describe("plugin install command", () => {
 					{
 						name: "package-plugin",
 						type: "module",
-						cline: {
+						synai: {
 							plugins: [{ paths: ["./index.ts"] }],
 						},
 						dependencies: {
@@ -429,7 +429,7 @@ describe("plugin install command", () => {
 			JSON.stringify(
 				{
 					name: "plugin-package",
-					cline: {
+					synai: {
 						plugins: [{ paths: ["./index.ts"], capabilities: ["tools"] }],
 					},
 					dependencies: {
@@ -472,7 +472,7 @@ describe("plugin install command", () => {
 
 		const wrapperManifest = JSON.parse(
 			readFileSync(join(result.installPath, "package.json"), "utf8"),
-		) as { name?: string; cline?: { plugins?: Array<{ paths?: string[] }> } };
+		) as { name?: string; synai?: { plugins?: Array<{ paths?: string[] }> } };
 		expect(wrapperManifest.name).toBe("plugin-package");
 		expect(wrapperManifest.synai?.plugins?.[0]?.paths).toHaveLength(1);
 		expect(wrapperManifest.synai?.plugins?.[0]?.paths?.[0]).toContain(
@@ -541,7 +541,7 @@ describe("plugin install command", () => {
 		expect(npmLog).toContain("--legacy-peer-deps");
 		expect(
 			existsSync(
-				join(result.installPath, "package", "node_modules", "@cline", "core"),
+				join(result.installPath, "package", "node_modules", "@synai", "core"),
 			),
 		).toBe(false);
 		expect(existsSync(result.entryPaths[0] ?? "")).toBe(true);
@@ -571,7 +571,7 @@ describe("plugin install command", () => {
 			JSON.stringify(
 				{
 					name: "replace-package",
-					cline: {
+					synai: {
 						plugins: [{ paths: ["./index.ts"], capabilities: ["tools"] }],
 					},
 				},
@@ -620,7 +620,7 @@ describe("plugin install command", () => {
 			JSON.stringify(
 				{
 					name: "cli-uninstall-plugin",
-					cline: {
+					synai: {
 						plugins: [{ paths: ["./index.ts"], capabilities: ["tools"] }],
 					},
 				},
@@ -648,7 +648,7 @@ describe("plugin install command", () => {
 			name: "cli-uninstall-plugin",
 			io: {
 				writeln: (text = "") => output.push(text),
-				writeErr: (text) => output.push(text),
+				writeErr: (text: string = "") => output.push(text),
 			},
 		});
 
@@ -726,7 +726,7 @@ export default {
 				},
 				mcpOAuth: {
 					interactive: true,
-					selectCandidates: async (candidates) => candidates,
+					selectCandidates: async (candidates: any) => candidates,
 					authorize,
 				},
 			});
@@ -766,7 +766,7 @@ export default {
 		const originalSettingsPath = process.env.SYNAI_MCP_SETTINGS_PATH;
 		process.env.SYNAI_MCP_SETTINGS_PATH = join(
 			blockedDirectory,
-			"cline_mcp_settings.json",
+			"synai_mcp_settings.json",
 		);
 		const output: string[] = [];
 		try {
@@ -774,7 +774,7 @@ export default {
 				source,
 				io: {
 					writeln: (text = "") => output.push(text),
-					writeErr: (text) => output.push(text),
+					writeErr: (text: string = "") => output.push(text),
 				},
 			});
 
@@ -918,12 +918,12 @@ export default {
 			source,
 			io: {
 				writeln: (text = "") => output.push(text),
-				writeErr: (text) => output.push(text),
+				writeErr: (text: string = "") => output.push(text),
 			},
 			mcpOAuth: {
 				interactive: true,
-				selectCandidates: async (candidates) => candidates,
-				authorize: async (candidate) => {
+				selectCandidates: async (candidates: any) => candidates,
+				authorize: async (candidate: any) => {
 					authorized.push(candidate.name);
 				},
 			},
@@ -959,11 +959,11 @@ export default {
 			source,
 			io: {
 				writeln: (text = "") => output.push(text),
-				writeErr: (text) => output.push(text),
+				writeErr: (text: string = "") => output.push(text),
 			},
 			mcpOAuth: {
 				interactive: true,
-				selectCandidates: async (candidates) => candidates,
+				selectCandidates: async (candidates: any) => candidates,
 				authorize: async () => {
 					throw new Error("oauth unavailable");
 				},
@@ -1002,7 +1002,7 @@ export default {
 			source,
 			io: {
 				writeln: (text = "") => output.push(text),
-				writeErr: (text) => output.push(text),
+				writeErr: (text: string = "") => output.push(text),
 			},
 			mcpOAuth: {
 				interactive: false,

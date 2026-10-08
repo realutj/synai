@@ -1,15 +1,15 @@
 import { test } from "@microsoft/tui-test";
 import { SYNAI_BIN } from "./helpers/constants.js";
-import { clineEnv } from "./helpers/env.js";
+import { synaiEnv } from "./helpers/env.js";
 import { expectVisible } from "./helpers/terminal.js";
 
 // ---------------------------------------------------------------------------
 // synai --version  (root flag)
 // ---------------------------------------------------------------------------
-test.describe("cline --version", () => {
+test.describe("synai --version", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["--version"] },
-		env: clineEnv("claude-sonnet-4.6"),
+		env: synaiEnv("claude-sonnet-4.6"),
 	});
 
 	test("prints the version string", async ({ terminal }) => {
@@ -20,10 +20,10 @@ test.describe("cline --version", () => {
 // ---------------------------------------------------------------------------
 // synai -V  (short flag)
 // ---------------------------------------------------------------------------
-test.describe("cline -V", () => {
+test.describe("synai -V", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["-V"] },
-		env: clineEnv("claude-sonnet-4.6"),
+		env: synaiEnv("claude-sonnet-4.6"),
 	});
 
 	test("prints the version string with short flag", async ({ terminal }) => {
@@ -34,10 +34,10 @@ test.describe("cline -V", () => {
 // ---------------------------------------------------------------------------
 // synai version  (subcommand)
 // ---------------------------------------------------------------------------
-test.describe("cline version subcommand", () => {
+test.describe("synai version subcommand", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["version"] },
-		env: clineEnv("claude-sonnet-4.6"),
+		env: synaiEnv("claude-sonnet-4.6"),
 	});
 
 	test("prints 'SynAI CLI version:' message", async ({ terminal }) => {

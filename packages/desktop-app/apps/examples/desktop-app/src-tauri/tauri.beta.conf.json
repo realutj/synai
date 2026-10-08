@@ -1,0 +1,12 @@
+{
+	"$schema": "https://schema.tauri.app/config/2",
+	"productName": "SynAI Beta",
+	"identifier": "bot.synai.app.beta",
+	"plugins": {
+		"updater": {
+			"endpoints": [
+				"https://github.com/synai/synai/releases/download/desktop-beta/latest.json"
+			]
+		}
+	}
+}

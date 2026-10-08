@@ -1,12 +1,12 @@
 import {
-	fetchClineRecommendedModels,
+	fetchSynaiRecommendedModels,
 	getProviderConfigFields,
 	Llms,
 	ProviderSettingsManager,
 	refreshProviderModelsFromSource,
 	resolveProviderConfig,
 } from "@synai/core";
-import { isClineProvider } from "@synai/shared";
+import { isSynaiProvider } from "@synai/shared";
 import type { ChoiceContext } from "@opentui-ui/dialog";
 import type { DialogActions } from "@opentui-ui/dialog/react";
 import { useCallback } from "react";
@@ -19,7 +19,7 @@ import {
 import type { Config } from "../../utils/types";
 import { withLoadingDialog } from "../components/dialogs/loading-dialog";
 import {
-	ClinePassSubscriptionContent,
+	SynaiPassSubscriptionContent,
 	type ExistingProviderOption,
 	LocalCliStatusContent,
 	OAuthApiKeyInputContent,
@@ -32,7 +32,7 @@ import {
 import { buildFeaturedModelEntries } from "../components/model-selector/synai-model-picker";
 import {
 	BROWSE_ALL_ACTION,
-	ClineModelSelectorDialogContent,
+	SynaiModelSelectorDialogContent,
 } from "../components/model-selector/synai-model-selector";
 import {
 	buildModelOptions,
@@ -134,7 +134,7 @@ function providerToExistingProviderOptions(input: {
 	dialog: DialogActions;
 	termHeight: number;
 }): ExistingProviderOption[] {
-	if (input.providerId !== "cline-pass") {
+	if (input.providerId !== "synai-pass") {
 		return [];
 	}
 
@@ -147,7 +147,7 @@ function providerToExistingProviderOptions(input: {
 					style: { maxHeight: input.termHeight - 2 },
 					closeOnEscape: false,
 					content: (ctx: ChoiceContext<boolean>) => (
-						<ClinePassSubscriptionContent
+						<SynaiPassSubscriptionContent
 							{...ctx}
 							providerName={input.providerName}
 						/>
@@ -185,7 +185,7 @@ async function runProviderChange(
 
 	// Manual API key entry is the escape hatch for when OAuth login isn't
 	// working; only the synai providers accept a dashboard API key.
-	const supportsManualApiKey = isClineProvider(newProviderId);
+	const supportsManualApiKey = isSynaiProvider(newProviderId);
 	const openManualApiKeyDialog = async (): Promise<boolean | undefined> =>
 		await dialog.choice<boolean>({
 			style: { maxHeight: termHeight - 2 },
@@ -439,37 +439,37 @@ export function useModelSelector(opts: {
 				}
 
 				if (
-					config.providerId === "cline" ||
-					config.providerId === "cline-pass"
+					config.providerId === "synai" ||
+					config.providerId === "synai-pass"
 				) {
-					// ClinePass gets the same sectioned picker with Subscribed/Free
-					// sections — free models are selectable while staying on ClinePass
+					// SynaiPass gets the same sectioned picker with Subscribed/Free
+					// sections - free models are selectable while staying on SynaiPass
 					const featuredProviderId = config.providerId;
-					const clineResult = await dialog.choice<string>({
+					const synaiResult = await dialog.choice<string>({
 						style: { maxHeight: termHeight - 2 },
 						content: (ctx: ChoiceContext<string>) => (
-							<ClineModelSelectorDialogContent
+							<SynaiModelSelectorDialogContent
 								{...ctx}
 								currentModel={config.modelId}
 								currentProviderName={providerDisplayName}
 								loadEntries={async () =>
 									buildFeaturedModelEntries(
 										featuredProviderId,
-										await fetchClineRecommendedModels(),
+										await fetchSynaiRecommendedModels(),
 									)
 								}
 							/>
 						),
 					});
-					if (!clineResult) {
+					if (!synaiResult) {
 						await handleCancel();
 						return;
 					}
-					if (clineResult === CHANGE_PROVIDER_ACTION) {
+					if (synaiResult === CHANGE_PROVIDER_ACTION) {
 						await changeProvider();
 						continue;
 					}
-					if (clineResult === BROWSE_ALL_ACTION) {
+					if (synaiResult === BROWSE_ALL_ACTION) {
 						const browseResult = await dialog.choice<string>({
 							style: { maxHeight: termHeight - 2 },
 							content: (ctx: ChoiceContext<string>) => (
@@ -478,7 +478,11 @@ export function useModelSelector(opts: {
 									currentModel={config.modelId}
 									currentProviderName={providerDisplayName}
 									models={modelOptions}
-									showCustomModelId={config.providerId !== "cline-pass"}
+									showCustomModelId={config.providerId !== "synai-pass"}
+									onRefresh={async () => {
+										await refreshCurrentProviderModels(config);
+										await refreshProviderContext();
+									}}
 								/>
 							),
 						});
@@ -524,9 +528,9 @@ export function useModelSelector(opts: {
 						continue;
 					}
 
-					config.modelId = clineResult;
+					config.modelId = synaiResult;
 					const selectedModel = modelOptions.find(
-						(m: ModelOption) => m.key === clineResult,
+						(m: ModelOption) => m.key === synaiResult,
 					);
 					if (selectedModel?.supportsReasoning) {
 						const currentLevel: ThinkingLevel = config.reasoningEffort
@@ -569,7 +573,11 @@ export function useModelSelector(opts: {
 							currentModel={config.modelId}
 							currentProviderName={providerDisplayName}
 							models={modelOptions}
-							showCustomModelId={config.providerId !== "cline-pass"}
+							showCustomModelId={config.providerId !== "synai-pass"}
+							onRefresh={async () => {
+								await refreshCurrentProviderModels(config);
+								await refreshProviderContext();
+							}}
 						/>
 					),
 				});

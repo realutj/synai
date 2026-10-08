@@ -16,7 +16,7 @@ import type { HubSessionClient, HubSessionRow } from "@synai/core";
 import {
 	ensureParentDir,
 	getProcessStartToken,
-	resolveClineDataDir,
+	resolveSynaiDataDir,
 } from "@synai/core";
 import {
 	SYNAI_RUN_AS_HUB_DAEMON_ENV,
@@ -177,12 +177,12 @@ export function resolveConnectorDebugLogPath(
 	const safeAdapter = adapterName.replace(/[^a-zA-Z0-9._-]+/g, "_");
 	const safeKey = instanceKey.replace(/[^a-zA-Z0-9._-]+/g, "_");
 	return join(
-		resolveClineDataDir(),
+		resolveSynaiDataDir(),
 		"logs",
 		"connectors",
 		safeAdapter,
 		`${safeKey}.log`,
-	);
+	).replace(/\\/g, "/");
 }
 
 /**

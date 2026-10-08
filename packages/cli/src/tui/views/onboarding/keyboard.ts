@@ -2,7 +2,7 @@ import type { ProviderConfigFieldKey } from "@synai/core";
 import { useKeyboard } from "@opentui/react";
 import type { Dispatch, SetStateAction } from "react";
 import { getClipboardText } from "../../../utils/clipboard";
-import type { ClineModelPickerEntry } from "../../components/model-selector/synai-model-picker";
+import type { SynaiModelPickerEntry } from "../../components/model-selector/synai-model-picker";
 import type { SearchableListState } from "../../components/searchable-list";
 import {
 	isOnboardingOAuthProviderId,
@@ -10,8 +10,8 @@ import {
 } from "./auth";
 import { FIELD_ORDER } from "./fields";
 import {
-	type ClinePassSubscriptionOption,
-	type ClinePassSubscriptionStatus,
+	type SynaiPassSubscriptionOption,
+	type SynaiPassSubscriptionStatus,
 	type MenuOption,
 	type OnboardingStep,
 	THINKING_LEVELS,
@@ -27,11 +27,11 @@ export function useOnboardingKeyboard(input: {
 	menuSelected: number;
 	providerList: SearchableListState;
 	modelList: SearchableListState;
-	clineEntries: ClineModelPickerEntry[];
-	clineModelSelected: number;
-	clinePassSubscriptionStatus: ClinePassSubscriptionStatus;
-	clinePassSubscriptionOptions: ClinePassSubscriptionOption[];
-	clinePassSubscriptionSelected: number;
+	synaiEntries: SynaiModelPickerEntry[];
+	synaiModelSelected: number;
+	synaiPassSubscriptionStatus: SynaiPassSubscriptionStatus;
+	synaiPassSubscriptionOptions: SynaiPassSubscriptionOption[];
+	synaiPassSubscriptionSelected: number;
 	thinkingSelected: number;
 	setStep: (step: OnboardingStep) => void;
 	setMenuSelected: Dispatch<SetStateAction<number>>;
@@ -44,12 +44,12 @@ export function useOnboardingKeyboard(input: {
 	setDeviceVerifyUrl: (value: string) => void;
 	setDeviceError: (value: string) => void;
 	setDeviceStatus: (value: string) => void;
-	setClineModelSelected: Dispatch<SetStateAction<number>>;
-	setClinePassSubscriptionSelected: Dispatch<SetStateAction<number>>;
+	setSynaiModelSelected: Dispatch<SetStateAction<number>>;
+	setSynaiPassSubscriptionSelected: Dispatch<SetStateAction<number>>;
 	setThinkingSelected: Dispatch<SetStateAction<number>>;
-	continueFromClinePassSubscription: () => void;
-	refreshClinePassSubscriptionStatus: () => void;
-	openClinePassSubscriptionPage: () => void;
+	continueFromSynaiPassSubscription: () => void;
+	refreshSynaiPassSubscriptionStatus: () => void;
+	openSynaiPassSubscriptionPage: () => void;
 	abortOAuth: () => void;
 	abortDeviceCode: () => void;
 	resetAuth: () => void;
@@ -58,7 +58,7 @@ export function useOnboardingKeyboard(input: {
 	startDeviceCodeFlow: (providerId: OnboardingOAuthProviderId) => void;
 	selectProvider: (providerId: string) => void;
 	loadModelsForProvider: (providerId: string) => void;
-	saveClineModelSelection: (modelId: string, modelName: string) => void;
+	saveSynaiModelSelection: (modelId: string, modelName: string) => void;
 	saveLocalCliConfig: () => void;
 	saveByoConfig: () => void;
 	saveModelSelection: () => void;
@@ -104,20 +104,20 @@ export function useOnboardingKeyboard(input: {
 				input.setStep("byo_provider");
 				return;
 			}
-			if (input.step === "cline_pass_subscription") {
+			if (input.step === "synai_pass_subscription") {
 				input.setStep("menu");
 				input.setMenuSelected(0);
 				return;
 			}
-			if (input.step === "cline_model") {
+			if (input.step === "synai_model") {
 				input.setStep("menu");
 				input.setMenuSelected(0);
 				return;
 			}
 			if (input.step === "model_picker") {
-				if (input.activeProviderId === "cline") {
-					input.setClineModelSelected(0);
-					input.setStep("cline_model");
+				if (input.activeProviderId === "synai") {
+					input.setSynaiModelSelected(0);
+					input.setStep("synai_model");
 				} else {
 					input.setStep("menu");
 					input.setMenuSelected(0);
@@ -129,9 +129,9 @@ export function useOnboardingKeyboard(input: {
 				return;
 			}
 			if (input.step === "thinking_level") {
-				if (input.activeProviderId === "cline") {
-					input.setClineModelSelected(0);
-					input.setStep("cline_model");
+				if (input.activeProviderId === "synai") {
+					input.setSynaiModelSelected(0);
+					input.setStep("synai_model");
 				} else {
 					input.setStep("model_picker");
 					input.loadModelsForProvider(input.activeProviderId);
@@ -141,45 +141,45 @@ export function useOnboardingKeyboard(input: {
 		}
 
 		if (input.step === "oauth_pending") {
-			if (key.name === "d" && input.oauthProvider === "cline") {
+			if (key.name === "d" && input.oauthProvider === "synai") {
 				input.abortOAuth();
 				input.resetAuth();
-				input.startDeviceCodeFlow("cline");
+				input.startDeviceCodeFlow("synai");
 			}
 			return;
 		}
 
 		if (input.step === "device_code") return;
 
-		if (input.step === "cline_pass_subscription") {
-			const total = input.clinePassSubscriptionOptions.length;
+		if (input.step === "synai_pass_subscription") {
+			const total = input.synaiPassSubscriptionOptions.length;
 			if (total === 0) return;
 			if (key.name === "up" || (key.ctrl && key.name === "p")) {
-				input.setClinePassSubscriptionSelected((s) =>
+				input.setSynaiPassSubscriptionSelected((s) =>
 					s <= 0 ? total - 1 : s - 1,
 				);
 				return;
 			}
 			if (key.name === "down" || (key.ctrl && key.name === "n")) {
-				input.setClinePassSubscriptionSelected((s) =>
+				input.setSynaiPassSubscriptionSelected((s) =>
 					s >= total - 1 ? 0 : s + 1,
 				);
 				return;
 			}
 			if (key.name === "return" || key.name === "enter") {
 				const option =
-					input.clinePassSubscriptionOptions[
-						Math.min(input.clinePassSubscriptionSelected, total - 1)
+					input.synaiPassSubscriptionOptions[
+						Math.min(input.synaiPassSubscriptionSelected, total - 1)
 					];
 				if (!option) return;
 				if (option.value === "subscribe") {
-					input.openClinePassSubscriptionPage();
+					input.openSynaiPassSubscriptionPage();
 				} else if (option.value === "refresh") {
-					if (input.clinePassSubscriptionStatus !== "loading") {
-						input.refreshClinePassSubscriptionStatus();
+					if (input.synaiPassSubscriptionStatus !== "loading") {
+						input.refreshSynaiPassSubscriptionStatus();
 					}
 				} else if (option.value === "skip") {
-					input.continueFromClinePassSubscription();
+					input.continueFromSynaiPassSubscription();
 				} else if (option.value === "back") {
 					input.setStep("menu");
 					input.setMenuSelected(0);
@@ -201,13 +201,15 @@ export function useOnboardingKeyboard(input: {
 				);
 				return;
 			}
-			if (key.name === "return") {
+			if (key.name === "return" || key.name === "enter") {
 				const option = input.menuOptions[input.menuSelected];
 				if (!option) return;
-				if (isOnboardingOAuthProviderId(option.value)) {
+				if (option.value === "byo") {
+					input.setStep("byo_provider");
+				} else if (isOnboardingOAuthProviderId(option.value)) {
 					input.startOAuthFlow(option.value);
 				} else {
-					input.setStep("byo_provider");
+					input.selectProvider(option.value);
 				}
 			}
 			return;
@@ -222,7 +224,7 @@ export function useOnboardingKeyboard(input: {
 				input.providerList.moveDown();
 				return;
 			}
-			if (key.name === "return") {
+			if (key.name === "return" || key.name === "enter") {
 				const item = input.providerList.selectedItem;
 				if (item) input.selectProvider(item.key);
 			}
@@ -234,7 +236,7 @@ export function useOnboardingKeyboard(input: {
 				input.refreshLocalCliStatus();
 				return;
 			}
-			if (key.name === "return") {
+			if (key.name === "return" || key.name === "enter") {
 				input.saveLocalCliConfig();
 			}
 			return;
@@ -264,22 +266,22 @@ export function useOnboardingKeyboard(input: {
 			return;
 		}
 
-		if (input.step === "cline_model") {
-			const total = input.clineEntries.length;
+		if (input.step === "synai_model") {
+			const total = input.synaiEntries.length;
 			if (total === 0) return;
 			if (key.name === "up" || (key.ctrl && key.name === "p")) {
-				input.setClineModelSelected((s) => (s <= 0 ? total - 1 : s - 1));
+				input.setSynaiModelSelected((s) => (s <= 0 ? total - 1 : s - 1));
 				return;
 			}
 			if (key.name === "down" || (key.ctrl && key.name === "n")) {
-				input.setClineModelSelected((s) => (s >= total - 1 ? 0 : s + 1));
+				input.setSynaiModelSelected((s) => (s >= total - 1 ? 0 : s + 1));
 				return;
 			}
-			if (key.name === "return") {
-				const entry = input.clineEntries[input.clineModelSelected];
+			if (key.name === "return" || key.name === "enter") {
+				const entry = input.synaiEntries[input.synaiModelSelected];
 				if (!entry) return;
 				if (entry.kind === "model") {
-					input.saveClineModelSelection(entry.model.id, entry.model.name);
+					input.saveSynaiModelSelection(entry.model.id, entry.model.name);
 				} else {
 					input.setStep("model_picker");
 					input.loadModelsForProvider(input.activeProviderId);
@@ -297,7 +299,7 @@ export function useOnboardingKeyboard(input: {
 				input.modelList.moveDown();
 				return;
 			}
-			if (key.name === "return") {
+			if (key.name === "return" || key.name === "enter") {
 				input.saveModelSelection();
 			}
 			return;
@@ -316,7 +318,7 @@ export function useOnboardingKeyboard(input: {
 				);
 				return;
 			}
-			if (key.name === "return") {
+			if (key.name === "return" || key.name === "enter") {
 				const level = THINKING_LEVELS[input.thinkingSelected];
 				if (level) input.saveThinkingLevel(level.value);
 			}

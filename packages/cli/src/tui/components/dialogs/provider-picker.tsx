@@ -1,5 +1,5 @@
 import {
-	completeClineDeviceAuth,
+	completeSynaiDeviceAuth,
 	getProviderConfigFields,
 	isLocalAuthProvider,
 	isOAuthProvider,
@@ -9,9 +9,9 @@ import {
 	ProviderSettingsManager,
 	saveLocalProviderOAuthCredentials,
 	saveLocalProviderSettings,
-	startClineDeviceAuth,
+	startSynaiDeviceAuth,
 } from "@synai/core";
-import { getClineEnvironmentConfig } from "@synai/shared";
+import { getSynaiEnvironmentConfig } from "@synai/shared";
 import type { ChoiceContext } from "@opentui-ui/dialog";
 import { useDialogKeyboard } from "@opentui-ui/dialog/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -40,7 +40,7 @@ import {
 	type SearchableItem,
 } from "../searchable-list";
 import {
-	buildClinePassSubscriptionPageUrl,
+	buildSynaiPassSubscriptionPageUrl,
 	resolveOAuthWaitKeyAction,
 	saveManualProviderApiKey,
 } from "./provider-picker-helpers";
@@ -108,12 +108,12 @@ export function ProviderPickerContent(
 		() =>
 			filtered.map((p) => {
 				let label = p.name;
-				if (p.id === "cline") {
+				if (p.id === "synai") {
 					label = "SynAI Cloud (Usage-Billing)";
-				} else if (p.id === "cline-pass") {
+				} else if (p.id === "synai-pass") {
 					label = "SynAI Pass";
 				} else {
-					label = label.replaceAll("Cline", "SynAI").replaceAll("cline", "synai");
+					label = label.replaceAll("Synai", "SynAI").replaceAll("synai", "synai");
 				}
 				return {
 					key: p.id,
@@ -129,7 +129,7 @@ export function ProviderPickerContent(
 			dismiss();
 			return;
 		}
-		if (key.name === "return") {
+		if (key.name === "return" || key.name === "enter") {
 			const provider = filtered[safeSelected];
 			if (provider) resolve(provider.id);
 			return;
@@ -175,7 +175,7 @@ export function ProviderPickerContent(
 					{showAbove && (
 						<box paddingX={1} justifyContent="center">
 							<text fg="gray">
-								{"\u25b2"} {aboveCount} more
+								{"^"} {aboveCount} more
 							</text>
 						</box>
 					)}
@@ -209,7 +209,7 @@ export function ProviderPickerContent(
 									fg={isSel ? palette.textOnSelection : "gray"}
 									flexShrink={0}
 								>
-									{isSel ? "\u276f" : " "}
+									{isSel ? ">" : " "}
 								</text>
 								<text fg={isSel ? palette.textOnSelection : undefined}>
 									{p.name}
@@ -235,7 +235,7 @@ export function ProviderPickerContent(
 										fg={isSel ? palette.textOnSelection : palette.success}
 										flexShrink={0}
 									>
-										{"\u25cf"}
+										{"[*]"}
 									</text>
 								)}
 								{isCurrent && (
@@ -252,7 +252,7 @@ export function ProviderPickerContent(
 					{showBelow && (
 						<box paddingX={1} justifyContent="center">
 							<text fg="gray">
-								{"\u25bc"} {belowCount} more
+								{"v"} {belowCount} more
 							</text>
 						</box>
 					)}
@@ -260,7 +260,7 @@ export function ProviderPickerContent(
 			)}
 
 			<text fg="gray">
-				Type to search, ↑/↓ navigate, Enter to select, Esc to go back
+				Type to search, Up/Down navigate, Enter to select, Esc to go back
 			</text>
 		</box>
 	);
@@ -334,7 +334,7 @@ export function UseExistingOrReconfigureContent(
 							fg={i === selected ? palette.textOnSelection : "gray"}
 							flexShrink={0}
 						>
-							{i === selected ? "❯" : " "}
+							{i === selected ? ">" : " "}
 						</text>
 						<text fg={i === selected ? palette.textOnSelection : undefined}>
 							{opt.label}
@@ -343,12 +343,12 @@ export function UseExistingOrReconfigureContent(
 				))}
 			</box>
 
-			<text fg="gray">↑/↓ navigate, Enter to select, Esc to go back</text>
+			<text fg="gray">Up/Down navigate, Enter to select, Esc to go back</text>
 		</box>
 	);
 }
 
-function ClinePassBrowserPageContent(
+function SynaiPassBrowserPageContent(
 	props: ChoiceContext<boolean> & {
 		providerName: string;
 		pageLabel: string;
@@ -408,19 +408,19 @@ function ClinePassBrowserPageContent(
 	);
 }
 
-export function ClinePassSubscriptionContent(
+export function SynaiPassSubscriptionContent(
 	props: ChoiceContext<boolean> & {
 		providerName: string;
 	},
 ) {
 	const subscriptionUrl = useMemo(
 		() =>
-			buildClinePassSubscriptionPageUrl(getClineEnvironmentConfig().appBaseUrl),
+			buildSynaiPassSubscriptionPageUrl(getSynaiEnvironmentConfig().appBaseUrl),
 		[],
 	);
 
 	return (
-		<ClinePassBrowserPageContent
+		<SynaiPassBrowserPageContent
 			{...props}
 			pageLabel="Subscription page"
 			url={subscriptionUrl}
@@ -600,7 +600,7 @@ export function ProviderConfigInputContent(
 			dismiss();
 			return;
 		}
-		if (key.name === "return") {
+		if (key.name === "return" || key.name === "enter") {
 			submit();
 			return;
 		}
@@ -655,7 +655,7 @@ export function ProviderConfigInputContent(
 								}}
 							>
 								<text fg={palette.act}>
-									<strong>[ 📋 Paste Clipboard (Ctrl+V) ]</strong>
+									<strong>[  Paste Clipboard (Ctrl+V) ]</strong>
 								</text>
 							</box>
 						</box>
@@ -724,7 +724,7 @@ export function LocalCliStatusContent(
 			refresh();
 			return;
 		}
-		if (key.name === "return" && canContinueLocalCliSetup(cli, status)) {
+		if ((key.name === "return" || key.name === "enter") && canContinueLocalCliSetup(cli, status)) {
 			resolve(true);
 		}
 	}, dialogId);
@@ -740,7 +740,7 @@ export function LocalCliStatusContent(
 			{status?.installed && (
 				<box flexDirection="column" gap={1}>
 					<text fg={palette.success}>
-						{"\u25cf"} {providerName} installed
+						{"[*]"} {providerName} installed
 					</text>
 					<text fg="gray">{status.version}</text>
 				</box>
@@ -795,7 +795,7 @@ export function OAuthLoginContent(
 	} = props;
 	const palette = useDialogPalette();
 	const [mode, setMode] = useState<"browser" | "device">(
-		providerId === "cline" ? "device" : "browser",
+		providerId === "synai" ? "device" : "browser",
 	);
 	const [status, setStatus] = useState("Opening browser...");
 	const [authUrl, setAuthUrl] = useState("");
@@ -835,17 +835,21 @@ export function OAuthLoginContent(
 		const manager = new ProviderSettingsManager();
 		const existing = manager.getProviderSettings(providerId);
 		const apiBaseUrl =
-			existing?.baseUrl?.trim() || getClineEnvironmentConfig().apiBaseUrl;
+			existing?.baseUrl?.trim() || getSynaiEnvironmentConfig().apiBaseUrl;
 
-		startClineDeviceAuth()
+		startSynaiDeviceAuth()
 			.then((result) => {
 				if (!isActiveAuthAttempt(attempt)) return;
-				setDeviceUserCode(result.userCode);
+				if (!result) {
+					setDeviceError("Device authentication service is unavailable.");
+					return;
+				}
+				setDeviceUserCode(result.userCode || "");
 				setDeviceVerifyUrl(
-					result.verificationUriComplete || result.verificationUri,
+					result.verificationUriComplete || result.verificationUri || "https://synai.bot/auth/device",
 				);
 
-				completeClineDeviceAuth({
+				completeSynaiDeviceAuth({
 					deviceCode: result.deviceCode,
 					expiresInSeconds: result.expiresInSeconds,
 					pollIntervalSeconds: result.pollIntervalSeconds,
@@ -854,6 +858,10 @@ export function OAuthLoginContent(
 				})
 					.then((credentials) => {
 						if (!isActiveAuthAttempt(attempt)) return;
+						if (!credentials) {
+							setDeviceError("Authentication failed: no credentials received.");
+							return;
+						}
 						saveLocalProviderOAuthCredentials(
 							manager,
 							providerId,
@@ -881,7 +889,7 @@ export function OAuthLoginContent(
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: run once on mount
 	useEffect(() => {
-		if (providerId === "cline") {
+		if (providerId === "synai") {
 			startDeviceAuthCodeFlow();
 			return cancelAuthAttempt;
 		}
@@ -905,6 +913,11 @@ export function OAuthLoginContent(
 		})
 			.then((credentials) => {
 				if (!isActiveAuthAttempt(attempt)) return;
+				if (!credentials) {
+					setError("Authentication failed: no credentials received.");
+					setStatus("Authentication failed");
+					return;
+				}
 				saveLocalProviderOAuthCredentials(
 					manager,
 					providerId,
@@ -995,7 +1008,7 @@ export function OAuthLoginContent(
 }
 
 /**
- * Manual API key entry for OAuth-capable providers — the escape hatch for
+ * Manual API key entry for OAuth-capable providers - the escape hatch for
  * when OAuth login isn't working. Saving clears any stored OAuth tokens so
  * the manual key takes effect (see saveManualProviderApiKey).
  */
@@ -1029,7 +1042,7 @@ export function OAuthApiKeyInputContent(
 			dismiss();
 			return;
 		}
-		if (key.name === "return") {
+		if (key.name === "return" || key.name === "enter") {
 			submit();
 			return;
 		}
@@ -1067,7 +1080,7 @@ export function OAuthApiKeyInputContent(
 						}}
 					>
 						<text fg={palette.act}>
-							<strong>[ 📋 Paste Clipboard (Ctrl+V) ]</strong>
+							<strong>[  Paste Clipboard (Ctrl+V) ]</strong>
 						</text>
 					</box>
 				</box>

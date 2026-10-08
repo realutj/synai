@@ -3,10 +3,10 @@ import { ThinkingLevel, ThinkingLevelConfig } from '../types/index.js';
 export function normalizeThinkingLevel(level?: string): 'low' | 'medium' | 'high' | 'max' {
   if (!level) return 'low';
   const l = level.toLowerCase().trim();
-  if (['low', 'fast', '1', 'hızlı', 'hizli'].includes(l)) return 'low';
-  if (['medium', 'balanced', 'normal', '2', 'dengeli'].includes(l)) return 'medium';
-  if (['high', 'deep', '3', 'derin'].includes(l)) return 'high';
-  if (['max', 'maximum', 'maksimum', 'genius', '4', 'dahi'].includes(l)) return 'max';
+  if (['low', 'fast', '1'].includes(l)) return 'low';
+  if (['medium', 'balanced', 'normal', '2'].includes(l)) return 'medium';
+  if (['high', 'deep', '3'].includes(l)) return 'high';
+  if (['max', 'maximum', 'genius', '4'].includes(l)) return 'max';
   return 'low';
 }
 
@@ -90,7 +90,7 @@ export function getThinkingLevelPromptAddition(level: ThinkingLevel): string {
   
   let addition = `\n### ACTIVE COGNITIVE EFFORT LEVEL: ${normalized.toUpperCase()}\n`;
   addition += `${config.description}\n`;
-  addition += `- **Language Rule**: Respond completely and exclusively in the exact language the user prompts in (e.g. Turkish if asked in Turkish). Never use English when the user speaks another language.\n`;
+  addition += `- **Language Rule**: Respond completely and exclusively in the exact language the user prompts in.\n`;
   addition += `- **Speed & Directness**: For general questions, greetings, or simple tasks, answer immediately and concisely without unnecessary reasoning loops.\n\n`;
 
   if (normalized === 'low') {

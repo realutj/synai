@@ -76,7 +76,7 @@ function withInteractiveApprovalPolicyHook(
 ): AgentHooks {
 	return {
 		...hooks,
-		beforeTool: async (ctx) => {
+		beforeTool: async (ctx: any) => {
 			const result = await hooks?.beforeTool?.(ctx);
 			if (result?.stop || result?.skip) {
 				return result;
@@ -159,7 +159,7 @@ export function createInteractiveSessionRuntime(input: {
 				input.config.mode === "yolo" || input.config.sandbox === true,
 			capabilities: {
 				toolExecutors: {
-					askQuestion: (question, options) => {
+					askQuestion: (question: any, options: any) => {
 						if (input.askQuestionRef.current) {
 							return input.askQuestionRef.current(question, options);
 						}
@@ -188,8 +188,8 @@ export function createInteractiveSessionRuntime(input: {
 				await manager.ingestHookEvent(payload);
 			},
 		});
-		unsubscribeAgent = subscribeToAgentEvents(manager, input.onAgentEvent);
-		unsubscribePendingPrompts = subscribeToPendingPromptEvents(manager, {
+		unsubscribeAgent = subscribeToAgentEvents(manager as any, input.onAgentEvent);
+		unsubscribePendingPrompts = subscribeToPendingPromptEvents(manager as any, {
 			onPendingPrompts: input.onPendingPrompts,
 			onPendingPromptSubmitted: input.onPendingPromptSubmitted,
 		});
@@ -444,7 +444,7 @@ export function createInteractiveSessionRuntime(input: {
 		options?: { preserveSessionId?: boolean },
 	): Promise<void> => {
 		// Config-only restarts (model/mode/account changes) continue the same
-		// conversation, so they must keep the session id — otherwise each
+		// conversation, so they must keep the session id - otherwise each
 		// restart mints a new session history entry for the same conversation.
 		const reuseSessionId = options?.preserveSessionId
 			? activeSessionId || undefined

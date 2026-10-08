@@ -1,18 +1,35 @@
 import { join } from "node:path";
-import {
-	type BasicLogger,
-	type FeatureFlagsContext,
-	FeatureFlagsService,
-	type ITelemetryService,
-	NoOpFeatureFlagsProvider,
-	registerDisposable,
-	resolveCoreDistinctId,
-} from "@synai/core";
-import {
-	buildClinePostHogClient,
-	PostHogFeatureFlagsProvider,
-} from "@synai/core/services/feature-flags/posthog";
-import { resolveClineDataDir } from "@synai/shared/storage";
+import { registerDisposable } from "@synai/shared";
+import { resolveSynaiDataDir } from "@synai/shared/storage";
+
+export interface FeatureFlagsContext {
+	clientName?: string;
+	distinctId?: string;
+	userId?: string;
+	email?: string;
+	[key: string]: unknown;
+}
+
+export class FeatureFlagsService {
+	private context: FeatureFlagsContext;
+	constructor(options?: any) {
+		this.context = options?.context ?? { clientName: "synai-cli" };
+	}
+	async poll(): Promise<void> {}
+	async dispose(): Promise<void> {}
+	setContext(context: FeatureFlagsContext): void {
+		this.context = { ...this.context, ...context };
+	}
+	getContext(): FeatureFlagsContext {
+		return this.context;
+	}
+	isEnabled(_key: string, defaultValue = false): boolean {
+		return defaultValue;
+	}
+	getVariant(_key: string, defaultValue?: string): string | undefined {
+		return defaultValue;
+	}
+}
 
 let cliFeatureFlagsContext: FeatureFlagsContext = { clientName: "synai-cli" };
 let cliFeatureFlagsService: FeatureFlagsService | undefined;
@@ -20,7 +37,7 @@ let cliFeatureFlagsService: FeatureFlagsService | undefined;
 const CLI_FEATURE_FLAGS_CACHE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 
 function resolveCliFeatureFlagsCachePath(): string {
-	return join(resolveClineDataDir(), "cache", "feature-flags.json");
+	return join(resolveSynaiDataDir(), "cache", "feature-flags.json");
 }
 
 function ensureCliDistinctId(): string {
@@ -28,7 +45,7 @@ function ensureCliDistinctId(): string {
 	if (distinctId) {
 		return distinctId;
 	}
-	const resolved = resolveCoreDistinctId();
+	const resolved = "synai-user";
 	cliFeatureFlagsContext.distinctId = resolved;
 	return resolved;
 }
@@ -39,25 +56,11 @@ export function getCliFeatureFlagsContext(): FeatureFlagsContext {
 }
 
 export function getCliFeatureFlagsService(options?: {
-	logger?: BasicLogger;
-	telemetry?: ITelemetryService;
+	logger?: any;
+	telemetry?: any;
 }): FeatureFlagsService {
 	if (!cliFeatureFlagsService) {
-		const apiKey = process.env.TELEMETRY_SERVICE_API_KEY;
-		const provider =
-			apiKey &&
-			process.env.IS_TEST !== "true" &&
-			process.env.E2E_TEST !== "true"
-				? new PostHogFeatureFlagsProvider({
-						client: buildClinePostHogClient(apiKey),
-						config: {
-							logger: options?.logger,
-						},
-					})
-				: new NoOpFeatureFlagsProvider();
-
 		cliFeatureFlagsService = new FeatureFlagsService({
-			provider,
 			telemetry: options?.telemetry,
 			logger: options?.logger,
 			context: getCliFeatureFlagsContext(),
@@ -70,7 +73,7 @@ export function getCliFeatureFlagsService(options?: {
 	return cliFeatureFlagsService;
 }
 
-export function refreshCliFeatureFlagsInBackground(logger?: BasicLogger): void {
+export function refreshCliFeatureFlagsInBackground(logger?: any): void {
 	const service = getCliFeatureFlagsService({ logger });
 	void service.poll().catch((error) => {
 		logger?.error?.("Error refreshing CLI feature flags", { error });
@@ -102,7 +105,7 @@ export function setCliFeatureFlagsAccountContext(account: {
 
 export async function identifyFeatureFlagsAccount(
 	account: { id?: string; email?: string },
-	logger?: BasicLogger,
+	logger?: any,
 ): Promise<void> {
 	setCliFeatureFlagsAccountContext(account);
 

@@ -94,10 +94,10 @@ export function buildHistoryFooterText(input: {
 	canExport: boolean;
 }): string {
 	return [
-		"\u2191/\u2193 navigate",
+		"Up/Down navigate",
 		"Enter to resume",
-		input.canDelete ? "\u2190 delete" : undefined,
-		input.canExport ? "\u2192 export" : undefined,
+		input.canDelete ? "← delete" : undefined,
+		input.canExport ? "→ export" : undefined,
 		"Esc to close",
 	]
 		.filter((part): part is string => part !== undefined)

@@ -59,7 +59,7 @@ describe("runConnectAdapter", () => {
 		mocks.listActiveConnectors.mockReturnValue([]);
 		mocks.run.mockImplementation(
 			async (_args: string[], _io: ConnectIo, context: ConnectRunContext) => {
-				context.setPersistenceInstanceId("cline_bot");
+				context.setPersistenceInstanceId("synai_bot");
 				return 0;
 			},
 		);
@@ -88,7 +88,7 @@ describe("runConnectAdapter", () => {
 
 		expect(mocks.persistConnectorConnection).toHaveBeenCalledWith(
 			"telegram",
-			"cline_bot",
+			"synai_bot",
 			["-k", "token"],
 		);
 		expect(mocks.disableConnectorAutostart).not.toHaveBeenCalled();
@@ -99,7 +99,7 @@ describe("runConnectAdapter", () => {
 
 		expect(mocks.persistConnectorConnection).toHaveBeenCalledWith(
 			"telegram",
-			"cline_bot",
+			"synai_bot",
 			[],
 		);
 		expect(mocks.disableConnectorAutostart).not.toHaveBeenCalled();
@@ -152,7 +152,7 @@ describe("runConnectAdapter", () => {
 		expect(mocks.persistConnectorConnection).not.toHaveBeenCalled();
 		expect(mocks.disableConnectorAutostart).toHaveBeenCalledWith(
 			"telegram",
-			"cline_bot",
+			"synai_bot",
 		);
 	});
 
@@ -258,12 +258,12 @@ describe("runConnectAdapter", () => {
 		mocks.validate.mockResolvedValue(1);
 		mocks.listActiveConnectors.mockReturnValue([
 			{
-				id: "telegram:cline_bot",
+				id: "telegram:synai_bot",
 				type: "telegram",
-				instanceId: "cline_bot",
+				instanceId: "synai_bot",
 				pid: 123,
 				hubUrl: "ws://127.0.0.1:4317",
-				botUsername: "cline_bot",
+				botUsername: "synai_bot",
 			},
 		]);
 		mocks.getConnector.mockResolvedValue({
@@ -292,12 +292,12 @@ describe("runConnectAdapter", () => {
 		});
 		mocks.listActiveConnectors.mockReturnValue([
 			{
-				id: "telegram:cline_bot",
+				id: "telegram:synai_bot",
 				type: "telegram",
-				instanceId: "cline_bot",
+				instanceId: "synai_bot",
 				pid: 123,
 				hubUrl: "ws://127.0.0.1:4317",
-				botUsername: "cline_bot",
+				botUsername: "synai_bot",
 			},
 		]);
 		mocks.getConnector.mockResolvedValue({
@@ -326,17 +326,17 @@ describe("runConnectAdapter", () => {
 		});
 		mocks.listActiveConnectors.mockReturnValue([
 			{
-				id: "telegram:cline_bot",
+				id: "telegram:synai_bot",
 				type: "telegram",
-				instanceId: "cline_bot",
+				instanceId: "synai_bot",
 				pid: 123,
 				hubUrl: "ws://127.0.0.1:4317",
-				botUsername: "cline_bot",
+				botUsername: "synai_bot",
 			},
 		]);
 		mocks.getPersistedConnectorConnection.mockReturnValue({
 			channel: "telegram",
-			instanceId: "cline_bot",
+			instanceId: "synai_bot",
 			connectArgs: ["-k", "new-token"],
 			lastSuccessfulArgs: ["-k", "old-token"],
 			enabled: true,
@@ -347,7 +347,7 @@ describe("runConnectAdapter", () => {
 			.mockResolvedValueOnce(1)
 			.mockImplementationOnce(
 				async (_args: string[], _io: ConnectIo, context: ConnectRunContext) => {
-					context.setPersistenceInstanceId("cline_bot");
+					context.setPersistenceInstanceId("synai_bot");
 					return 0;
 				},
 			);
@@ -364,7 +364,7 @@ describe("runConnectAdapter", () => {
 			runRestartConnector("telegram", ["-k", "new-token"], io),
 		).resolves.toBe(1);
 
-		expect(stopInstance).toHaveBeenCalledWith("cline_bot", io);
+		expect(stopInstance).toHaveBeenCalledWith("synai_bot", io);
 		expect(mocks.run).toHaveBeenNthCalledWith(
 			1,
 			["-k", "new-token"],
@@ -380,7 +380,7 @@ describe("runConnectAdapter", () => {
 		expect(mocks.disableConnectorAutostart).not.toHaveBeenCalled();
 		expect(mocks.persistConnectorConnection).toHaveBeenCalledWith(
 			"telegram",
-			"cline_bot",
+			"synai_bot",
 			["-k", "old-token"],
 		);
 	});
@@ -393,12 +393,12 @@ describe("runConnectAdapter", () => {
 		});
 		mocks.listActiveConnectors.mockReturnValue([
 			{
-				id: "telegram:cline_bot",
+				id: "telegram:synai_bot",
 				type: "telegram",
-				instanceId: "cline_bot",
+				instanceId: "synai_bot",
 				pid: 123,
 				hubUrl: "ws://127.0.0.1:4317",
-				botUsername: "cline_bot",
+				botUsername: "synai_bot",
 			},
 		]);
 		mocks.getPersistedConnectorConnection.mockReturnValue(undefined);
@@ -415,7 +415,7 @@ describe("runConnectAdapter", () => {
 			runRestartConnector("telegram", ["-k", "new-token"], io),
 		).resolves.toBe(0);
 
-		expect(stopInstance).toHaveBeenCalledWith("cline_bot", io);
+		expect(stopInstance).toHaveBeenCalledWith("synai_bot", io);
 		expect(mocks.run).toHaveBeenCalledWith(
 			["-k", "new-token"],
 			io,
@@ -431,12 +431,12 @@ describe("runConnectAdapter", () => {
 		});
 		mocks.listActiveConnectors.mockReturnValue([
 			{
-				id: "telegram:cline_bot",
+				id: "telegram:synai_bot",
 				type: "telegram",
-				instanceId: "cline_bot",
+				instanceId: "synai_bot",
 				pid: 123,
 				hubUrl: "ws://127.0.0.1:4317",
-				botUsername: "cline_bot",
+				botUsername: "synai_bot",
 			},
 		]);
 		mocks.getConnector.mockResolvedValue({
@@ -452,7 +452,7 @@ describe("runConnectAdapter", () => {
 			runRestartConnector("telegram", ["-k", "new-token"], io),
 		).resolves.toBe(1);
 
-		expect(stopInstance).toHaveBeenCalledWith("cline_bot", io);
+		expect(stopInstance).toHaveBeenCalledWith("synai_bot", io);
 		expect(mocks.run).not.toHaveBeenCalled();
 	});
 
@@ -464,17 +464,17 @@ describe("runConnectAdapter", () => {
 		});
 		mocks.listActiveConnectors.mockReturnValue([
 			{
-				id: "telegram:cline_bot",
+				id: "telegram:synai_bot",
 				type: "telegram",
-				instanceId: "cline_bot",
+				instanceId: "synai_bot",
 				pid: 123,
 				hubUrl: "ws://127.0.0.1:4317",
-				botUsername: "cline_bot",
+				botUsername: "synai_bot",
 			},
 		]);
 		mocks.getPersistedConnectorConnection.mockReturnValue({
 			channel: "telegram",
-			instanceId: "cline_bot",
+			instanceId: "synai_bot",
 			connectArgs: ["-k", "new-token"],
 			lastSuccessfulArgs: ["-k", "old-token"],
 			enabled: true,
@@ -497,7 +497,7 @@ describe("runConnectAdapter", () => {
 
 		expect(mocks.run).toHaveBeenCalledTimes(1);
 		expect(io.writeErr).toHaveBeenCalledWith(
-			"[connect] replacement was not started because telegram instance cline_bot is still running",
+			"[connect] replacement was not started because telegram instance synai_bot is still running",
 		);
 		expect(mocks.persistConnectorConnection).not.toHaveBeenCalled();
 	});
@@ -666,7 +666,7 @@ describe("hub-delegated connector starts", () => {
 		expect(mocks.run).toHaveBeenCalled();
 	});
 
-	it("falls back to a local start when the hub declines", async () => {
+	it("falls back to a local start when the hub rejects", async () => {
 		mocks.startConnectorViaHub.mockResolvedValue({
 			delegated: false,
 			reason: "hub does not support connector supervision",

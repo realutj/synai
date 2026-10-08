@@ -1,4 +1,5 @@
 import puppeteer, { Browser, Page } from 'puppeteer-core';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -28,6 +29,9 @@ export interface BrowserActionParams {
     | 'evaluate'
     | 'read_url'
     | 'search'
+    | 'tabs'
+    | 'new_tab'
+    | 'select_tab'
     | 'close';
   url?: string;
   selector?: string;
@@ -42,6 +46,7 @@ export interface BrowserActionParams {
   query?: string;
   headless?: boolean;
   maxLength?: number;
+  tabIndex?: number;
 }
 
 /**
@@ -55,6 +60,7 @@ export function findSystemBrowser(): string | null {
       'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
       'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
       path.join(os.homedir(), 'AppData\\Local\\Google\\Chrome\\Application\\chrome.exe'),
+      'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
       'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
       'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
     ];
@@ -66,6 +72,7 @@ export function findSystemBrowser(): string | null {
       '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
       '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
       '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser',
+      path.join(os.homedir(), 'Applications/Google Chrome.app/Contents/MacOS/Google Chrome'),
     ];
     for (const c of candidates) {
       if (fs.existsSync(c)) return c;
@@ -77,10 +84,25 @@ export function findSystemBrowser(): string | null {
       '/usr/bin/chromium-browser',
       '/usr/bin/chromium',
       '/usr/bin/microsoft-edge',
+      '/opt/google/chrome/chrome',
+      '/snap/bin/chromium',
+      '/usr/lib/chromium/chromium',
     ];
     for (const c of candidates) {
       if (fs.existsSync(c)) return c;
     }
+  }
+
+  const locator = platform === 'win32' ? 'where.exe' : 'which';
+  const names = platform === 'win32'
+    ? ['chrome.exe', 'msedge.exe']
+    : platform === 'darwin'
+      ? ['google-chrome', 'chrome', 'microsoft-edge', 'brave-browser']
+      : ['google-chrome', 'google-chrome-stable', 'chromium', 'chromium-browser', 'microsoft-edge'];
+  for (const name of names) {
+    const result = spawnSync(locator, [name], { encoding: 'utf8', windowsHide: true });
+    const executable = result.status === 0 ? result.stdout.trim().split(/\r?\n/)[0] : undefined;
+    if (executable && fs.existsSync(executable)) return executable;
   }
 
   return null;
@@ -132,6 +154,14 @@ export async function checkRemoteDebugging(port: number = 9222): Promise<{
 export async function launchRemoteDebuggingChrome(
   port: number = 9222
 ): Promise<{ success: boolean; message: string }> {
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    return { success: false, message: 'Chrome remote debugging port must be an integer from 1 to 65535.' };
+  }
+  const existing = await checkRemoteDebugging(port);
+  if (existing.available) {
+    return { success: true, message: `Chrome is already available on Remote Debugging port ${port}.` };
+  }
+
   const exe = findSystemBrowser();
   if (!exe) return { success: false, message: 'Google Chrome or Microsoft Edge not found.' };
 
@@ -150,10 +180,13 @@ export async function launchRemoteDebuggingChrome(
     ],
     { detached: true, stdio: 'ignore' }
   );
+  let launchError: Error | undefined;
+  proc.once('error', (error) => { launchError = error; });
   proc.unref();
 
   // Wait up to 4 seconds for debugging port to become active
   for (let i = 0; i < 8; i++) {
+    if (launchError) return { success: false, message: `Could not launch Chrome: ${launchError.message}` };
     await new Promise((r) => setTimeout(r, 500));
     const status = await checkRemoteDebugging(port);
     if (status.available) {
@@ -177,6 +210,7 @@ export class BrowserManager {
   private executablePath: string | null = null;
   private isHeadless: boolean = false;
   private cdpPort: number = 9222;
+  private ownsBrowser: boolean = false;
 
   private constructor() {
     this.executablePath = findSystemBrowser();
@@ -187,6 +221,48 @@ export class BrowserManager {
       BrowserManager.instance = new BrowserManager();
     }
     return BrowserManager.instance;
+  }
+
+  public setRemoteDebuggingPort(port: number): void {
+    if (!Number.isInteger(port) || port < 1 || port > 65535) {
+      throw new Error('Chrome remote debugging port must be an integer from 1 to 65535.');
+    }
+    this.cdpPort = port;
+  }
+
+  /** Drop this process's CDP connection while leaving the Chrome window open. */
+  public async release(): Promise<void> {
+    if (this.browser) {
+      try {
+        await this.browser.disconnect();
+      } catch {}
+    }
+    this.browser = null;
+    this.activePage = null;
+    this.ownsBrowser = false;
+  }
+
+  private async isSynAIBrowser(): Promise<boolean> {
+    if (!this.browser?.connected) return false;
+    let client: Awaited<ReturnType<ReturnType<Browser['target']>['createCDPSession']>> | undefined;
+    try {
+      client = await this.browser.target().createCDPSession();
+      const { arguments: browserArgs } = await client.send('Browser.getBrowserCommandLine');
+      const expectedProfiles = new Set([
+        path.join(os.tmpdir(), 'synai-interactive-browser-profile'),
+        path.join(os.tmpdir(), 'synai-chrome-debug-profile'),
+      ]);
+      return browserArgs.some((arg: string, index: number) =>
+        [...expectedProfiles].some((profile) =>
+          arg === `--user-data-dir=${profile}` ||
+          (arg === '--user-data-dir' && browserArgs[index + 1] === profile)
+        )
+      );
+    } catch {
+      return false;
+    } finally {
+      await client?.detach().catch(() => {});
+    }
   }
 
   public async getStatus(): Promise<{
@@ -233,7 +309,8 @@ export class BrowserManager {
 
     if (this.browser) {
       try {
-        await this.browser.disconnect();
+        if (this.ownsBrowser) await this.browser.close();
+        else await this.browser.disconnect();
       } catch {}
     }
 
@@ -241,6 +318,7 @@ export class BrowserManager {
       browserURL: `http://127.0.0.1:${port}`,
       defaultViewport: null,
     });
+    this.ownsBrowser = false;
 
     const pages = await this.browser.pages();
     this.activePage = pages.length > 0 ? pages[0] : await this.browser.newPage();
@@ -284,18 +362,16 @@ export class BrowserManager {
 
     this.browser = await puppeteer.launch({
       executablePath: this.executablePath,
-      headless: this.isHeadless ? 'shell' : false,
+      headless: this.isHeadless,
       defaultViewport: { width: 1280, height: 800 },
       userDataDir,
       args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
-        '--disable-extensions',
         `--remote-debugging-port=${this.cdpPort}`,
         '--window-size=1280,800',
       ],
     });
+    this.ownsBrowser = true;
 
     const pages = await this.browser.pages();
     this.activePage = pages.length > 0 ? pages[0] : await this.browser.newPage();
@@ -322,8 +398,23 @@ export class BrowserManager {
           const name = input.name ? `name="${input.name}"` : '';
           const type = input.type ? `type="${input.type}"` : '';
           const placeholder = input.placeholder ? `placeholder="${input.placeholder}"` : '';
-          const value = input.value ? `value="${input.value.slice(0, 20)}"` : '';
           const label = input.labels?.[0]?.innerText?.trim() || '';
+          const sensitiveMetadata = [
+            input.id,
+            input.name,
+            input.autocomplete,
+            input.placeholder,
+            input.getAttribute('aria-label'),
+            label,
+          ].join(' ').toLowerCase();
+          const sensitiveFieldPattern =
+            /password|passwd|passcode|secret|token|api[_ -]?key|access[_ -]?key|private[_ -]?key|credential|authorization|one[_ -]?time|\botp\b|credit[_ -]?card|debit[_ -]?card|card[_ -]?(number|security|code)|social[_ -]?security|national[_ -]?(identity|id)|tax[_ -]?id|bank[_ -]?(account|routing)|routing[_ -]?number|\b(cvv|cvc|ssn)\b/;
+          const sensitiveValue =
+            input.type.toLowerCase() === 'password' ||
+            sensitiveFieldPattern.test(sensitiveMetadata);
+          const value = input.value
+            ? `value="${sensitiveValue ? '[redacted]' : input.value.slice(0, 20)}"`
+            : '';
           const labelStr = label ? `label="${label}"` : '';
           results.push(
             `- [Input] ${input.tagName.toLowerCase()}${id} ${name} ${type} ${placeholder} ${labelStr} ${value}`
@@ -399,16 +490,63 @@ export class BrowserManager {
       if (action === 'close') {
         if (this.browser) {
           try {
-            await this.browser.close();
+            if (this.ownsBrowser || await this.isSynAIBrowser()) await this.browser.close();
+            else await this.browser.disconnect();
           } catch {}
           this.browser = null;
           this.activePage = null;
+          this.ownsBrowser = false;
         }
-        return { output: 'Browser session closed successfully.', actionType: 'info' };
+        return { output: 'SynAI browser session closed. Existing personal Chrome windows remain open.', actionType: 'info' };
       }
 
       // --- Interactive Actions requiring Puppeteer ---
       const page = await this.getPage(params.headless ?? false);
+
+      if (action === 'tabs') {
+        const pages = await this.browser!.pages();
+        const tabs = await Promise.all(pages.map(async (tab, index) => ({
+          index,
+          title: await tab.title(),
+          url: tab.url(),
+          active: tab === this.activePage,
+        })));
+        return { output: JSON.stringify(tabs, null, 2), actionType: 'info' };
+      }
+
+      if (action === 'new_tab') {
+        const tab = await this.browser!.newPage();
+        tab.setDefaultTimeout(15000);
+        this.activePage = tab;
+        if (params.url) {
+          let targetUrl = params.url.trim();
+          if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) targetUrl = `https://${targetUrl}`;
+          await tab.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
+        }
+        await tab.bringToFront();
+        return { output: `Opened tab ${await tab.title()} (${tab.url()})`, actionType: 'info', url: tab.url(), title: await tab.title() };
+      }
+
+      if (action === 'select_tab') {
+        const pages = await this.browser!.pages();
+        if (params.tabIndex === undefined || !pages[params.tabIndex]) {
+          return { output: `Error: a valid tab index is required; Chrome has ${pages.length} tab(s).`, isError: true, actionType: 'info' };
+        }
+        this.activePage = pages[params.tabIndex];
+        await this.activePage.bringToFront();
+        return { output: `Selected tab ${params.tabIndex}: ${await this.activePage.title()} (${this.activePage.url()})`, actionType: 'info', url: this.activePage.url(), title: await this.activePage.title() };
+      }
+
+      if (params.url && ['screenshot', 'inspect', 'evaluate'].includes(action)) {
+        let targetUrl = params.url.trim();
+        if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+          targetUrl = `https://${targetUrl}`;
+        }
+        if (page.url() !== targetUrl) {
+          await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
+          await page.bringToFront();
+        }
+      }
 
       switch (action) {
         case 'navigate': {
@@ -777,6 +915,35 @@ export async function executeBrowserTool(
   if (toolName === 'read_url_content') {
     return await readUrlContent(args.url || args.targetUrl, args.maxLength);
   }
+  if (toolName === 'read_browser_page') {
+    const action = args.action || 'read';
+    if (action === 'screenshot') {
+      return await BrowserManager.getInstance().execute(workspaceRoot, {
+        action: 'screenshot',
+        url: args.url,
+        headless: args.headless ?? true,
+      });
+    } else if (action === 'inspect') {
+      return await BrowserManager.getInstance().execute(workspaceRoot, {
+        action: 'inspect',
+        url: args.url,
+        headless: args.headless ?? true,
+      });
+    } else if (action === 'eval' || action === 'evaluate') {
+      return await BrowserManager.getInstance().execute(workspaceRoot, {
+        action: 'evaluate',
+        url: args.url,
+        script: args.script,
+        headless: args.headless ?? true,
+      });
+    } else {
+      return await BrowserManager.getInstance().execute(workspaceRoot, {
+        action: 'read_url',
+        url: args.url,
+        headless: args.headless ?? true,
+      });
+    }
+  }
   const action =
     args.action || (toolName.startsWith('browser_') ? toolName.replace('browser_', '') : 'navigate');
   return await BrowserManager.getInstance().execute(workspaceRoot, { ...args, action });
@@ -801,12 +968,13 @@ export const browserToolDefinition: ToolDefinition = {
           'inspect',
           'screenshot',
           'scroll',
+          'evaluate',
           'read_url',
           'search',
           'close',
         ],
         description:
-          'The browser action: "navigate" (go to url), "click" (click button/link by selector or text), "type" (type into input), "fill_form" (fill multiple fields), "inspect" (list all form inputs and buttons), "screenshot" (capture image), "press_key" (Enter, Tab, etc.), "search" (web search).',
+          'The browser action: "navigate" (go to url), "click" (click button/link by selector or text), "type" (type into input), "fill_form" (fill multiple fields), "inspect" (list all form inputs and buttons), "screenshot" (capture image), "press_key" (Enter, Tab, etc.), "evaluate" (evaluate JS code), "search" (web search).',
       },
       url: { type: 'string', description: 'Web page URL to navigate to or read.' },
       selector: { type: 'string', description: 'CSS selector for element to click, type into, or select.' },
@@ -820,6 +988,7 @@ export const browserToolDefinition: ToolDefinition = {
       },
       submit: { type: 'string', description: 'Optional submit button text or selector to click after fill_form.' },
       key: { type: 'string', description: 'Key name to press (e.g. "Enter", "Tab", "Escape").' },
+      script: { type: 'string', description: 'JavaScript code to evaluate in page context.' },
       query: { type: 'string', description: 'Search query when action is "search".' },
       headless: { type: 'boolean', description: 'Whether to run headless (default: false, so user can watch form filling).' },
     },
@@ -827,4 +996,35 @@ export const browserToolDefinition: ToolDefinition = {
   },
 };
 
-export const browserTools: ToolDefinition[] = [browserToolDefinition];
+export const readBrowserPageToolDefinition: ToolDefinition = {
+  name: 'read_browser_page',
+  description:
+    'Fetch and interact with a live web page using headless browser automation (Antigravity-compatible). Renders client-side dynamic JavaScript, extracts structured text/markdown, captures screenshots, and inspects interactive buttons and forms.',
+  parameters: {
+    type: 'object',
+    properties: {
+      url: { type: 'string', description: 'The webpage URL to visit and interact with.' },
+      action: {
+        type: 'string',
+        enum: ['read', 'screenshot', 'inspect', 'eval'],
+        description:
+          "Action to perform: 'read' (default: render and extract clean markdown text), 'screenshot' (capture image), 'inspect' (list interactive elements), 'eval' (evaluate JavaScript).",
+      },
+      script: {
+        type: 'string',
+        description: 'JavaScript code to execute in the browser page when action is "eval".',
+      },
+      screenshotPath: {
+        type: 'string',
+        description: 'File path to save the screenshot image to when action is "screenshot".',
+      },
+      headless: {
+        type: 'boolean',
+        description: 'Run browser in headless background mode (default: true).',
+      },
+    },
+    required: ['url'],
+  },
+};
+
+export const browserTools: ToolDefinition[] = [browserToolDefinition, readBrowserPageToolDefinition];

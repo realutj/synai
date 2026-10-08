@@ -158,7 +158,7 @@ export function writeBindings<TState extends ConnectorThreadState>(
  *
  * This has to follow the same identity rule as {@link findBindingForThread},
  * because whatever shares a session has to share a queue. A DM reuses one
- * binding — and therefore one runtime session — for every message in the
+ * binding - and therefore one runtime session - for every message in the
  * channel, so keying the queue by thread id would let two messages in the same
  * DM run against that one session concurrently. That surfaces as
  * "SessionRuntime.shutdown called while a run is in progress", or as two

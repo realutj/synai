@@ -9,7 +9,7 @@ import {
 	resolveProviderConfig,
 	saveLocalProviderSettings,
 } from "@synai/core";
-import { isClineProvider } from "@synai/shared";
+import { isSynaiProvider } from "@synai/shared";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isChatProviderModel } from "../../../utils/chat-models";
 import {
@@ -23,7 +23,11 @@ import {
 	type ProviderLocalCli,
 } from "../../../utils/local-cli";
 import open from "../../../utils/open";
-import { getPersistedProviderApiKey } from "../../../utils/provider-auth";
+import {
+	getPersistedProviderApiKey,
+	isLocalAuthProvider,
+	isOAuthProvider,
+} from "../../../utils/provider-auth";
 import { listLocalProviders } from "../../../utils/provider-catalog";
 import { getCliTelemetryService } from "../../../utils/telemetry";
 import {
@@ -32,8 +36,8 @@ import {
 } from "../../synai-account";
 import {
 	buildFeaturedModelEntries,
-	type ClineModelPickerEntry,
-	useClineRecommendedModels,
+	type SynaiModelPickerEntry,
+	useSynaiRecommendedModels,
 } from "../../components/model-selector/synai-model-picker";
 import {
 	type SearchableItem,
@@ -59,7 +63,7 @@ import { FIELD_ORDER } from "./fields";
 import { useOnboardingKeyboard } from "./keyboard";
 import {
 	SYNAI_PASS_SUBSCRIPTION_OPTIONS,
-	type ClinePassSubscriptionStatus,
+	type SynaiPassSubscriptionStatus,
 	canContinueLocalCliSetup,
 	DEFAULT_THINKING_LEVEL_INDEX,
 	getMainMenuOptions,
@@ -69,7 +73,7 @@ import {
 	type ProviderEntry,
 	type ReasoningEffort,
 	resolveProviderSetupRoute,
-	shouldUseFeaturedClineModelPicker,
+	shouldUseFeaturedSynaiModelPicker,
 	type ThinkingLevel,
 	toModelEntriesFromKnownModels,
 	toModelEntry,
@@ -94,7 +98,7 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 	const menuOptions = useMemo(
 		() =>
 			getMainMenuOptions({
-				isClinePassEnabled: false,
+				isSynaiPassEnabled: false,
 			}),
 		[],
 	);
@@ -148,12 +152,12 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		() =>
 			providers.map((p) => {
 				let label = p.name;
-				if (p.id === "cline") {
+				if (p.id === "synai") {
 					label = "SynAI Cloud (Usage-Billing)";
-				} else if (p.id === "cline-pass") {
+				} else if (p.id === "synai-pass") {
 					label = "SynAI Pass";
 				} else {
-					label = label.replaceAll("Cline", "SynAI").replaceAll("cline", "synai");
+					label = label.replaceAll("Synai", "SynAI").replaceAll("synai", "synai");
 				}
 				return {
 					key: p.id,
@@ -165,7 +169,7 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 							? "(local CLI)"
 							: undefined,
 					searchText: `${label} ${p.id}`,
-					rightLabel: p.hasAuth ? "\u25cf" : undefined,
+					rightLabel: p.hasAuth ? "[*]" : undefined,
 					rightLabelColor: theme.accents.success,
 				};
 			}),
@@ -180,19 +184,19 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 	const [modelsDefaultId, setModelsDefaultId] = useState("");
 	const [customModelId, setCustomModelId] = useState("");
 	const [customModelError, setCustomModelError] = useState("");
-	const [clinePassSubscriptionStatus, setClinePassSubscriptionStatus] =
-		useState<ClinePassSubscriptionStatus>("loading");
-	const [clinePassSubscriptionError, setClinePassSubscriptionError] =
+	const [synaiPassSubscriptionStatus, setSynaiPassSubscriptionStatus] =
+		useState<SynaiPassSubscriptionStatus>("loading");
+	const [synaiPassSubscriptionError, setSynaiPassSubscriptionError] =
 		useState("");
-	const [clinePassCurrentPlanName, setClinePassCurrentPlanName] = useState("");
-	const [clinePassPlanFeatures, setClinePassPlanFeatures] = useState<string[]>(
+	const [synaiPassCurrentPlanName, setSynaiPassCurrentPlanName] = useState("");
+	const [synaiPassPlanFeatures, setSynaiPassPlanFeatures] = useState<string[]>(
 		[],
 	);
-	const [clinePassSubscriptionSelected, setClinePassSubscriptionSelected] =
+	const [synaiPassSubscriptionSelected, setSynaiPassSubscriptionSelected] =
 		useState(0);
-	const [clinePassSubscriptionOpenStatus, setClinePassSubscriptionOpenStatus] =
+	const [synaiPassSubscriptionOpenStatus, setSynaiPassSubscriptionOpenStatus] =
 		useState("");
-	const clinePassSubscriptionUrl = useMemo(() => getCliSubscriptionUrl(), []);
+	const synaiPassSubscriptionUrl = useMemo(() => getCliSubscriptionUrl(), []);
 
 	const modelItems: SearchableItem[] = useMemo(
 		() =>
@@ -208,7 +212,7 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 
 	const createCustomModelItem = useCallback(
 		(_search: string, filteredItems: SearchableItem[]) => {
-			if (activeProviderId === "cline-pass") {
+			if (activeProviderId === "synai-pass") {
 				return undefined;
 			}
 			if (filteredItems.some((item) => item.key === CUSTOM_MODEL_ID_ACTION)) {
@@ -226,26 +230,26 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 
 	const modelList = useSearchableList(modelItems, createCustomModelItem);
 
-	// synai featured model picker (ClinePass gets Subscribed/Free sections)
-	const recommended = useClineRecommendedModels();
-	const clineEntries: ClineModelPickerEntry[] = useMemo(
+	// synai featured model picker (SynaiPass gets Subscribed/Free sections)
+	const recommended = useSynaiRecommendedModels();
+	const synaiEntries: SynaiModelPickerEntry[] = useMemo(
 		() =>
 			recommended.data
 				? buildFeaturedModelEntries(activeProviderId, recommended.data)
 				: [],
 		[recommended.data, activeProviderId],
 	);
-	const [clineModelSelected, setClineModelSelected] = useState(0);
-	const [clineModelReasoningIds, setClineModelReasoningIds] = useState<
+	const [synaiModelSelected, setSynaiModelSelected] = useState(0);
+	const [synaiModelReasoningIds, setSynaiModelReasoningIds] = useState<
 		Set<string>
 	>(new Set());
 
 	useEffect(() => {
-		// The featured picker serves both synai and cline-pass, so pool
+		// The featured picker serves both synai and synai-pass, so pool
 		// reasoning support from both catalogs. Display names need no catalog
-		// here: fetchClineRecommendedModels resolves them.
+		// here: fetchSynaiRecommendedModels resolves them.
 		void Promise.allSettled(
-			["cline", "cline-pass"].map((providerId) =>
+			["synai", "synai-pass"].map((providerId) =>
 				getLocalProviderModels(providerId),
 			),
 		).then((results) => {
@@ -256,7 +260,7 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 					if (m.supportsReasoning) ids.add(m.id);
 				}
 			}
-			setClineModelReasoningIds(ids);
+			setSynaiModelReasoningIds(ids);
 		});
 	}, []);
 
@@ -313,11 +317,11 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		[providerSettingsManager],
 	);
 
-	const refreshClinePassSubscriptionStatus = useCallback(() => {
-		setClinePassSubscriptionStatus("loading");
-		setClinePassSubscriptionError("");
-		setClinePassCurrentPlanName("");
-		setClinePassSubscriptionOpenStatus("");
+	const refreshSynaiPassSubscriptionStatus = useCallback(() => {
+		setSynaiPassSubscriptionStatus("loading");
+		setSynaiPassSubscriptionError("");
+		setSynaiPassCurrentPlanName("");
+		setSynaiPassSubscriptionOpenStatus("");
 
 		loadCurrentUserPlanFromProviderSettings({ providerSettingsManager })
 			.then(
@@ -339,7 +343,7 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 			)
 			.then(({ currentPlanResult, availablePlansResult }) => {
 				if (availablePlansResult.status === "fulfilled") {
-					setClinePassPlanFeatures(
+					setSynaiPassPlanFeatures(
 						getIndividualPlanFeatures(availablePlansResult.value),
 					);
 				}
@@ -349,22 +353,22 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 					const message =
 						error instanceof Error ? error.message : String(error);
 					if (message.trim().toLowerCase() === "no plan found for user") {
-						setClinePassSubscriptionStatus("unsubscribed");
+						setSynaiPassSubscriptionStatus("unsubscribed");
 						return;
 					}
-					setClinePassSubscriptionError(message);
-					setClinePassSubscriptionStatus("error");
+					setSynaiPassSubscriptionError(message);
+					setSynaiPassSubscriptionStatus("error");
 					return;
 				}
 
 				const plan = currentPlanResult.value?.plan;
 				if (plan) {
-					setClinePassCurrentPlanName(
-						plan.displayName || plan.name || plan.id || "ClinePass",
+					setSynaiPassCurrentPlanName(
+						plan.displayName || plan.name || plan.id || "SynaiPass",
 					);
-					setClinePassSubscriptionStatus("subscribed");
+					setSynaiPassSubscriptionStatus("subscribed");
 				} else {
-					setClinePassSubscriptionStatus("unsubscribed");
+					setSynaiPassSubscriptionStatus("unsubscribed");
 				}
 			});
 	}, [providerSettingsManager]);
@@ -375,9 +379,9 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 			const provider = providers.find((p) => p.id === providerId);
 			setActiveProviderName(provider?.name ?? providerId);
 			setModelsDefaultId(provider?.defaultModelId ?? "");
-			if (shouldUseFeaturedClineModelPicker(providerId)) {
-				setClineModelSelected(0);
-				setStep("cline_model");
+			if (shouldUseFeaturedSynaiModelPicker(providerId)) {
+				setSynaiModelSelected(0);
+				setStep("synai_model");
 			} else if (providerId === "openai-compatible") {
 				const existing =
 					providerSettingsManager.getProviderSettings(providerId);
@@ -392,25 +396,25 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		[providers, loadModelsForProvider, providerSettingsManager],
 	);
 
-	const transitionToClinePassSubscription = useCallback(() => {
-		setActiveProviderId("cline-pass");
-		const provider = providers.find((p) => p.id === "cline-pass");
-		setActiveProviderName(provider?.name ?? "ClinePass");
+	const transitionToSynaiPassSubscription = useCallback(() => {
+		setActiveProviderId("synai-pass");
+		const provider = providers.find((p) => p.id === "synai-pass");
+		setActiveProviderName(provider?.name ?? "SynaiPass");
 		setModelsDefaultId(provider?.defaultModelId ?? "");
-		setClinePassSubscriptionSelected(0);
-		setStep("cline_pass_subscription");
-		refreshClinePassSubscriptionStatus();
-	}, [providers, refreshClinePassSubscriptionStatus]);
+		setSynaiPassSubscriptionSelected(0);
+		setStep("synai_pass_subscription");
+		refreshSynaiPassSubscriptionStatus();
+	}, [providers, refreshSynaiPassSubscriptionStatus]);
 
 	const handleAuthComplete = useCallback(
 		(providerId: OnboardingOAuthProviderId) => {
-			if (providerId === "cline-pass") {
-				transitionToClinePassSubscription();
+			if (providerId === "synai-pass") {
+				transitionToSynaiPassSubscription();
 				return;
 			}
 			transitionToModelPicker(providerId);
 		},
-		[transitionToClinePassSubscription, transitionToModelPicker],
+		[transitionToSynaiPassSubscription, transitionToModelPicker],
 	);
 
 	const resetAuth = useCallback(() => {
@@ -447,7 +451,7 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 
 	const startOAuthFlow = useCallback(
 		(providerId: OnboardingOAuthProviderId) => {
-			if (isClineProvider(providerId)) {
+			if (isSynaiProvider(providerId)) {
 				startDeviceCodeFlow(providerId);
 				return;
 			}
@@ -476,33 +480,33 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		],
 	);
 
-	const continueFromClinePassSubscription = useCallback(() => {
-		transitionToModelPicker("cline-pass");
+	const continueFromSynaiPassSubscription = useCallback(() => {
+		transitionToModelPicker("synai-pass");
 	}, [transitionToModelPicker]);
 
-	const openClinePassSubscriptionPage = useCallback(() => {
-		setClinePassSubscriptionOpenStatus("Opening subscription page...");
-		void open(clinePassSubscriptionUrl, { wait: false })
+	const openSynaiPassSubscriptionPage = useCallback(() => {
+		setSynaiPassSubscriptionOpenStatus("Opening subscription page...");
+		void open(synaiPassSubscriptionUrl, { wait: false })
 			.then(() => {
-				setClinePassSubscriptionOpenStatus(
+				setSynaiPassSubscriptionOpenStatus(
 					"Opened subscription page in your browser.",
 				);
 			})
 			.catch(() => {
-				setClinePassSubscriptionOpenStatus(
-					`Could not open browser automatically. Open ${clinePassSubscriptionUrl}`,
+				setSynaiPassSubscriptionOpenStatus(
+					`Could not open browser automatically. Open ${synaiPassSubscriptionUrl}`,
 				);
 			});
-	}, [clinePassSubscriptionUrl]);
+	}, [synaiPassSubscriptionUrl]);
 
 	useEffect(() => {
 		if (
-			step === "cline_pass_subscription" &&
-			clinePassSubscriptionStatus === "subscribed"
+			step === "synai_pass_subscription" &&
+			synaiPassSubscriptionStatus === "subscribed"
 		) {
-			transitionToModelPicker("cline-pass");
+			transitionToModelPicker("synai-pass");
 		}
-	}, [step, clinePassSubscriptionStatus, transitionToModelPicker]);
+	}, [step, synaiPassSubscriptionStatus, transitionToModelPicker]);
 
 	const refreshLocalCliStatus = useCallback((provider: ProviderLocalCli) => {
 		// Probing spawns the provider's CLI, so a result can land long after the
@@ -525,8 +529,26 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 
 	const selectProvider = useCallback(
 		(providerId: string) => {
-			const provider = providers.find((p) => p.id === providerId);
-			if (!provider) return;
+			const names: Record<string, string> = {
+				openrouter: "OpenRouter Engine",
+				anthropic: "Anthropic Claude",
+				openai: "OpenAI Platform",
+				"openai-codex": "ChatGPT OAuth",
+				deepseek: "DeepSeek",
+				google: "Google Gemini",
+				groq: "Groq",
+				ollama: "Ollama",
+				byo: "Custom / Local Provider",
+			};
+			const provider: ProviderEntry = providers.find((p) => p.id === providerId) ?? {
+				id: providerId,
+				name: names[providerId] || providerId,
+				isOAuth: isOAuthProvider(providerId),
+				isLocalAuth: isLocalAuthProvider(providerId),
+				hasAuth: false,
+				models: 0,
+				defaultModelId: "",
+			};
 			if (provider.isOAuth) {
 				if (isOnboardingOAuthProviderId(provider.id)) {
 					startOAuthFlow(provider.id);
@@ -546,48 +568,48 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 			const config = getProviderConfigFields(provider.id);
 			setActiveProviderId(provider.id);
 			setActiveProviderName(provider.name);
-			setByoFields(config.fields);
+			setByoFields(config.fields || {});
 			setByoDescription(config.description);
 
 			// Build initial values from existing settings
 			const existing = providerSettingsManager.getProviderSettings(provider.id);
 			const initialValues: ProviderConfigValues = {};
-			if (config.fields.baseUrl) {
+			if (config.fields?.baseUrl) {
 				initialValues.baseUrl =
 					existing?.baseUrl?.trim() ??
 					config.fields.baseUrl?.defaultValue ??
 					"";
 			}
-			if (config.fields.azureApiVersion) {
+			if (config.fields?.azureApiVersion) {
 				initialValues.azureApiVersion =
 					existing?.azure?.apiVersion?.trim() ?? "";
 			}
-			if (config.fields.awsRegion) {
+			if (config.fields?.awsRegion) {
 				const existingProfile = existing?.aws?.profile?.trim() ?? "";
 				initialValues.awsRegion =
 					existing?.aws?.region?.trim() || getDefaultAwsRegion(existingProfile);
 			}
-			if (config.fields.apiKey) {
+			if (config.fields?.apiKey) {
 				initialValues.apiKey = existing?.apiKey?.trim() ?? "";
 			}
-			if (config.fields.awsProfile) {
+			if (config.fields?.awsProfile) {
 				initialValues.awsProfile = existing?.aws?.profile?.trim() ?? "";
 			}
-			if (config.fields.sapClientId) {
+			if (config.fields?.sapClientId) {
 				initialValues.sapClientId = existing?.sap?.clientId?.trim() ?? "";
 			}
-			if (config.fields.sapClientSecret) {
+			if (config.fields?.sapClientSecret) {
 				initialValues.sapClientSecret =
 					existing?.sap?.clientSecret?.trim() ?? "";
 			}
-			if (config.fields.sapTokenUrl) {
+			if (config.fields?.sapTokenUrl) {
 				initialValues.sapTokenUrl = existing?.sap?.tokenUrl?.trim() ?? "";
 			}
-			if (config.fields.sapResourceGroup) {
+			if (config.fields?.sapResourceGroup) {
 				initialValues.sapResourceGroup =
 					existing?.sap?.resourceGroup?.trim() ?? "default";
 			}
-			if (config.fields.sapDeploymentId) {
+			if (config.fields?.sapDeploymentId) {
 				initialValues.sapDeploymentId =
 					existing?.sap?.deploymentId?.trim() ?? "";
 			}
@@ -595,7 +617,7 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 
 			// Focus the first visible field
 			const firstField = FIELD_ORDER.find(
-				(k) => config.fields[k] !== undefined,
+				(k) => config.fields && config.fields[k] !== undefined,
 			);
 			setByoFocusedField(firstField ?? "apiKey");
 			setStep("byo_apikey");
@@ -717,7 +739,7 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		completeModelSelection(modelId);
 	}, [customModelId, completeModelSelection]);
 
-	const saveClineModelSelection = useCallback(
+	const saveSynaiModelSelection = useCallback(
 		(modelId: string, modelName: string) => {
 			const existing =
 				providerSettingsManager.getProviderSettings(activeProviderId);
@@ -729,7 +751,7 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 				{ setLastUsed: true },
 			);
 			setSelectedModelId(modelId);
-			if (clineModelReasoningIds.has(modelId)) {
+			if (synaiModelReasoningIds.has(modelId)) {
 				setSelectedModelName(modelName);
 				setThinkingSelected(DEFAULT_THINKING_LEVEL_INDEX);
 				setStep("thinking_level");
@@ -737,7 +759,7 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 				setStep("done");
 			}
 		},
-		[activeProviderId, clineModelReasoningIds, providerSettingsManager],
+		[activeProviderId, synaiModelReasoningIds, providerSettingsManager],
 	);
 
 	const saveThinkingLevel = useCallback(
@@ -797,11 +819,11 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		menuSelected,
 		providerList,
 		modelList,
-		clineEntries,
-		clineModelSelected,
-		clinePassSubscriptionStatus,
-		clinePassSubscriptionOptions: SYNAI_PASS_SUBSCRIPTION_OPTIONS,
-		clinePassSubscriptionSelected,
+		synaiEntries,
+		synaiModelSelected,
+		synaiPassSubscriptionStatus,
+		synaiPassSubscriptionOptions: SYNAI_PASS_SUBSCRIPTION_OPTIONS,
+		synaiPassSubscriptionSelected,
 		thinkingSelected,
 		setStep,
 		setMenuSelected,
@@ -813,17 +835,16 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		byoFields,
 		byoFocusedField,
 		setByoFocusedField,
-		handleByoFieldInput,
 		setDeviceUserCode,
 		setDeviceVerifyUrl,
 		setDeviceError,
 		setDeviceStatus,
-		setClineModelSelected,
-		setClinePassSubscriptionSelected,
+		setSynaiModelSelected,
+		setSynaiPassSubscriptionSelected,
 		setThinkingSelected,
-		continueFromClinePassSubscription,
-		refreshClinePassSubscriptionStatus,
-		openClinePassSubscriptionPage,
+		continueFromSynaiPassSubscription,
+		refreshSynaiPassSubscriptionStatus,
+		openSynaiPassSubscriptionPage,
 		abortOAuth: () => {
 			authAbortRef.current = true;
 		},
@@ -836,7 +857,7 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		startDeviceCodeFlow,
 		selectProvider,
 		loadModelsForProvider,
-		saveClineModelSelection,
+		saveSynaiModelSelection,
 		saveLocalCliConfig,
 		saveByoConfig,
 		saveModelSelection,
@@ -856,16 +877,16 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		localCli,
 		localCliChecking,
 		localCliStatus,
-		clineEntries,
-		clineModelSelected,
-		clinePassCurrentPlanName,
-		clinePassPlanFeatures,
-		clinePassSubscriptionError,
-		clinePassSubscriptionOpenStatus,
-		clinePassSubscriptionOptions: SYNAI_PASS_SUBSCRIPTION_OPTIONS,
-		clinePassSubscriptionSelected,
-		clinePassSubscriptionStatus,
-		clinePassSubscriptionUrl,
+		synaiEntries,
+		synaiModelSelected,
+		synaiPassCurrentPlanName,
+		synaiPassPlanFeatures,
+		synaiPassSubscriptionError,
+		synaiPassSubscriptionOpenStatus,
+		synaiPassSubscriptionOptions: SYNAI_PASS_SUBSCRIPTION_OPTIONS,
+		synaiPassSubscriptionSelected,
+		synaiPassSubscriptionStatus,
+		synaiPassSubscriptionUrl,
 		deviceError,
 		deviceStatus,
 		deviceUserCode,
@@ -884,6 +905,18 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 			setCustomModelError("");
 		},
 		handleModelItemSelect: selectModelItem,
+		handleMenuSelect: (index: number) => {
+			setMenuSelected(index);
+			const option = menuOptions[index];
+			if (!option) return;
+			if (option.value === "byo") {
+				setStep("byo_provider");
+			} else if (isOnboardingOAuthProviderId(option.value)) {
+				startOAuthFlow(option.value);
+			} else {
+				selectProvider(option.value);
+			}
+		},
 		menuSelected,
 		menuOptions,
 		modelItems,

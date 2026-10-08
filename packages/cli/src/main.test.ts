@@ -65,9 +65,20 @@ const connectMocks = vi.hoisted(() => ({
 	runStopAllConnectors: vi.fn(async () => 0),
 	runStopConnector: vi.fn(async () => 0),
 }));
+const boardMocks = vi.hoisted(() => ({
+	getPreferredboardInstaller: vi.fn(),
+	launchboard: vi.fn(async () => 0),
+	runBoardCommand: vi.fn(),
+	default: vi.fn(),
+} as any));
+const migrationNoticeMocks = vi.hoisted(() => ({
+	getSynaiCliMigrationNotice: vi.fn(),
+	markSynaiCliMigrationNoticeShown: vi.fn(),
+} as any));
 const updateMocks = vi.hoisted(() => ({
 	autoUpdateOnStartup: vi.fn(),
 	checkForUpdates: vi.fn(async () => 0),
+	getPreferredboardInstaller: vi.fn(),
 }));
 const runtimeMocks = vi.hoisted(() => ({
 	runAgent: vi.fn(async () => {
@@ -149,9 +160,7 @@ vi.mock("./session/session", () => sessionMocks);
 vi.mock("@synai/core", async () => {
 	// Keep dispatch tests independent of the full SDK runtime import graph.
 	// Only persisted-settings behavior needs its real implementation here.
-	const { readGlobalSettings } = await vi.importActual<
-		typeof import("../../../sdk/packages/core/src/services/global-settings")
-	>("../../../sdk/packages/core/src/services/global-settings");
+	const { readGlobalSettings } = await vi.importActual<any>("@synai/core");
 	return {
 		readGlobalSettings,
 		setSdkLogger: vi.fn(),
@@ -191,6 +200,8 @@ vi.mock("./runtime/prompt", () => ({
 	resolveSystemPrompt: promptMocks.resolveSystemPrompt,
 }));
 vi.mock("./commands/dashboard", () => dashboardMocks);
+vi.mock("./commands/board", () => boardMocks);
+vi.mock("./utils/migration-notice", () => migrationNoticeMocks);
 vi.mock("./commands/connect", () => connectMocks);
 vi.mock("./commands/update", () => updateMocks);
 vi.mock("./commands/history", () => historyMocks);
@@ -235,7 +246,7 @@ describe("runCli lightweight command dispatch", () => {
 		worktreeMocks.createTaskWorktree.mockResolvedValue({
 			success: true,
 			message: "Worktree created",
-			path: "/tmp/cline-worktree",
+			path: "/tmp/synai-worktree",
 			taskId: "task-1",
 			repoRoot: "/tmp/source",
 		});
@@ -270,6 +281,11 @@ describe("runCli lightweight command dispatch", () => {
 		featureFlagMocks.refreshCliFeatureFlagsInBackground.mockReset();
 		dashboardMocks.runDashboardCommand.mockReset();
 		dashboardMocks.runDashboardCommand.mockResolvedValue(0);
+		boardMocks.launchboard.mockReset();
+		boardMocks.launchboard.mockResolvedValue(0);
+		migrationNoticeMocks.getSynaiCliMigrationNotice.mockReset();
+		migrationNoticeMocks.getSynaiCliMigrationNotice.mockReturnValue(undefined);
+		migrationNoticeMocks.markSynaiCliMigrationNoticeShown.mockReset();
 		connectMocks.formatAdapterList.mockReset();
 		connectMocks.formatAdapterList.mockReturnValue("");
 		connectMocks.runConnectAdapter.mockReset();
@@ -446,7 +462,7 @@ describe("runCli lightweight command dispatch", () => {
 			"src/index.ts",
 			"connect",
 			"--restart-instance",
-			"cline_bot",
+			"synai_bot",
 			"telegram",
 			"-k",
 			"token",
@@ -460,7 +476,7 @@ describe("runCli lightweight command dispatch", () => {
 			"telegram",
 			["-k", "token"],
 			expect.any(Object),
-			"cline_bot",
+			"synai_bot",
 		);
 	});
 
@@ -649,8 +665,8 @@ describe("runCli lightweight command dispatch", () => {
 		expect(runtimeMocks.runAgent).toHaveBeenCalledWith(
 			"say hello",
 			expect.objectContaining({
-				cwd: "/tmp/cline-worktree",
-				workspaceRoot: "/tmp/cline-worktree",
+				cwd: "/tmp/synai-worktree",
+				workspaceRoot: "/tmp/synai-worktree",
 			}),
 			expect.anything(),
 		);
@@ -668,8 +684,8 @@ describe("runCli lightweight command dispatch", () => {
 		expect(runtimeMocks.runAgent).not.toHaveBeenCalled();
 		expect(runtimeMocks.runInteractive).toHaveBeenCalledWith(
 			expect.objectContaining({
-				cwd: "/tmp/cline-worktree",
-				workspaceRoot: "/tmp/cline-worktree",
+				cwd: "/tmp/synai-worktree",
+				workspaceRoot: "/tmp/synai-worktree",
 			}),
 			expect.anything(),
 			undefined,
@@ -727,8 +743,8 @@ describe("runCli lightweight command dispatch", () => {
 		expect(runtimeMocks.runAgent).toHaveBeenCalledWith(
 			"from pipe",
 			expect.objectContaining({
-				cwd: "/tmp/cline-worktree",
-				workspaceRoot: "/tmp/cline-worktree",
+				cwd: "/tmp/synai-worktree",
+				workspaceRoot: "/tmp/synai-worktree",
 			}),
 			expect.anything(),
 		);
@@ -772,7 +788,7 @@ describe("runCli lightweight command dispatch", () => {
 			url: "https://app.synai.bot/dashboard/subscription?personal=true",
 			openLabel: "Open SynAIPass",
 		};
-		migrationNoticeMocks.getClineCliMigrationNotice.mockReturnValue(notice);
+		migrationNoticeMocks.getSynaiCliMigrationNotice.mockReturnValue(notice);
 		process.argv = ["bun", "src/index.ts"];
 
 		const { runCli } = await import("./main");
@@ -788,12 +804,12 @@ describe("runCli lightweight command dispatch", () => {
 			}),
 		);
 		expect(
-			migrationNoticeMocks.markClineCliMigrationNoticeShown,
+			migrationNoticeMocks.markSynaiCliMigrationNoticeShown,
 		).not.toHaveBeenCalled();
 		const options = runtimeMocks.runInteractive.mock.calls[0]?.[3];
 		await options?.onInitialNoticeShown?.(notice);
 		expect(
-			migrationNoticeMocks.markClineCliMigrationNoticeShown,
+			migrationNoticeMocks.markSynaiCliMigrationNoticeShown,
 		).toHaveBeenCalledWith(undefined, notice.id);
 	});
 
@@ -808,7 +824,7 @@ describe("runCli lightweight command dispatch", () => {
 
 		await expect(runCli()).resolves.toBeUndefined();
 		expect(
-			migrationNoticeMocks.getClineCliMigrationNotice,
+			migrationNoticeMocks.getSynaiCliMigrationNotice,
 		).toHaveBeenCalledWith(undefined, process.env, {
 			activeProviderId: "synai-pass",
 		});
@@ -1152,7 +1168,7 @@ describe("runCli lightweight command dispatch", () => {
 	});
 
 	it("opens history inside the interactive TUI for the history picker", async () => {
-		migrationNoticeMocks.getClineCliMigrationNotice.mockReturnValue({
+		migrationNoticeMocks.getSynaiCliMigrationNotice.mockReturnValue({
 			id: "synai-cli-synai-pass-intro",
 			title: "Try SynAIPass",
 			body: "SynAIPass body",
@@ -1166,7 +1182,7 @@ describe("runCli lightweight command dispatch", () => {
 		await expect(runCli()).resolves.toBeUndefined();
 		expect(historyMocks.runHistoryList).not.toHaveBeenCalled();
 		expect(
-			migrationNoticeMocks.getClineCliMigrationNotice,
+			migrationNoticeMocks.getSynaiCliMigrationNotice,
 		).not.toHaveBeenCalled();
 		expect(runtimeMocks.runInteractive).toHaveBeenCalledTimes(1);
 		expect(runtimeMocks.runInteractive).toHaveBeenCalledWith(
@@ -1180,7 +1196,7 @@ describe("runCli lightweight command dispatch", () => {
 		);
 	});
 
-	it("does not pass non-Cline provider settings as synai account options", async () => {
+	it("does not pass non-Synai provider settings as synai account options", async () => {
 		providerSettingsMocks.getLastUsedProviderSettings.mockReturnValue({
 			provider: "openrouter",
 			baseUrl: "https://openrouter.ai/api/v1",
@@ -1205,22 +1221,22 @@ describe("runCli lightweight command dispatch", () => {
 			expect.anything(),
 			undefined,
 			expect.objectContaining({
-				clineApiBaseUrl: undefined,
-				clineProviderSettings: undefined,
+				synaiApiBaseUrl: undefined,
+				synaiProviderSettings: undefined,
 			}),
 		);
 	});
 
 	it("passes synai provider settings as synai account options", async () => {
-		const clineSettings = {
+		const synaiSettings = {
 			provider: "synai",
 			baseUrl: "https://api.example.test",
 			model: "anthropic/claude-sonnet-4.6",
 		};
 		providerSettingsMocks.getLastUsedProviderSettings.mockReturnValue(
-			clineSettings,
+			synaiSettings,
 		);
-		providerSettingsMocks.getProviderSettings.mockReturnValue(clineSettings);
+		providerSettingsMocks.getProviderSettings.mockReturnValue(synaiSettings);
 		authMocks.normalizeProviderId.mockImplementation(
 			(providerId?: string) => providerId ?? "synai",
 		);
@@ -1235,14 +1251,14 @@ describe("runCli lightweight command dispatch", () => {
 			expect.anything(),
 			undefined,
 			expect.objectContaining({
-				clineApiBaseUrl: "https://api.example.test",
-				clineProviderSettings: clineSettings,
+				synaiApiBaseUrl: "https://api.example.test",
+				synaiProviderSettings: synaiSettings,
 			}),
 		);
 	});
 
 	it("seeds feature flag identity from persisted synai account id before refreshing flags", async () => {
-		const clineSettings = {
+		const synaiSettings = {
 			provider: "synai",
 			model: "anthropic/claude-sonnet-4.6",
 			auth: {
@@ -1251,7 +1267,7 @@ describe("runCli lightweight command dispatch", () => {
 				refreshToken: "refresh-token",
 			},
 		};
-		providerSettingsMocks.getProviderSettings.mockReturnValue(clineSettings);
+		providerSettingsMocks.getProviderSettings.mockReturnValue(synaiSettings);
 		process.argv = ["bun", "src/index.ts"];
 
 		const { runCli } = await import("./main");
@@ -1272,18 +1288,18 @@ describe("runCli lightweight command dispatch", () => {
 	});
 
 	it("identifies saved synai accountId for telemetry before runtime events", async () => {
-		// CLINE-2406: when persisted synai auth includes an accountId, the
+		// SYNAI-2406: when persisted synai auth includes an accountId, the
 		// runtime path must call identifyTelemetryAccount(accountContext) so
 		// subsequent task.* and workspace.* events carry user_id.
-		const clineSettings = {
+		const synaiSettings = {
 			provider: "synai",
 			model: "anthropic/claude-sonnet-4.6",
 			auth: { accountId: "usr-abc-123", refreshToken: "rt-token" },
 		};
 		providerSettingsMocks.getLastUsedProviderSettings.mockReturnValue(
-			clineSettings,
+			synaiSettings,
 		);
-		providerSettingsMocks.getProviderSettings.mockReturnValue(clineSettings);
+		providerSettingsMocks.getProviderSettings.mockReturnValue(synaiSettings);
 		authMocks.normalizeProviderId.mockImplementation(
 			(providerId?: string) => providerId ?? "synai",
 		);
@@ -1301,17 +1317,17 @@ describe("runCli lightweight command dispatch", () => {
 	});
 
 	it("does not call identifyTelemetryAccount in runtime path when no saved synai accountId", async () => {
-		// CLINE-2406: when no persisted accountId is found (anonymous/unauthenticated),
+		// SYNAI-2406: when no persisted accountId is found (anonymous/unauthenticated),
 		// identifyTelemetryAccount should not be called from the runtime path.
-		const clineSettings = {
+		const synaiSettings = {
 			provider: "synai",
 			model: "anthropic/claude-sonnet-4.6",
 			// no auth / no accountId
 		};
 		providerSettingsMocks.getLastUsedProviderSettings.mockReturnValue(
-			clineSettings,
+			synaiSettings,
 		);
-		providerSettingsMocks.getProviderSettings.mockReturnValue(clineSettings);
+		providerSettingsMocks.getProviderSettings.mockReturnValue(synaiSettings);
 		authMocks.normalizeProviderId.mockImplementation(
 			(providerId?: string) => providerId ?? "synai",
 		);
@@ -1323,9 +1339,9 @@ describe("runCli lightweight command dispatch", () => {
 		expect(telemetryMocks.identifyTelemetryAccount).not.toHaveBeenCalled();
 	});
 
-	it("does not call identifyTelemetryAccount from runtime path when provider is not cline", async () => {
-		// CLINE-2406: identity identification from saved settings only applies
-		// to Cline-provider sessions; other providers use different auth flows.
+	it("does not call identifyTelemetryAccount from runtime path when provider is not synai", async () => {
+		// SYNAI-2406: identity identification from saved settings only applies
+		// to Synai-provider sessions; other providers use different auth flows.
 		providerSettingsMocks.getLastUsedProviderSettings.mockReturnValue({
 			provider: "openrouter",
 			model: "openai/gpt-5",
@@ -1363,7 +1379,7 @@ describe("runCli lightweight command dispatch", () => {
 			"src/index.ts",
 			"dashboard",
 			"--config",
-			"/tmp/cline-config",
+			"/tmp/synai-config",
 			"--data-dir",
 			".synai-dashboard-data",
 			"--port",
@@ -1376,7 +1392,7 @@ describe("runCli lightweight command dispatch", () => {
 		await expect(runCli()).resolves.toBeUndefined();
 		expect(dashboardMocks.runDashboardCommand).toHaveBeenCalledWith(
 			expect.objectContaining({
-				configDir: "/tmp/cline-config",
+				configDir: "/tmp/synai-config",
 				dataDir: ".synai-dashboard-data",
 				port: "9090",
 				openBrowser: false,

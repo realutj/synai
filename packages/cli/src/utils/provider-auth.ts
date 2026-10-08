@@ -46,7 +46,7 @@ export function getPersistedProviderApiKey(
  * Treats OAuth providers as configured when an access token or a manually
  * saved API key is present (the /settings escape hatch for when OAuth isn't
  * working); for everything else, any persisted API key, base URL, or model id
- * counts. We don't enforce required fields here — the runtime no longer
+ * counts. We don't enforce required fields here - the runtime no longer
  * pre-flights credentials, so a missing key only matters when the API call
  * actually runs and the provider's own auth error is surfaced.
  */
@@ -60,8 +60,8 @@ export function isProviderConfigured(
 		return Boolean(getPersistedProviderApiKey(providerId, settings));
 	}
 	if (getPersistedProviderApiKey(providerId, settings)) return true;
-	if (settings.baseUrl?.trim()) return true;
-	if (settings.model?.trim()) return true;
+	if ((settings as any).baseUrl?.trim()) return true;
+	if ((settings as any).model?.trim()) return true;
 	return false;
 }
 

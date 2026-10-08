@@ -16,15 +16,15 @@ import {
 	EXIT_CODE_SUCCESS,
 	TERMINAL_WIDE,
 } from "../helpers/constants.js";
-import { clineEnv } from "../helpers/env.js";
+import { synaiEnv } from "../helpers/env.js";
 import { waitForAuthScreen } from "../helpers/page-objects/auth.js";
 import { expectExitCode, expectVisible } from "../helpers/terminal.js";
 
-test.describe("cline auth (interactive screen)", () => {
+test.describe("synai auth (interactive screen)", () => {
 	test.use({
-		program: { file: SYNAI_BIN, args: ["auth"] },
+		program: { file: SYNAI_BIN, args: ["provider"] },
 		...TERMINAL_WIDE,
-		env: clineEnv("unauthenticated"),
+		env: synaiEnv("unauthenticated"),
 	});
 
 	test("shows all auth options", async ({ terminal }) => {
@@ -35,15 +35,15 @@ test.describe("cline auth (interactive screen)", () => {
 		await waitForAuthScreen(terminal);
 		terminal.keyDown();
 		terminal.keyUp();
-		await expectVisible(terminal, "Sign in with Cline");
+		await expectVisible(terminal, "Sign in with SynAI");
 	});
 });
 
-test.describe("cline auth --help", () => {
+test.describe("synai auth --help", () => {
 	test.use({
-		program: { file: SYNAI_BIN, args: ["auth", "--help"] },
+		program: { file: SYNAI_BIN, args: ["provider", "--help"] },
 		...TERMINAL_WIDE,
-		env: clineEnv("unauthenticated"),
+		env: synaiEnv("unauthenticated"),
 	});
 
 	test("shows auth help page", async ({ terminal }) => {
@@ -60,11 +60,11 @@ test.describe("cline auth --help", () => {
 // ---------------------------------------------------------------------------
 // synai auth with only partial flags -> exits with error
 // ---------------------------------------------------------------------------
-test.describe("cline auth --provider only (partial flags)", () => {
+test.describe("synai auth --provider only (partial flags)", () => {
 	test.use({
-		program: { file: SYNAI_BIN, args: ["auth", "--provider", "openai"] },
+		program: { file: SYNAI_BIN, args: ["provider", "--provider", "openai"] },
 		...TERMINAL_WIDE,
-		env: clineEnv("unauthenticated"),
+		env: synaiEnv("unauthenticated"),
 	});
 
 	test("exits with failure", async ({ terminal }) => {
@@ -73,14 +73,14 @@ test.describe("cline auth --provider only (partial flags)", () => {
 	});
 });
 
-test.describe("cline auth --apikey only (partial flags)", () => {
+test.describe("synai auth --apikey only (partial flags)", () => {
 	test.use({
 		program: {
 			file: SYNAI_BIN,
-			args: ["auth", "--apikey", "sk-test-key"],
+			args: ["provider", "--apikey", "sk-test-key"],
 		},
 		...TERMINAL_WIDE,
-		env: clineEnv("unauthenticated"),
+		env: synaiEnv("unauthenticated"),
 	});
 
 	test("exits with error requiring --provider", async ({ terminal }) => {
@@ -89,14 +89,14 @@ test.describe("cline auth --apikey only (partial flags)", () => {
 	});
 });
 
-test.describe("cline auth --modelid only (partial flags)", () => {
+test.describe("synai auth --modelid only (partial flags)", () => {
 	test.use({
 		program: {
 			file: SYNAI_BIN,
-			args: ["auth", "--modelid", "gpt-4o"],
+			args: ["provider", "--modelid", "gpt-4o"],
 		},
 		...TERMINAL_WIDE,
-		env: clineEnv("unauthenticated"),
+		env: synaiEnv("unauthenticated"),
 	});
 
 	test("exits with error requiring --provider", async ({ terminal }) => {
@@ -105,14 +105,14 @@ test.describe("cline auth --modelid only (partial flags)", () => {
 	});
 });
 
-test.describe("cline auth --baseurl only (partial flags)", () => {
+test.describe("synai auth --baseurl only (partial flags)", () => {
 	test.use({
 		program: {
 			file: SYNAI_BIN,
-			args: ["auth", "--baseurl", "https://api.example.com"],
+			args: ["provider", "--baseurl", "https://api.example.com"],
 		},
 		...TERMINAL_WIDE,
-		env: clineEnv("unauthenticated"),
+		env: synaiEnv("unauthenticated"),
 	});
 
 	test("exits with error requiring --provider", async ({ terminal }) => {
@@ -121,14 +121,14 @@ test.describe("cline auth --baseurl only (partial flags)", () => {
 	});
 });
 
-test.describe("cline auth --verbose only", () => {
+test.describe("synai auth --verbose only", () => {
 	test.use({
 		program: {
 			file: SYNAI_BIN,
-			args: ["auth", "--verbose"],
+			args: ["provider", "--verbose"],
 		},
 		...TERMINAL_WIDE,
-		env: clineEnv("unauthenticated"),
+		env: synaiEnv("unauthenticated"),
 	});
 
 	test("accepts --verbose and shows interactive auth screen", async ({
@@ -138,14 +138,14 @@ test.describe("cline auth --verbose only", () => {
 	});
 });
 
-test.describe("cline auth --cwd", () => {
+test.describe("synai auth --cwd", () => {
 	test.use({
 		program: {
 			file: SYNAI_BIN,
-			args: ["auth", "--cwd", "/tmp"],
+			args: ["provider", "--cwd", "/tmp"],
 		},
 		...TERMINAL_WIDE,
-		env: clineEnv("unauthenticated"),
+		env: synaiEnv("unauthenticated"),
 	});
 
 	test("accepts --cwd and shows interactive auth screen", async ({
@@ -155,14 +155,14 @@ test.describe("cline auth --cwd", () => {
 	});
 });
 
-test.describe("cline auth --config", () => {
+test.describe("synai auth --config", () => {
 	test.use({
 		program: {
 			file: SYNAI_BIN,
-			args: ["auth", "--config", "configs/unauthenticated"],
+			args: ["provider", "--config", "configs/unauthenticated"],
 		},
 		...TERMINAL_WIDE,
-		env: clineEnv("unauthenticated"),
+		env: synaiEnv("unauthenticated"),
 	});
 
 	test("accepts --config and shows interactive auth screen", async ({
@@ -172,12 +172,12 @@ test.describe("cline auth --config", () => {
 	});
 });
 
-test.describe("cline auth -p -k -m (golden path)", () => {
+test.describe("synai auth -p -k -m (golden path)", () => {
 	test.use({
 		program: {
 			file: SYNAI_BIN,
 			args: [
-				"auth",
+				"provider",
 				"--provider",
 				"openai",
 				"--apikey",
@@ -187,7 +187,7 @@ test.describe("cline auth -p -k -m (golden path)", () => {
 			],
 		},
 		...TERMINAL_WIDE,
-		env: clineEnv("unauthenticated"),
+		env: synaiEnv("unauthenticated"),
 	});
 
 	test("exits successfully with valid provider, key, and model", async ({
@@ -198,12 +198,12 @@ test.describe("cline auth -p -k -m (golden path)", () => {
 	});
 });
 
-test.describe("cline auth with invalid key (still exits 0)", () => {
+test.describe("synai auth with invalid key (still exits 0)", () => {
 	test.use({
 		program: {
 			file: SYNAI_BIN,
 			args: [
-				"auth",
+				"provider",
 				"--provider",
 				"openai",
 				"--apikey",
@@ -213,7 +213,7 @@ test.describe("cline auth with invalid key (still exits 0)", () => {
 			],
 		},
 		...TERMINAL_WIDE,
-		env: clineEnv("unauthenticated"),
+		env: synaiEnv("unauthenticated"),
 	});
 
 	test("accepts invalid key without error at auth time", async ({
@@ -223,12 +223,12 @@ test.describe("cline auth with invalid key (still exits 0)", () => {
 	});
 });
 
-test.describe("cline auth -p -k -m -b (golden path with baseUrl)", () => {
+test.describe("synai auth -p -k -m -b (golden path with baseUrl)", () => {
 	test.use({
 		program: {
 			file: SYNAI_BIN,
 			args: [
-				"auth",
+				"provider",
 				"--provider",
 				"openai-compatible",
 				"--apikey",
@@ -240,7 +240,7 @@ test.describe("cline auth -p -k -m -b (golden path with baseUrl)", () => {
 			],
 		},
 		...TERMINAL_WIDE,
-		env: clineEnv("unauthenticated"),
+		env: synaiEnv("unauthenticated"),
 	});
 
 	test("exits successfully with baseUrl for OpenAI Compatible provider", async ({
@@ -250,12 +250,12 @@ test.describe("cline auth -p -k -m -b (golden path with baseUrl)", () => {
 	});
 });
 
-test.describe("cline auth --baseurl with non-OpenAI-compatible provider", () => {
+test.describe("synai auth --baseurl with non-OpenAI-compatible provider", () => {
 	test.use({
 		program: {
 			file: SYNAI_BIN,
 			args: [
-				"auth",
+				"provider",
 				"--provider",
 				"anthropic",
 				"--apikey",
@@ -267,7 +267,7 @@ test.describe("cline auth --baseurl with non-OpenAI-compatible provider", () => 
 			],
 		},
 		...TERMINAL_WIDE,
-		env: clineEnv("unauthenticated"),
+		env: synaiEnv("unauthenticated"),
 	});
 
 	test("shows error for baseUrl with non-OpenAI provider", async ({
@@ -280,12 +280,12 @@ test.describe("cline auth --baseurl with non-OpenAI-compatible provider", () => 
 	});
 });
 
-test.describe("cline auth with invalid provider", () => {
+test.describe("synai auth with invalid provider", () => {
 	test.use({
 		program: {
 			file: SYNAI_BIN,
 			args: [
-				"auth",
+				"provider",
 				"--provider",
 				"not-a-real-provider",
 				"--apikey",
@@ -295,7 +295,7 @@ test.describe("cline auth with invalid provider", () => {
 			],
 		},
 		...TERMINAL_WIDE,
-		env: clineEnv("unauthenticated"),
+		env: synaiEnv("unauthenticated"),
 	});
 
 	test("shows invalid provider error", async ({ terminal }) => {

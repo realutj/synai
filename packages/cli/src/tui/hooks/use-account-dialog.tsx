@@ -2,7 +2,7 @@ import type { ChoiceContext } from "@opentui-ui/dialog";
 import type { DialogActions } from "@opentui-ui/dialog/react";
 import { useCallback } from "react";
 import open from "../../utils/open";
-import type { ClineAccountSnapshot } from "../synai-account";
+import type { SynaiAccountSnapshot } from "../synai-account";
 import {
 	type AccountDialogAction,
 	AccountDialogContent,
@@ -16,7 +16,7 @@ import type { OpenModelSelectorOptions } from "./use-model-selector";
 export function useAccountDialog(opts: {
 	dialog: DialogActions;
 	termHeight: number;
-	loadAccount: () => Promise<ClineAccountSnapshot>;
+	loadAccount: () => Promise<SynaiAccountSnapshot>;
 	switchAccount: (organizationId?: string | null) => Promise<void>;
 	onAccountChange?: () => Promise<void>;
 	openModelSelector: (options?: OpenModelSelectorOptions) => Promise<void>;
@@ -67,7 +67,7 @@ export function useAccountDialog(opts: {
 				style: { maxHeight: termHeight - 2 },
 				closeOnEscape: false,
 				content: (ctx: ChoiceContext<OAuthLoginResult>) => (
-					<OAuthLoginContent {...ctx} providerId="cline" providerName="SynAI" />
+					<OAuthLoginContent {...ctx} providerId="synai" providerName="SynAI" />
 				),
 			});
 			if (saved === true) {

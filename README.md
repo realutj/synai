@@ -264,7 +264,7 @@ synai web               # Launch Web Dashboard
 synai "task"            # Execute task
 synai collab "topic"    # Multi-agent collaboration
 synai studio            # Launch Web Dashboard
-synai board             # Kanban board
+synai board             # Task board
 synai -i                # Interactive TUI
 synai --help            # Full help
 ```🤝 Multi-Agent Collaboration

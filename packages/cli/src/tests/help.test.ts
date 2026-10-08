@@ -1,6 +1,6 @@
 import { test } from "@microsoft/tui-test";
 import { SYNAI_BIN } from "./helpers/constants.js";
-import { clineEnv } from "./helpers/env.js";
+import { synaiEnv } from "./helpers/env.js";
 import { expectVisible } from "./helpers/terminal.js";
 
 const HELP_TERMINAL = { columns: 120, rows: 50 };
@@ -8,10 +8,10 @@ const HELP_TERMINAL = { columns: 120, rows: 50 };
 // ===========================================================================
 // synai --help  (root help)
 // ===========================================================================
-test.describe("cline --help", () => {
+test.describe("synai --help", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["--help"] },
-		env: clineEnv("claude-sonnet-4.6"),
+		env: synaiEnv("claude-sonnet-4.6"),
 		...HELP_TERMINAL,
 	});
 
@@ -46,10 +46,10 @@ test.describe("cline --help", () => {
 // ===========================================================================
 // synai -h  (short help flag)
 // ===========================================================================
-test.describe("cline -h", () => {
+test.describe("synai -h", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["-h"] },
-		env: clineEnv("claude-sonnet-4.6"),
+		env: synaiEnv("claude-sonnet-4.6"),
 		...HELP_TERMINAL,
 	});
 
@@ -61,10 +61,10 @@ test.describe("cline -h", () => {
 // ===========================================================================
 // synai history --help
 // ===========================================================================
-test.describe("cline history --help", () => {
+test.describe("synai history --help", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["history", "--help"] },
-		env: clineEnv("claude-sonnet-4.6"),
+		env: synaiEnv("claude-sonnet-4.6"),
 		...HELP_TERMINAL,
 	});
 
@@ -76,10 +76,10 @@ test.describe("cline history --help", () => {
 // ===========================================================================
 // synai h --help  (history alias)
 // ===========================================================================
-test.describe("cline h --help (history alias)", () => {
+test.describe("synai h --help (history alias)", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["h", "--help"] },
-		env: clineEnv("claude-sonnet-4.6"),
+		env: synaiEnv("claude-sonnet-4.6"),
 		...HELP_TERMINAL,
 	});
 
@@ -91,10 +91,10 @@ test.describe("cline h --help (history alias)", () => {
 // ===========================================================================
 // synai config --help
 // ===========================================================================
-test.describe("cline config --help", () => {
+test.describe("synai config --help", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["config", "--help"] },
-		env: clineEnv("claude-sonnet-4.6"),
+		env: synaiEnv("claude-sonnet-4.6"),
 		...HELP_TERMINAL,
 	});
 
@@ -104,12 +104,12 @@ test.describe("cline config --help", () => {
 });
 
 // ===========================================================================
-// synai auth --help
+// synai provider --help
 // ===========================================================================
-test.describe("cline auth --help", () => {
+test.describe("synai provider --help", () => {
 	test.use({
-		program: { file: SYNAI_BIN, args: ["auth", "--help"] },
-		env: clineEnv("claude-sonnet-4.6"),
+		program: { file: SYNAI_BIN, args: ["provider", "--help"] },
+		env: synaiEnv("claude-sonnet-4.6"),
 		...HELP_TERMINAL,
 	});
 
@@ -128,10 +128,10 @@ test.describe("cline auth --help", () => {
 // ===========================================================================
 // synai version --help
 // ===========================================================================
-test.describe("cline version --help", () => {
+test.describe("synai version --help", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["version", "--help"] },
-		env: clineEnv("claude-sonnet-4.6"),
+		env: synaiEnv("claude-sonnet-4.6"),
 		...HELP_TERMINAL,
 	});
 
@@ -143,10 +143,10 @@ test.describe("cline version --help", () => {
 // ===========================================================================
 // synai update --help
 // ===========================================================================
-test.describe("cline update --help", () => {
+test.describe("synai update --help", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["update", "--help"] },
-		env: clineEnv("claude-sonnet-4.6"),
+		env: synaiEnv("claude-sonnet-4.6"),
 		...HELP_TERMINAL,
 	});
 
@@ -158,10 +158,10 @@ test.describe("cline update --help", () => {
 // ===========================================================================
 // synai doctor --help
 // ===========================================================================
-test.describe("cline doctor --help", () => {
+test.describe("synai doctor --help", () => {
 	test.use({
 		program: { file: SYNAI_BIN, args: ["doctor", "--help"] },
-		env: clineEnv("claude-sonnet-4.6"),
+		env: synaiEnv("claude-sonnet-4.6"),
 		...HELP_TERMINAL,
 	});
 

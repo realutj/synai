@@ -38,8 +38,8 @@ function resolveHubOwnerContext() {
 /**
  * Whether the hub at `url` advertises connector supervision.
  *
- * A newer CLI regularly talks to an older running hub — that is the normal state
- * of a long-lived host mid-upgrade — and such a hub would reject
+ * A newer CLI regularly talks to an older running hub - that is the normal state
+ * of a long-lived host mid-upgrade - and such a hub would reject
  * `connector.start` outright. Checking the advertised capability first keeps that
  * case on the local path instead of turning it into a failed start.
  */
@@ -121,8 +121,8 @@ export async function listSupervisedConnectorsViaHub(): Promise<
  *
  * Returns how many the hub stopped, or undefined when it cannot supervise. The
  * local stop path alone is not enough: it finds processes through their state
- * files, so a connector that has not written one yet — still starting, or failing
- * to start — would keep running under the hub and be restarted.
+ * files, so a connector that has not written one yet - still starting, or failing
+ * to start - would keep running under the hub and be restarted.
  */
 export async function stopConnectorsViaHub(input: {
 	channel: string;
@@ -187,8 +187,8 @@ export async function stopConnectorsViaHub(input: {
 /**
  * Ask the hub to start and own a connector.
  *
- * The hub spawning the connector — rather than the connector spawning itself and
- * then bringing up a hub — is what makes the hub the single authority on how many
+ * The hub spawning the connector - rather than the connector spawning itself and
+ * then bringing up a hub - is what makes the hub the single authority on how many
  * processes hold one connector's credentials, and what lets it reap and restart
  * them when they die. Every failure mode here falls back to the local path so a
  * missing or older hub cannot stop a connector from starting.

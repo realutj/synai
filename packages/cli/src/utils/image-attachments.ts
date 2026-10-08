@@ -15,7 +15,7 @@ const IMAGE_EXTENSIONS = new Set([
  * Resolve a possibly-mangled image path to an actual on-disk file.
  */
 export function resolveExistingImagePath(filePath: string): string | undefined {
-	return resolveExistingFilePath(filePath);
+	return resolveExistingFilePath(filePath) ?? undefined;
 }
 
 export function isImagePath(filePath: string): boolean {

@@ -8,7 +8,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-function resolveClineBin(): string {
+function resolveSynaiBin(): string {
 	const localBin = path.resolve(process.cwd(), "..", "..", "dist", "index.js");
 	if (fs.existsSync(localBin)) {
 		return localBin;
@@ -19,7 +19,7 @@ function resolveClineBin(): string {
 	);
 }
 
-export const SYNAI_BIN = resolveClineBin();
+export const SYNAI_BIN = resolveSynaiBin();
 
 // Standard terminal dimensions used across test suites
 export const TERMINAL_WIDE = { columns: 120, rows: 50 } as const;

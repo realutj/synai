@@ -23,7 +23,7 @@ const parseTelegramArgs = (rawArgs: string[]): ConnectTelegramOptions =>
 		}
 	).parseArgs(rawArgs);
 
-const originalClineDataDir = process.env.SYNAI_DATA_DIR;
+const originalSynaiDataDir = process.env.SYNAI_DATA_DIR;
 const tempDataDirs: string[] = [];
 
 beforeEach(() => {
@@ -31,8 +31,8 @@ beforeEach(() => {
 	mocks.spawnDetachedConnector.mockReturnValue(42);
 });
 
-function useTempClineDataDir(): string {
-	const dataDir = mkdtempSync(join(tmpdir(), "cline-telegram-test-"));
+function useTempSynaiDataDir(): string {
+	const dataDir = mkdtempSync(join(tmpdir(), "synai-telegram-test-"));
 	tempDataDirs.push(dataDir);
 	process.env.SYNAI_DATA_DIR = dataDir;
 	return dataDir;
@@ -40,10 +40,10 @@ function useTempClineDataDir(): string {
 
 afterEach(() => {
 	vi.unstubAllGlobals();
-	if (originalClineDataDir === undefined) {
+	if (originalSynaiDataDir === undefined) {
 		delete process.env.SYNAI_DATA_DIR;
 	} else {
-		process.env.SYNAI_DATA_DIR = originalClineDataDir;
+		process.env.SYNAI_DATA_DIR = originalSynaiDataDir;
 	}
 	for (const dir of tempDataDirs.splice(0)) {
 		rmSync(dir, { recursive: true, force: true });
@@ -170,7 +170,7 @@ describe("telegramConnector", () => {
 	});
 
 	it("validates a token before reporting its connector as already running", async () => {
-		const dataDir = useTempClineDataDir();
+		const dataDir = useTempSynaiDataDir();
 		const connectorDir = join(dataDir, "connectors", "telegram");
 		mkdirSync(connectorDir, { recursive: true });
 		writeFileSync(
@@ -215,7 +215,7 @@ describe("telegramConnector", () => {
 	});
 
 	it("reports the resolved bot username in persistence args", async () => {
-		const dataDir = useTempClineDataDir();
+		const dataDir = useTempSynaiDataDir();
 		vi.stubGlobal(
 			"fetch",
 			vi.fn(async () => {
@@ -571,7 +571,7 @@ describe("telegram slash command delivery", () => {
 		// it directly to avoid the real getMe/long-polling network calls.
 		(telegram as unknown as { chat: unknown }).chat = bot;
 
-		const dir = mkdtempSync(join(tmpdir(), "cline-telegram-slash-"));
+		const dir = mkdtempSync(join(tmpdir(), "synai-telegram-slash-"));
 		tempDataDirs.push(dir);
 		const turns: Array<{ threadId: string; isDM: boolean; text: string }> = [];
 		bot.onSlashCommand(
@@ -625,7 +625,7 @@ describe("telegram slash command delivery", () => {
 	});
 
 	it("routes intercepted slash commands into the connector turn handler", async () => {
-		const dir = mkdtempSync(join(tmpdir(), "cline-telegram-slash-"));
+		const dir = mkdtempSync(join(tmpdir(), "synai-telegram-slash-"));
 		tempDataDirs.push(dir);
 		const bindingsPath = join(dir, "threads.json");
 		const { thread, isSubscribed, getState } = createSlashTestThread({
@@ -662,7 +662,7 @@ describe("telegram slash command delivery", () => {
 	});
 
 	it("preserves group-chat bot addressing in the forwarded command text", async () => {
-		const dir = mkdtempSync(join(tmpdir(), "cline-telegram-slash-"));
+		const dir = mkdtempSync(join(tmpdir(), "synai-telegram-slash-"));
 		tempDataDirs.push(dir);
 		const { thread } = createSlashTestThread({
 			id: "telegram:-100200",
@@ -697,7 +697,7 @@ describe("telegram slash command delivery", () => {
 	});
 
 	it("falls back to the parsed command when the raw payload has no text", async () => {
-		const dir = mkdtempSync(join(tmpdir(), "cline-telegram-slash-"));
+		const dir = mkdtempSync(join(tmpdir(), "synai-telegram-slash-"));
 		tempDataDirs.push(dir);
 		const { thread } = createSlashTestThread({
 			id: "telegram:12345",
@@ -723,7 +723,7 @@ describe("telegram slash command delivery", () => {
 	});
 
 	it("delivers intercepted slash commands to the chat command host", async () => {
-		const dir = mkdtempSync(join(tmpdir(), "cline-telegram-slash-"));
+		const dir = mkdtempSync(join(tmpdir(), "synai-telegram-slash-"));
 		tempDataDirs.push(dir);
 		const bindingsPath = join(dir, "threads.json");
 		const { thread, posts } = createSlashTestThread({

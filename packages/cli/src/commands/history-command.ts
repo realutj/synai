@@ -71,7 +71,7 @@ export function registerHistoryCommand({
 		.action(async () => {
 			const opts = historyDeleteCmd.opts();
 			if (!opts.sessionId) {
-				io.writeErr("sessions delete requires --session-id <id>");
+				io.writeErr("history delete requires --session-id <id>");
 				setExitCode(1);
 				return;
 			}

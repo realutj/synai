@@ -2,9 +2,9 @@
 // Environment helpers for test setup.
 //
 // Usage:
-//   test.use({ env: clineEnv("default") });
-//   test.use({ env: clineEnv("claude-sonnet-4.6") });
-//   test.use({ env: clineEnv("/absolute/path/to/config") });
+//   test.use({ env: synaiEnv("default") });
+//   test.use({ env: synaiEnv("claude-sonnet-4.6") });
+//   test.use({ env: synaiEnv("/absolute/path/to/config") });
 // ---------------------------------------------------------------------------
 
 import { cpSync, mkdirSync, mkdtempSync } from "node:fs";
@@ -15,9 +15,9 @@ export const TEST_SUITE_ROOT = new URL("../", import.meta.url).pathname;
 
 let envCounter = 0;
 
-function createIsolatedClineDir(sourceDir: string): string {
-	const tempRoot = mkdtempSync(path.join(os.tmpdir(), "cline-tui-test-"));
-	const targetDir = path.join(tempRoot, "cline");
+function createIsolatedSynaiDir(sourceDir: string): string {
+	const tempRoot = mkdtempSync(path.join(os.tmpdir(), "synai-tui-test-"));
+	const targetDir = path.join(tempRoot, "synai");
 	cpSync(sourceDir, targetDir, {
 		recursive: true,
 		errorOnExist: false,
@@ -39,15 +39,15 @@ function nextHubPort(): string {
  * @param configDir - Named config under `configs/`, or an absolute path.
  * @param extra     - Additional env vars to merge in (override defaults).
  */
-export function clineEnv(
+export function synaiEnv(
 	configDir: string,
 	extra: NodeJS.ProcessEnv = {},
 ): NodeJS.ProcessEnv {
-	const clinePath = path.isAbsolute(configDir)
+	const synaiPath = path.isAbsolute(configDir)
 		? configDir
 		: path.join(TEST_SUITE_ROOT, "configs", configDir);
-	const isolatedClinePath = createIsolatedClineDir(clinePath);
-	const dataDir = path.join(isolatedClinePath, "data");
+	const isolatedSynaiPath = createIsolatedSynaiDir(synaiPath);
+	const dataDir = path.join(isolatedSynaiPath, "data");
 
 	// Determine effective VCR mode: extra overrides > parent env > default "playback"
 	const effectiveVcrMode =
@@ -60,7 +60,7 @@ export function clineEnv(
 	const isAuthenticated = configDir !== "unauthenticated";
 	const realProvidersFile =
 		isRecording && isAuthenticated
-			? path.join(os.homedir(), ".cline", "data", "settings", "providers.json")
+			? path.join(os.homedir(), ".synai", "data", "settings", "providers.json")
 			: undefined;
 
 	// Remove CI so terminal renderers treat the spawned process as interactive.
@@ -91,8 +91,8 @@ export function clineEnv(
 			? { SYNAI_PROVIDER_SETTINGS_PATH: realProvidersFile }
 			: {}),
 		SYNAI_TELEMETRY_DISABLED: "1",
-		HOME: path.join(isolatedClinePath, "home"),
-		SYNAI_DIR: isolatedClinePath,
+		HOME: path.join(isolatedSynaiPath, "home"),
+		SYNAI_DIR: isolatedSynaiPath,
 		SYNAI_DATA_DIR: dataDir,
 		SYNAI_DB_DATA_DIR: path.join(dataDir, "db"),
 		SYNAI_GLOBAL_SETTINGS_PATH: path.join(
@@ -111,7 +111,7 @@ export function clineEnv(
 		SYNAI_MCP_SETTINGS_PATH: path.join(
 			dataDir,
 			"settings",
-			"cline_mcp_settings.json",
+			"synai_mcp_settings.json",
 		),
 		...(realProvidersFile
 			? {}

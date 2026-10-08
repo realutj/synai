@@ -8,7 +8,7 @@ import {
 	readGlobalSettings,
 	type UserInstructionConfigService,
 } from "@synai/core";
-import { type AgentMode, buildClineSystemPrompt } from "@synai/shared";
+import { type AgentMode, buildSynaiSystemPrompt } from "@synai/shared";
 import { isImagePath, loadImageAsDataUrl } from "../utils/image-attachments";
 
 export async function resolveSystemPrompt(input: {
@@ -23,7 +23,7 @@ export async function resolveSystemPrompt(input: {
 	// builder itself (see MODE_TAG_INSTRUCTIONS / PLAN_MODE_INSTRUCTIONS in
 	// @synai/shared), so only the caller-specific rules are merged here.
 	const rules = mergeRulesForSystemPrompt(undefined, input.rules);
-	const rawPrompt = await buildClineSystemPrompt({
+	const rawPrompt = await buildSynaiSystemPrompt({
 		ide: "Terminal Shell",
 		workspaceRoot: input.cwd,
 		workspaceName: basename(input.cwd),
@@ -38,20 +38,20 @@ export async function resolveSystemPrompt(input: {
 
 	// Sanitize any synai mentions so the agent identity is 100% SynAI
 	const cleanPrompt = rawPrompt
-		.replaceAll("Cline", "SynAI")
-		.replaceAll("cline", "synai");
+		.replaceAll("Synai", "SynAI")
+		.replaceAll("synai", "synai");
 
 	const engineeringExcellence = `\n\n# SynAI Elite Engineering Excellence
 You are SynAI, an autonomous senior staff AI software engineer.
 1. Exceptional Code Quality: Write clean, elegant, modular, and maintainable code. Adhere strictly to language conventions and industry best practices.
 2. Zero Bugs & Robust Error Handling: Always account for edge cases, missing inputs, async race conditions, and error recovery. Never emit half-finished or pseudo-code.
-3. Language: Always communicate and write responses, explanations, comments, and CLI outputs strictly in fluent, clear English.
+3. Language: Always communicate, explain, and write responses strictly in the exact language the user writes in.
 4. Identity: Your name is SynAI. You are an autonomous coding system.\n`;
 
 	return cleanPrompt + engineeringExcellence;
 }
 
-const FILE_MENTION_PREFIX = String.raw`(?:\/|~\/|\.{1,2}\/)`;
+const FILE_MENTION_PREFIX = String.raw`(?:\/|\\|~[/\\]|\.{1,2}[/\\]|[a-zA-Z]:[/\\])`;
 const FILE_MENTION_PATTERN_TEST = new RegExp(
 	String.raw`@(?:"${FILE_MENTION_PREFIX}[^"\r\n]+"|${FILE_MENTION_PREFIX}\S+)`,
 	"i",
@@ -89,7 +89,7 @@ function extractFileMentions(
 }
 
 function resolveMentionPath(filePath: string): string {
-	if (filePath.startsWith("~/")) {
+	if (filePath.startsWith("~/") || filePath.startsWith("~\\")) {
 		return resolve(homedir(), filePath.slice(2));
 	}
 	return resolve(filePath);
@@ -100,7 +100,7 @@ function resolveMentionPath(filePath: string): string {
  * prompt. When the session registers the runtime's `skills` tool (its
  * description requires the model to invoke it on slash-command references),
  * the typed command passes through and the instructions arrive as a tool
- * result — keeping the persisted transcript as what the user typed. When the
+ * result - keeping the persisted transcript as what the user typed. When the
  * tool is unavailable (yolo preset, user toggle), expansion is the only
  * delivery path.
  */

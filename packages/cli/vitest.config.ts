@@ -8,39 +8,24 @@ export default defineConfig({
 	resolve: {
 		alias: [
 			{
-				find: /^@synai\/core\/telemetry$/,
-				replacement: resolve(
-					rootDir,
-					"../../sdk/packages/core/src/services/telemetry/index.ts",
-				),
-			},
-			{
 				find: /^@synai\/core$/,
-				replacement: resolve(rootDir, "../../sdk/packages/core/src/index.ts"),
+				replacement: resolve(rootDir, "../core/src/index.ts"),
 			},
 			{
 				find: /^@synai\/core\/(.+)$/,
-				replacement: resolve(rootDir, "../../sdk/packages/core/src/$1"),
-			},
-			{
-				find: /^@synai\/llms$/,
-				replacement: resolve(rootDir, "../../sdk/packages/llms/src/index.ts"),
-			},
-			{
-				find: /^@synai\/llms\/(.+)$/,
-				replacement: resolve(rootDir, "../../sdk/packages/llms/src/$1"),
-			},
-			{
-				find: /^@synai\/shared\/(.+)$/,
-				replacement: resolve(rootDir, "../../sdk/packages/shared/src/$1"),
-			},
-			{
-				find: /^@synai\/agents$/,
-				replacement: resolve(rootDir, "../../sdk/packages/agents/src/index.ts"),
+				replacement: resolve(rootDir, "../core/src/$1"),
 			},
 			{
 				find: /^@synai\/shared$/,
-				replacement: resolve(rootDir, "../../sdk/packages/shared/src/index.ts"),
+				replacement: resolve(rootDir, "../shared/src/index.ts"),
+			},
+			{
+				find: /^@synai\/shared\/(.+)$/,
+				replacement: resolve(rootDir, "../shared/src/$1"),
+			},
+			{
+				find: "react-reconciler/constants",
+				replacement: resolve(rootDir, "../../node_modules/react-reconciler/constants.js"),
 			},
 		],
 	},
@@ -55,5 +40,10 @@ export default defineConfig({
 		pool: "forks",
 		maxWorkers: 1,
 		fileParallelism: false,
+		server: {
+			deps: {
+				inline: [/@opentui/],
+			},
+		},
 	},
 });

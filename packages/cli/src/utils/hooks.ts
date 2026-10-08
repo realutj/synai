@@ -126,7 +126,7 @@ function basePayload(
 		"unknown";
 	const sessionContext = currentHookSessionContext();
 	return {
-		clineVersion:
+		synaiVersion:
 			process.env.SYNAI_VERSION?.trim() ||
 			process.env.SYNAI_VERSION?.trim() ||
 			"",
@@ -192,7 +192,7 @@ export function createRuntimeHooks(options: {
 	const isShuttingDown = () => shuttingDown;
 	return {
 		hooks: {
-			beforeRun: async (ctx) => {
+			beforeRun: async (ctx: any) => {
 				const root = basePayload(baseContextFromSnapshot(ctx.snapshot), {
 					cwd,
 					workspaceRoot,
@@ -221,7 +221,7 @@ export function createRuntimeHooks(options: {
 				);
 				return undefined;
 			},
-			beforeTool: async (ctx) => {
+			beforeTool: async (ctx: any) => {
 				await dispatchHookPayload(
 					{
 						...basePayload(baseContextFromSnapshot(ctx.snapshot), {
@@ -248,7 +248,7 @@ export function createRuntimeHooks(options: {
 				);
 				return undefined;
 			},
-			afterTool: async (ctx) => {
+			afterTool: async (ctx: any) => {
 				const record = {
 					id: ctx.toolCall.toolCallId,
 					name: ctx.toolCall.toolName,
@@ -287,7 +287,7 @@ export function createRuntimeHooks(options: {
 				);
 				return undefined;
 			},
-			afterRun: async ({ snapshot, result }) => {
+			afterRun: async ({ snapshot, result }: any) => {
 				const base = baseContextFromSnapshot(snapshot);
 				if (result.status === "completed") {
 					await dispatchHookPayload(
@@ -333,7 +333,7 @@ export function createRuntimeHooks(options: {
 					},
 				);
 			},
-			onEvent: async (event) => {
+			onEvent: async (event: any) => {
 				if (event.type !== "message-added" || event.message.role !== "user") {
 					return;
 				}

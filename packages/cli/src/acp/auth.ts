@@ -36,7 +36,7 @@ async function performOAuthLogin(input: {
 	);
 
 	const callbacks = createOAuthClientCallbacks({
-		onPrompt: ({ defaultValue }) => {
+		onPrompt: ({ defaultValue }: any) => {
 			if (defaultValue) {
 				return Promise.resolve(defaultValue);
 			}
@@ -46,9 +46,9 @@ async function performOAuthLogin(input: {
 				),
 			);
 		},
-		onOutput: (message) => writeDiagnostic(`[acp/auth] ${message}`),
-		openUrl: (url) => open(url, { wait: false }).then(() => undefined),
-		onOpenUrlError: ({ url }) => {
+		onOutput: (message: any) => writeDiagnostic(`[acp/auth] ${message}`),
+		openUrl: (url: any) => open(url, { wait: false }).then(() => undefined),
+		onOpenUrlError: ({ url }: any) => {
 			writeDiagnostic(
 				`[acp/auth] Could not open browser automatically. Open this URL manually:\n${url}`,
 			);
@@ -94,7 +94,7 @@ export async function authenticateAcpProvider(
 	}
 
 	// Perform a fresh OAuth login.
-	writeDiagnostic(`[acp/auth] Starting OAuth login for ${methodId}…`);
+	writeDiagnostic(`[acp/auth] Starting OAuth login for ${methodId}...`);
 	const apiKey = await performOAuthLogin({
 		providerId: methodId,
 		providerSettingsManager,
