@@ -12,6 +12,9 @@ const nextConfig = {
 	turbopack: {
 		root: workspaceRoot,
 	},
+	experimental: {
+		cpus: 2,
+	},
 	// Dev-only: Next blocks HMR/font/dev-resource requests from origins that
 	// don't match the dev server's own hostname. Both loopback spellings are
 	// legitimate ways to reach a local or port-forwarded dev server.
