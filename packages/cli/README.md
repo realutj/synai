@@ -43,7 +43,7 @@ For nightly builds:
 npm install -g synai@nightly
 ```
 
-Platform binaries are published for macOS, Linux, and Windows on `arm64` and `x64`. The `synai` package resolves the correct binary for your platform via optional dependencies, so no Node, Bun, or Zig runtime is required at install time.
+Platform binaries are published for macOS, Linux, and Windows on `arm64` and `x64`. The `synai` package resolves the correct prebuilt binary for your platform via optional dependencies. Installing from npm downloads and runs that binary; it does not compile the CLI source on your machine. Building from source is only needed by contributors and maintainers preparing a release.
 
 ## Quick start
 

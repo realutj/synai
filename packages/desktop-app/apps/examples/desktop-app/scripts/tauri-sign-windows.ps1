@@ -1,11 +1,11 @@
 # Authenticode-signs one PE file with Azure Trusted Signing via jsign.
 #
 # Invoked by the Tauri bundler through `bundle > windows > signCommand` (the
-# desktop-publish workflow generates a config overlay pointing here), once per
+# desktop-release workflow generates a config overlay pointing here), once per
 # binary it stages: the main app exe, the code-sidecar external binary, the
 # NSIS uninstaller, and the NSIS installer itself.
 #
-# Requirements (all provided by the desktop-publish Windows job):
+# Requirements (all provided by the desktop-release Windows job):
 # - an azure/login OIDC session (jsign's token comes from `az account get-access-token`)
 # - AZURE_TRUSTED_SIGNING_ENDPOINT / _ACCOUNT_NAME / _CERTIFICATE_PROFILE env vars
 # - java on PATH (preinstalled on GitHub Windows runners)

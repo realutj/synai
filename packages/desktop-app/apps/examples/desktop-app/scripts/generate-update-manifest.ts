@@ -1,5 +1,5 @@
 // Generates the Tauri updater manifest (latest.json) from the updater
-// artifacts produced by the desktop-publish workflow. The manifest is uploaded
+// artifacts produced by the desktop-release workflow. The manifest is uploaded
 // to the rolling `desktop-latest` GitHub release, which is the static endpoint
 // configured in src-tauri/tauri.conf.json; its platform URLs point back at the
 // immutable per-version release assets.
@@ -7,7 +7,7 @@
 // Usage:
 //   bun scripts/generate-update-manifest.ts \
 //     --version 0.1.0 --tag desktop-v0.1.0 --dir dist/desktop \
-//     --out dist/desktop/latest.json [--repo synai/synai] [--notes-file notes.md]
+//     --out dist/desktop/latest.json [--repo realutj/synai] [--notes-file notes.md]
 
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -127,7 +127,7 @@ const main = () => {
 	const repo =
 		getArgValue(args, "--repo") ??
 		process.env.GITHUB_REPOSITORY ??
-		"synai/synai";
+		"realutj/synai";
 	const notesFile = getArgValue(args, "--notes-file");
 
 	if (!version || !tag || !dir || !out) {

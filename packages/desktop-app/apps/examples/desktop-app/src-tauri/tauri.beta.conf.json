@@ -5,7 +5,7 @@
 	"plugins": {
 		"updater": {
 			"endpoints": [
-				"https://github.com/synai/synai/releases/download/desktop-beta/latest.json"
+				"https://github.com/realutj/synai/releases/download/desktop-beta/latest.json"
 			]
 		}
 	}

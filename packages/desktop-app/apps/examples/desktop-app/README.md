@@ -137,19 +137,37 @@ desktop integration notes.
 
 ## Releases & Auto-Updates
 
-Releases are built, signed, notarized, and published by the `desktop-publish`
-GitHub workflow as a single universal macOS DMG — one download that runs
-natively on both Apple Silicon and Intel (macOS picks the matching slice at
-launch, so users never choose an architecture). The step-by-step flow (version
-bumps, changelog, tag, repo secrets) lives in the `publish-desktop` skill
-(`.synai/skills/publish-desktop/SKILL.md`).
+Push a tag matching the Tauri version, such as `desktop-v0.0.29`, to run
+[`.github/workflows/desktop-release.yml`](../../../../../.github/workflows/desktop-release.yml).
+The workflow builds macOS installers for Apple Silicon and Intel, Windows
+installers, and Linux AppImage and Debian packages. It uploads them to the
+versioned GitHub Release, then refreshes the rolling `desktop-latest` release
+with the updater manifest.
 
-Installed apps auto-update via the Tauri updater: they poll the rolling
-`desktop-latest` release's `latest.json` on launch and every 2 hours, install
-updates in the background, and prompt for a restart. Two things must never be
-lost: the `desktop-latest` release/tag (its feed URL is baked into shipped
-apps) and the updater private key (`TAURI_SIGNING_PRIVATE_KEY` — without it,
-shipped apps can't verify new updates).
+The workflow publishes signed desktop builds and requires these GitHub Actions
+secrets:
+
+- Updater: `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`.
+- macOS signing and notarization: `APPLE_CERTIFICATE` (base64-encoded P12),
+  `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`,
+  `APPLE_API_KEY_P8_BASE64`, `APPLE_API_KEY_ID`, and `APPLE_API_ISSUER`.
+- Windows Authenticode signing through Azure Trusted Signing:
+  `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`,
+  `AZURE_TRUSTED_SIGNING_ENDPOINT`,
+  `AZURE_TRUSTED_SIGNING_ACCOUNT_NAME`, and
+  `AZURE_TRUSTED_SIGNING_CERTIFICATE_PROFILE`.
+
+The Windows job uses GitHub OIDC to sign through Azure; configure a federated
+identity credential for this repository and workflow. The release job stops
+when required signing credentials are missing so it cannot publish unsigned
+macOS or Windows installers by accident.
+
+Installed macOS and Windows apps poll the rolling desktop-latest release's
+latest.json on launch and every two hours. Linux users can download the
+AppImage or Debian package from each versioned release. Keep the
+desktop-latest release/tag and updater private key: the endpoint is embedded
+in shipped apps, and the private key must match the public key in
+src-tauri/tauri.conf.json.
 
 There is also a beta channel ("SynAI Beta", a separate app that installs
 side by side with stable) cut from the `desktop-experimental` branch and
