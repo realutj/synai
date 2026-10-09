@@ -85,9 +85,11 @@ jobs:
         run: bun install --frozen-lockfile
         working-directory: packages/desktop-app
 
-      - name: Build shared desktop SDK packages
-        run: bun run build:sdk
-        working-directory: packages/desktop-app
+      - name: Build shared desktop package
+        run: bun bun.mts
+        working-directory: packages/desktop-app/sdk/packages/shared
+        env:
+          BUILD_MODE: package
 
       - name: Verify release tag and app versions
         run: |
