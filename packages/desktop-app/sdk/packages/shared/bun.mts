@@ -20,15 +20,16 @@ const runBuild = async (
 		throw: false,
 	});
 
-	if (!result.success) {
-		throw new Error(`Failed ${name} build`);
+	if (result.logs.length > 0) {
+		const log = result.success ? console.warn : console.error;
+		log(`${name} build emitted logs:`);
+		for (const entry of result.logs) {
+			log(entry);
+		}
 	}
 
-	if (result.logs.length > 0) {
-		console.warn(`${name} build emitted logs:`);
-		for (const log of result.logs) {
-			console.warn(log);
-		}
+	if (!result.success) {
+		throw new Error(`Failed ${name} build`);
 	}
 };
 
