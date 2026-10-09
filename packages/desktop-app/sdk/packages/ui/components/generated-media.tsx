@@ -57,6 +57,8 @@ function renderableMediaType(media: GeneratedMedia): string | undefined {
 		case "file":
 			// Files are downloads, never active browser content.
 			return "application/octet-stream";
+		default:
+			return undefined;
 	}
 }
 
