@@ -71,6 +71,11 @@ jobs:
         with:
           bun-version: 1.4.2
 
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
