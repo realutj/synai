@@ -91,6 +91,10 @@ jobs:
         env:
           BUILD_MODE: package
 
+      - name: Build LLM desktop package
+        run: bun run build
+        working-directory: packages/desktop-app/sdk/packages/llms
+
       - name: Verify release tag and app versions
         run: |
           bun -e 'const pkg = await Bun.file("package.json").json(); const tauri = await Bun.file("src-tauri/tauri.conf.json").json(); if (pkg.version !== tauri.version) throw new Error("package.json (" + pkg.version + ") and Tauri (" + tauri.version + ") versions differ"); if (process.env.GITHUB_REF_NAME !== "desktop-v" + pkg.version) throw new Error("tag " + process.env.GITHUB_REF_NAME + " must match desktop-v" + pkg.version); console.log("Building SynAI desktop " + pkg.version)'
