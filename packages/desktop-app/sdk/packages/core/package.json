@@ -90,8 +90,10 @@
 		}
 	},
 	"devDependencies": {
+		"@types/node": "^25.3.5",
 		"@types/ws": "^8.18.1",
-		"posthog-node": "^5.8.0"
+		"posthog-node": "^5.8.0",
+		"typescript": "5.9.3"
 	},
 	"engines": {
 		"node": ">=22"
